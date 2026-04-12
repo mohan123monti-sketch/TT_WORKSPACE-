@@ -54,8 +54,7 @@ router.get('/:id', verifyToken, (req, res) => {
   res.json(user);
 });
 
-// PUT /api/users/me/profile
-router.put('/me/profile', verifyToken, avatarUpload.single('avatar'), (req, res) => {
+const handleSelfProfileUpdate = (req, res) => {
   const { name, mobile, github_link, bio } = req.body;
 
   if (github_link !== undefined && github_link !== null && github_link !== '') {
@@ -91,7 +90,11 @@ router.put('/me/profile', verifyToken, avatarUpload.single('avatar'), (req, res)
   } catch (err) {
     res.status(500).json({ message: 'Failed to update profile' });
   }
-});
+};
+
+// Support both PUT (REST) and POST (FormData helper compatibility)
+router.put('/me/profile', verifyToken, avatarUpload.single('avatar'), handleSelfProfileUpdate);
+router.post('/me/profile', verifyToken, avatarUpload.single('avatar'), handleSelfProfileUpdate);
 
 // GET /api/users/:id/performance
 router.get('/:id/performance', verifyToken, (req, res) => {
