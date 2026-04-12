@@ -68,10 +68,10 @@ async function startServer() {
     app.get('/api/analytics/summary', (req, res) => {
         try {
             const users = db.prepare('SELECT COUNT(*) as count FROM users WHERE is_active=1').get().count;
-            const projects = db.prepare('SELECT COUNT(*) as count FROM projects WHERE status != "archived"').get().count;
+            const projects = db.prepare("SELECT COUNT(*) as count FROM projects WHERE status != 'archived'").get().count;
             const tasks = db.prepare('SELECT COUNT(*) as count FROM tasks').get().count;
             const submissions = db.prepare('SELECT COUNT(*) as count FROM submissions').get().count;
-            const logins = db.prepare('SELECT COUNT(*) as count FROM login_log WHERE login_at >= date("now", "-30 days")').get().count;
+            const logins = db.prepare("SELECT COUNT(*) as count FROM login_log WHERE login_at >= date('now', '-30 days')").get().count;
             res.json({ users, projects, tasks, submissions, logins });
         } catch (e) {
             res.status(500).json({ error: e.message });
