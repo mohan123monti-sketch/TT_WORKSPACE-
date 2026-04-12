@@ -625,10 +625,10 @@
             // Check auth first
             auth.requireAuth();
             const user = auth.getUser();
-            if (!user) return;
+            if (!auth.getToken()) return;
 
             // Layout & Global Components
-            auth.initNavbar();
+            if (user) auth.initNavbar();
             initThreeBg();
             initSidebar();
 

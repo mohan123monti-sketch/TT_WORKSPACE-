@@ -33,19 +33,22 @@ router.put('/gear/:id/status', verifyToken, checkRole('admin','creator'), (req, 
   res.json({ message: `Gear status updated to ${status}` });
 });
 
-// --- NEXUS CLIPS (Mock AI) ---
 router.post('/nexus-clips', verifyToken, checkRole('admin','creator'), (req, res) => {
   const { submission_id } = req.body;
   if (!submission_id) return res.status(400).json({ message: 'Submission ID required' });
 
-  // Mock clip generation
+  const submission = db.prepare('SELECT s.id, s.content_text, s.file_path, t.title as task_title FROM submissions s LEFT JOIN tasks t ON t.id=s.task_id WHERE s.id=?').get(submission_id);
+  if (!submission) return res.status(404).json({ message: 'Submission not found' });
+
+  const baseTitle = submission.task_title || 'Submission Review';
+  const contentLength = (submission.content_text || '').split(/\s+/).filter(Boolean).length;
   const clips = [
-    { title: 'Intro Sequence', duration: '0:15', score: 85 },
-    { title: 'Technical Demonstration', duration: '0:45', score: 92 },
-    { title: 'Outro Hook', duration: '0:10', score: 78 }
+    { title: `${baseTitle} - Opening`, duration: '0:15', score: Math.min(98, 70 + Math.min(20, contentLength)) },
+    { title: `${baseTitle} - Core Segment`, duration: '0:45', score: Math.min(98, 75 + Math.min(15, contentLength / 2)) },
+    { title: `${baseTitle} - Closing`, duration: '0:10', score: Math.min(98, 65 + Math.min(25, contentLength)) }
   ];
-  
-  res.json({ submission_id, clips, summary: 'Nexus AI generated high-impact clips from the raw footage.' });
+
+  res.json({ submission_id, clips, summary: 'Clip suggestions derived from the submission metadata.' });
 });
 
 module.exports = router;

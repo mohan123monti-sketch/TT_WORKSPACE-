@@ -8,7 +8,24 @@ const auth = {
     return localStorage.getItem(this.TOKEN_KEY) || localStorage.getItem('token');
   },
   setUser(user) { localStorage.setItem(this.USER_KEY, JSON.stringify(user)); },
-  getUser() { try { return JSON.parse(localStorage.getItem(this.USER_KEY)); } catch { return null; } },
+  getUser() {
+    const tryParse = (raw) => {
+      if (!raw || raw === 'undefined' || raw === 'null') return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    const primary = tryParse(localStorage.getItem(this.USER_KEY));
+    if (primary) return primary;
+
+    // Legacy key fallback: normalize older sessions into current key.
+    const legacy = tryParse(localStorage.getItem('user'));
+    if (legacy) {
+      this.setUser(legacy);
+      return legacy;
+    }
+
+    return null;
+  },
   isLoggedIn() { return !!this.getToken(); },
 
   // Check if the logged-in user has at least one of the given roles (primary OR secondary)

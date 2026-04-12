@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
+const db     = require('./db');
 require('dotenv').config();
 
 const JWT_SECRET  = process.env.JWT_SECRET || 'techturf_dev_secret_change_this';
@@ -38,7 +39,22 @@ function verifyToken(req, res, next) {
   }
 
   try {
-    req.user = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Always resolve the latest account state from DB so admin role/status updates
+    // apply immediately to already logged-in sessions.
+    const dbUser = db.prepare('SELECT id,name,email,role,secondary_roles,is_active FROM users WHERE id=?').get(decoded.id);
+    if (!dbUser || Number(dbUser.is_active) !== 1) {
+      return res.status(401).json({ message: 'Account inactive or not found' });
+    }
+
+    req.user = {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      role: dbUser.role,
+      secondary_roles: dbUser.secondary_roles || ''
+    };
     next();
   } catch(e) {
     console.error('--- AUTH ERROR ---');

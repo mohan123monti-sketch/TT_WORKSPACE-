@@ -6,8 +6,28 @@
 async function initDashboard() {
     try {
         console.log("Initializing Dashboard...");
-        const user = auth.getUser();
-        if (!user) return;
+        let user = auth.getUser();
+
+        // Always resolve latest profile from backend so role/status changes made by
+        // admins are reflected immediately on existing sessions.
+        if (auth.getToken()) {
+            try {
+                const latestUser = await api.get('/auth/me');
+                if (latestUser) {
+                    user = latestUser;
+                    auth.setUser(latestUser);
+                    auth.initNavbar();
+                }
+            } catch {
+                auth.logout();
+                return;
+            }
+        }
+
+        if (!user) {
+            auth.logout();
+            return;
+        }
 
         // Load common modules for all users
         loadMyTasks();

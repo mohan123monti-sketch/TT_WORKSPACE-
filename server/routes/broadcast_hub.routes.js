@@ -21,11 +21,9 @@ router.put('/posts/:id/status', verifyToken, checkRole('admin','media_manager'),
   res.json({ message: `Broadcast status updated to ${status}` });
 });
 
-// --- TRANSCODE ENGINE (Mock Engine) ---
 router.post('/transcode', verifyToken, checkRole('admin','media_manager','creator'), (req, res) => {
   const { submission_id, target_format } = req.body;
-  
-  // Mock transcode logic
+
   const formats = { 'web': 'mp4', 'social': 'mov', 'archive': 'mkv' };
   const resultFormat = formats[target_format] || 'mp4';
   

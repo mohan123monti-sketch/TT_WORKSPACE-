@@ -16,19 +16,18 @@ router.post('/assets', verifyToken, checkRole('admin','designer'), (req, res) =>
   res.json({ message: 'Asset added to Galaxy', id: result.lastInsertRowid });
 });
 
-// --- BRAND VALIDATOR (Mock AI) ---
 router.post('/validate-colors', verifyToken, checkRole('admin','designer'), (req, res) => {
   const { colors, project_id } = req.body; // colors: array of hex codes
   if (!colors || !Array.isArray(colors)) return res.status(400).json({ message: 'Color palette required' });
 
-  // Mock validation logic
   const isValid = colors.every(c => /^#([0-9A-F]{3}){1,2}$/i.test(c));
-  const projectVibe = Math.random() > 0.3 ? 'Aligned' : 'Divergent';
+  const uniqueColors = new Set(colors.map(c => c.toLowerCase()));
+  const projectVibe = isValid && uniqueColors.size >= 2 ? 'Aligned' : 'Divergent';
   
   res.json({
     status: isValid ? 'Valid Palette' : 'Invalid Hex Codes',
     alignment: projectVibe,
-    recommendation: projectVibe === 'Aligned' ? 'Palette maintains project consistency.' : 'Primary accent is too divergent from branding guide.'
+    recommendation: projectVibe === 'Aligned' ? 'Palette maintains project consistency.' : 'Use a tighter set of brand-aligned colors.'
   });
 });
 

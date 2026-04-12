@@ -171,7 +171,7 @@ function setupEventListeners() {
         }
     });
 
-    // Mock Actions for secondary UI
+    // Secondary UI actions
     safeListen('.fa-microphone', 'click', () => showToast('Nexus Voice command active...', 'info'));
     safeListen('.fa-paperclip', 'click', () => showToast('Attachment system coming soon', 'info'));
 

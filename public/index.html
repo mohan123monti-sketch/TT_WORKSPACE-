@@ -185,7 +185,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       initThreeBg();
 
-      if (auth.isLoggedIn()) {
+      if (auth.isLoggedIn() && auth.getUser()) {
         window.location.href = 'dashboard.html';
       }
 
