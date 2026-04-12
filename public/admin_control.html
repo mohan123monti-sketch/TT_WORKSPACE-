@@ -349,6 +349,68 @@
       max-width: 90px;
     }
 
+    .admin-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .admin-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .admin-list-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .admin-list-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .admin-list-title {
+      font-weight: 800;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .admin-list-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .role-color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 3px;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .admin-list-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .member-select {
+      min-height: 140px;
+    }
+
     @media (max-width: 1200px) {
       .admin-grid {
         grid-template-columns: 1fr;
@@ -435,6 +497,47 @@
               <i class="fas fa-crown icon-primary"></i>
             </div>
             <div id="role-list"></div>
+          </div>
+
+          <div class="glass-card dash-card anim-fade-up">
+            <div class="card-header-row--sm">
+              <div class="card-title">COMPANY ROLES</div>
+              <i class="fas fa-id-badge icon-orange"></i>
+            </div>
+            <form id="company-role-form">
+              <input type="hidden" id="company-role-id">
+              <div class="admin-form-grid">
+                <div class="form-group"><label>Role Name</label><input class="form-control" id="company-role-name" placeholder="content_strategist" required></div>
+                <div class="form-group"><label>Color</label><input class="form-control" id="company-role-color" type="color" value="#4f46e5"></div>
+              </div>
+              <div class="form-group"><label>Description</label><textarea class="form-control" id="company-role-description" rows="3" placeholder="Role description"></textarea></div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                <button type="submit" class="btn-primary" style="flex:1;">Save Role</button>
+                <button type="button" class="btn-secondary" style="flex:1;" id="company-role-cancel">Reset</button>
+              </div>
+            </form>
+            <div class="admin-list" id="company-roles-list"></div>
+          </div>
+
+          <div class="glass-card dash-card anim-fade-up">
+            <div class="card-header-row--sm">
+              <div class="card-title">TEAMS</div>
+              <i class="fas fa-users icon-primary"></i>
+            </div>
+            <form id="team-form">
+              <input type="hidden" id="team-id">
+              <div class="form-group"><label>Team Name</label><input class="form-control" id="team-name" placeholder="Studio Crew" required></div>
+              <div class="form-group"><label>Description</label><textarea class="form-control" id="team-description" rows="3" placeholder="Team purpose"></textarea></div>
+              <div class="admin-form-grid">
+                <div class="form-group"><label>Team Leader</label><select class="form-control" id="team-leader"></select></div>
+                <div class="form-group"><label>Members</label><select class="form-control member-select" id="team-members" multiple></select></div>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                <button type="submit" class="btn-primary" style="flex:1;">Save Team</button>
+                <button type="button" class="btn-secondary" style="flex:1;" id="team-cancel">Reset</button>
+              </div>
+            </form>
+            <div class="admin-list" id="teams-list"></div>
           </div>
         </div>
       </div>

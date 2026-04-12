@@ -1,4 +1,44 @@
+const BUILTIN_ROLE_OPTIONS = [
+  { value: 'writer', label: 'Writer' },
+  { value: 'designer', label: 'Designer' },
+  { value: 'team_leader', label: 'Team Leader' },
+  { value: 'rnd', label: 'R&D' },
+  { value: 'creator', label: 'Creator' },
+  { value: 'media_manager', label: 'Media Mgr' },
+  { value: 'client_handler', label: 'Client Handler' },
+  { value: 'admin', label: 'Admin' }
+];
+
+let companyRoleOptions = [];
+
+function getRoleOptions() {
+  const combined = [...BUILTIN_ROLE_OPTIONS];
+  companyRoleOptions.forEach(role => {
+    if (!combined.some(option => option.value === role.name)) {
+      combined.push({ value: role.name, label: role.name.replace(/_/g, ' ') });
+    }
+  });
+  return combined;
+}
+
+function renderRoleOptionSelects() {
+  const select = document.getElementById('user-secondary-roles');
+  if (select) {
+    select.innerHTML = getRoleOptions().map(role => `<option value="${role.value}">${role.label}</option>`).join('');
+  }
+}
+
+async function loadCompanyRoles() {
+  try {
+    companyRoleOptions = await api.get('/admin/company-roles');
+  } catch {
+    companyRoleOptions = [];
+  }
+  renderRoleOptionSelects();
+}
+
 async function initUsers() {
+  await loadCompanyRoles();
   loadUsers();
   initSearch();
 
@@ -44,11 +84,7 @@ async function loadUsers() {
         `;
         return;
       }
-      const allRoles = [
-        {val:'writer',label:'Writer'},{val:'designer',label:'Designer'},{val:'team_leader',label:'Team Leader'},
-        {val:'rnd',label:'R&D'},{val:'creator',label:'Creator'},{val:'media_manager',label:'Media Mgr'},
-        {val:'client_handler',label:'Client Handler'},{val:'admin',label:'Admin'}
-      ];
+      const allRoles = getRoleOptions().map(role => ({ val: role.value, label: role.label }));
 
       tbody.innerHTML = users.map(u => {
         const secRoles = (u.secondary_roles || '').split(',').filter(r => r.trim());
@@ -170,11 +206,7 @@ window.deleteUser = async function(id) {
 
 // Edit user in a quick modal
 window.editUser = function(id, name, primaryRole, secondaryRolesStr) {
-  const allRoleOptions = [
-    {val:'writer',label:'Content Writer'},{val:'designer',label:'Designer'},{val:'team_leader',label:'Team Leader'},
-    {val:'rnd',label:'R&D Specialist'},{val:'creator',label:'Content Creator'},{val:'media_manager',label:'Media Manager'},
-    {val:'client_handler',label:'Client Handler'},{val:'admin',label:'Administrator'}
-  ];
+  const allRoleOptions = getRoleOptions().map(role => ({ val: role.value, label: role.label }));
   const secRoles = (secondaryRolesStr || '').split(',').filter(r => r.trim());
 
   // Build or reuse a quick-edit modal
@@ -321,3 +353,4 @@ window.initUsers = initUsers;
 window.openUserPerformance = openUserPerformance;
 window.closeDetailPanel = closeDetailPanel;
 window.deactivateUser = deactivateUser;
+window.loadCompanyRoles = loadCompanyRoles;

@@ -67,6 +67,11 @@ function initSidebar() {
           <span class="menu-text">Secure Drive</span>
         </div>
 
+        <div class="menu-item" onclick="window.location.href='messages.html'">
+          <i class="fas fa-comments" style="color:var(--accent-primary);"></i>
+          <span class="menu-text">Team Messenger</span>
+        </div>
+
         <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
           <i class="fas fa-robot" style="color:var(--accent-pink);"></i>
           <span class="menu-text">Nexus AI Terminal</span>

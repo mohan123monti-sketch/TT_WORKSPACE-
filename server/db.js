@@ -197,6 +197,66 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- COMPANY ROLES
+CREATE TABLE IF NOT EXISTS company_roles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  description TEXT,
+  color TEXT DEFAULT '#4f46e5',
+  is_system INTEGER DEFAULT 0,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TEAMS
+CREATE TABLE IF NOT EXISTS teams (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  description TEXT,
+  leader_id INTEGER REFERENCES users(id),
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS team_members (
+  team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  PRIMARY KEY (team_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
+
+-- MESSAGING
+CREATE TABLE IF NOT EXISTS conversations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT,
+  is_group INTEGER DEFAULT 0,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS conversation_participants (
+  conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  PRIMARY KEY (conversation_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id INTEGER REFERENCES users(id),
+  message TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_participants_user_id ON conversation_participants(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_id ON chat_messages(conversation_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_sender_id ON chat_messages(sender_id);
+
 -- SYSTEM SETTINGS
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
@@ -409,5 +469,20 @@ if (!userColumns.includes('github_link')) {
 if (!userColumns.includes('bio')) {
   db.exec('ALTER TABLE users ADD COLUMN bio TEXT');
 }
+
+const roleSeedStmt = db.prepare(`
+  INSERT OR IGNORE INTO company_roles (name, description, color, is_system)
+  VALUES (?, ?, ?, 1)
+`);
+[
+  ['admin', 'System administrator role', '#ef4444'],
+  ['team_leader', 'Leads projects and teams', '#f59e0b'],
+  ['rnd', 'Research and development', '#22c55e'],
+  ['writer', 'Content writing role', '#3b82f6'],
+  ['designer', 'Design and visual work', '#a855f7'],
+  ['media_manager', 'Media planning and publishing', '#ec4899'],
+  ['creator', 'Creator and production role', '#14b8a6'],
+  ['client_handler', 'Client communication and support', '#f97316']
+].forEach(([name, description, color]) => roleSeedStmt.run(name, description, color));
 
 module.exports = db;

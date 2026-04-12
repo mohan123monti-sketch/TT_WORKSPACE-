@@ -60,6 +60,8 @@ async function startServer() {
     app.use('/api/tickets', require('./routes/tickets.routes'));
     app.use('/api/payments', require('./routes/payments.routes'));
     app.use('/api/admin', require('./routes/admin.routes'));
+    app.use('/api/teams', require('./routes/teams.routes'));
+    app.use('/api/messages', require('./routes/messages.routes'));
     app.use('/api/workspace', require('./routes/workspace.routes'));
     app.use('/api/client-connect', require('./routes/client_connect.routes'));
 
