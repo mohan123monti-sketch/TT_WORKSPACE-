@@ -7,7 +7,7 @@ const crypto = require('crypto');
 router.get('/summary', verifyToken, (req, res) => {
   const activeClients = db.prepare('SELECT COUNT(*) as count FROM clients').get().count;
   const activePasses = db.prepare('SELECT COUNT(*) as count FROM portal_access WHERE expires_at > ?').get(new Date().toISOString()).count;
-  const recentTalks = db.prepare('SELECT COUNT(*) as count FROM client_interactions WHERE created_at > date("now", "-7 days")').get().count;
+  const recentTalks = db.prepare("SELECT COUNT(*) as count FROM client_interactions WHERE created_at > date('now', '-7 days')").get().count;
   res.json({ activeClients, activePasses, recentTalks });
 });
 

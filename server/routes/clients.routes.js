@@ -131,9 +131,15 @@ router.post('/:id/feedback', verifyToken, (req, res) => {
 router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
   try {
     const id = req.params.id;
-    // Detach projects first to prevent SQLite foreign key constraint violations
-    db.prepare('UPDATE projects SET client_id=NULL WHERE client_id=?').run(id);
-    db.prepare('DELETE FROM clients WHERE id=?').run(id);
+    // Detach/delete dependent rows first to satisfy SQLite FK constraints.
+    const cleanupAndDelete = db.transaction(() => {
+      db.prepare('UPDATE projects SET client_id=NULL WHERE client_id=?').run(id);
+      db.prepare('DELETE FROM portal_access WHERE client_id=?').run(id);
+      db.prepare('DELETE FROM client_interactions WHERE client_id=?').run(id);
+      db.prepare('DELETE FROM submissions WHERE client_id=?').run(id);
+      db.prepare('DELETE FROM clients WHERE id=?').run(id);
+    });
+    cleanupAndDelete();
     res.json({ message: 'Client deleted successfully' });
   } catch (err) {
     console.error('Failed to delete client:', err.message);

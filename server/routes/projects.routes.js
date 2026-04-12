@@ -126,14 +126,14 @@ router.put('/:id', verifyToken, checkRole('admin', 'team_leader'), (req, res) =>
 router.post('/:id/archive', verifyToken, checkRole('admin'), (req, res) => {
   const project = db.prepare('SELECT * FROM projects WHERE id=?').get(req.params.id);
   if (!project) return res.status(404).json({ message: 'Project not found' });
-  db.prepare('UPDATE projects SET status="archived", updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.params.id);
+  db.prepare("UPDATE projects SET status='archived', updated_at=CURRENT_TIMESTAMP WHERE id=?").run(req.params.id);
   res.json({ message: 'Project archived' });
 });
 
 router.post('/:id/restore', verifyToken, checkRole('admin'), (req, res) => {
   const project = db.prepare('SELECT * FROM projects WHERE id=?').get(req.params.id);
   if (!project) return res.status(404).json({ message: 'Project not found' });
-  db.prepare('UPDATE projects SET status="active", updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.params.id);
+  db.prepare("UPDATE projects SET status='active', updated_at=CURRENT_TIMESTAMP WHERE id=?").run(req.params.id);
   res.json({ message: 'Project restored' });
 });
 

@@ -28,7 +28,7 @@ router.post('/', verifyToken, (req, res) => {
 router.put('/:id', verifyToken, (req, res) => {
   const { id } = req.params;
   const { status, assigned_to } = req.body;
-  let sql = 'UPDATE tickets SET updated_at=datetime("now")';
+  let sql = "UPDATE tickets SET updated_at=datetime('now')";
   const params = [];
   if (status) { sql += ', status=?'; params.push(status); }
   if (assigned_to) { sql += ', assigned_to=?'; params.push(assigned_to); }
