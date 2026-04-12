@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Nexus Lab</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 0 24px 24px;
+    }
+    .experiment-card {
+      padding: 20px;
+      border-left: 4px solid var(--accent-pink);
+    }
+    .experiment-status {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+    .knowledge-article {
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+    }
+    .article-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--accent-primary);
+      margin-bottom: 4px;
+    }
+    .article-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+    @media (max-width: 1024px) {
+      .lab-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav">
+        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+          <i class="fas fa-th-large"></i>
+          <span class="menu-text">Command Center</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='projects.html'">
+          <i class="fas fa-project-diagram"></i>
+          <span class="menu-text">Operations</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='tasks.html'">
+          <i class="fas fa-tasks"></i>
+          <span class="menu-text">Task Stream</span>
+        </div>
+        <div class="menu-item tl-only" onclick="window.location.href='submissions.html'">
+          <i class="fas fa-check-double"></i>
+          <span class="menu-text">Directives</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='drive.html'">
+          <i class="fas fa-hdd"></i>
+          <span class="menu-text">Secure Drive</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        
+        <!-- Role Hubs -->
+        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+          <i class="fas fa-users-cog"></i>
+          <span class="menu-text">User Management</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+          <i class="fas fa-shield-alt"></i>
+          <span class="menu-text">Admin Warp</span>
+        </div>
+        
+        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+          <i class="fas fa-flask"></i>
+          <span class="menu-text">Nexus Lab</span>
+        </div>
+        
+        
+        
+        
+        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+          <i class="fas fa-handshake"></i>
+          <span class="menu-text">Client Connect</span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.2rem; margin-left:15px;">NEXUS LAB</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">R&D / Experiments / Knowledge</div>
+          <div class="page-title">INNOVATION NEXUS</div>
+        </div>
+        <div class="rnd-only">
+          <button class="btn-primary" onclick="openModal('new-experiment-modal')">
+            <i class="fas fa-plus"></i> Initiate Experiment
+          </button>
+        </div>
+      </div>
+
+      <div class="lab-grid">
+        <!-- Section: Active Experiments -->
+        <div class="glass-card dash-card anim-fade-up">
+          <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="font-family:var(--font-display); font-weight:700;">LIVE EXPERIMENTS</div>
+            <i class="fas fa-flask" style="color:var(--accent-pink);"></i>
+          </div>
+          <div id="experiment-list"></div>
+        </div>
+
+        <!-- Section: Knowledge Base -->
+        <div class="glass-card dash-card anim-fade-up">
+          <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="font-family:var(--font-display); font-weight:700;">RESEARCH REPOSITORY</div>
+            <i class="fas fa-book" style="color:var(--accent-primary);"></i>
+          </div>
+          <div id="knowledge-list"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="new-experiment-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">INITIATE EXPERIMENT</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('new-experiment-modal')"></i>
+      </div>
+      <form id="new-experiment-form">
+        <div class="form-group">
+          <label>Experiment Title</label>
+          <input type="text" class="form-control" id="exp-title" placeholder="Protocol Name..." required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" id="exp-desc" rows="3" placeholder="Hypothesis & Testing Steps..."></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">START RESEARCH</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/nexus-lab.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if(window.initNexusLab) initNexusLab();
+    });
+  </script>
+</body>
+</html>
+

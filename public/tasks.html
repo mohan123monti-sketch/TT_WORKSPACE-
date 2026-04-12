@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    .mobile-hamburger {
+      display: none;
+      background: none;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+    }
+
+    @media(max-width:768px) {
+      .mobile-hamburger {
+        display: flex;
+      }
+    }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Tasks</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    .task-table-wrap {
+      padding: 0 24px 24px;
+    }
+
+    .task-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-glass);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .task-table th {
+      text-align: left;
+      padding: 16px;
+      background: var(--bg-secondary);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .task-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .task-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .task-table tr:hover {
+      background: var(--bg-hover);
+    }
+
+    .filter-bar {
+      padding: 0 24px 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .filter-item {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .task-title-cell {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .task-project-cell {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Multi-member picker */
+    .member-picker {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-secondary);
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 44px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .member-picker:focus-within {
+      border-color: var(--accent-primary);
+    }
+
+    .member-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(108, 99, 255, 0.18);
+      color: var(--accent-primary);
+      border: 1px solid rgba(108, 99, 255, 0.35);
+      border-radius: 20px;
+      padding: 3px 10px 3px 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .member-chip img {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+    }
+
+    .member-chip .chip-remove {
+      cursor: pointer;
+      opacity: 0.6;
+      font-size: 0.65rem;
+      margin-left: 2px;
+      transition: opacity 0.15s;
+    }
+
+    .member-chip .chip-remove:hover {
+      opacity: 1;
+    }
+
+    .member-picker-search {
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      outline: none;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .member-picker-dropdown {
+      position: absolute;
+      z-index: 500;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      max-height: 180px;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-direction: column;
+      min-width: 220px;
+    }
+
+    .member-picker-dropdown.open {
+      display: flex;
+    }
+
+    .picker-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.15s;
+    }
+
+    .picker-option:hover {
+      background: var(--bg-hover);
+    }
+
+    .picker-option img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+
+    .picker-option.selected {
+      color: var(--accent-primary);
+    }
+
+    .member-picker-wrap {
+      position: relative;
+    }
+
+    .member-avatars {
+      display: flex;
+      align-items: center;
+      gap: -4px;
+    }
+
+    .member-avatars img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      margin-left: -6px;
+    }
+
+    .member-avatars img:first-child {
+      margin-left: 0;
+    }
+
+    .member-count-badge {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 6px;
+      white-space: nowrap;
+    }
+  </style>
+
+  <!-- Extracted Inline Styles -->
+  <style>
+    .ui-style-1 {
+      color: var(--accent-pink);
+    }
+
+    .ui-style-2 {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+      opacity: 0.3;
+    }
+
+    .ui-style-3 {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 320px;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    .ui-style-4 {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .ui-style-5 {
+      font-weight: 700;
+    }
+
+    .ui-style-6 {
+      font-size: 0.7rem;
+      color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    .ui-style-7 {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .ui-style-8 {
+      text-align: right;
+    }
+
+    .ui-style-9 {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .ui-style-10 {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .ui-style-11 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .ui-style-12 {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .ui-style-13 {
+      margin-bottom: 20px;
+      padding: 12px;
+      background: var(--bg-hover);
+      border-radius: var(--radius-sm);
+    }
+
+    .ui-style-14 {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .ui-style-15 {
+      display: none;
+    }
+
+    .ui-style-16 {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .ui-style-17 {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      color: var(--accent-pink);
+    }
+
+    .ui-style-18 {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .ui-style-19 {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .ui-style-20 {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2200;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .ui-style-21 {
+      width: 95vw;
+      max-width: 900px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ui-style-22 {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ui-style-23 {
+      cursor: pointer;
+    }
+
+    .ui-style-24 {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg-card);
+    }
+
+    .ui-style-25 {
+      width: 95vw;
+      max-width: 700px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ui-style-26 {
+      padding: 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ui-style-27 {
+      flex: 2;
+    }
+
+    .ui-style-28 {
+      flex: 3;
+    }
+
+    .ui-style-29 {
+      flex: 1;
+    }
+
+    .ui-style-30 {
+      margin-top: 0;
+    }
+
+    .ui-style-31 {
+      padding: 20px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .ui-style-32 {
+      grid-column: span 2;
+    }
+
+    .ui-style-33 {
+      width: 95vw;
+      max-width: 600px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ui-style-34 {
+      padding: 15px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+          <i class="fas fa-th-large"></i>
+          <span class="menu-text">Dashboard</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='projects.html'">
+          <i class="fas fa-project-diagram"></i>
+          <span class="menu-text">Projects</span>
+        </div>
+        <div class="menu-item active" onclick="window.location.href='tasks.html'">
+          <i class="fas fa-tasks"></i>
+          <span class="menu-text">Tasks</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='submissions.html'">
+          <i class="fas fa-file-upload"></i>
+          <span class="menu-text">Submissions</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='clients.html'">
+          <i class="fas fa-user-tie"></i>
+          <span class="menu-text">Clients</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='announcements.html'">
+          <i class="fas fa-bullhorn"></i>
+          <span class="menu-text">Announcements</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='drive.html'">
+          <i class="fas fa-hdd"></i>
+          <span class="menu-text">Secure Drive</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
+          <i class="fas fa-robot ui-style-1"></i>
+          <span class="menu-text">Nexus AI Terminal</span>
+        </div>
+
+        <hr class="ui-style-2">
+
+        <!-- Role-Based Control Centers -->
+        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+          <i class="fas fa-users-cog"></i>
+          <span class="menu-text">User Management</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+          <i class="fas fa-shield-alt"></i>
+          <span class="menu-text">Admin Warp</span>
+        </div>
+        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+          <i class="fas fa-flask"></i>
+          <span class="menu-text">Nexus Lab</span>
+        </div>
+        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+          <i class="fas fa-handshake"></i>
+          <span class="menu-text">Client Connect</span>
+        </div>
+
+
+        <hr class="ui-style-2">
+
+        <div class="menu-item admin-only" id="dbadmin-link">
+          <i class="fas fa-database"></i>
+          <span class="menu-text">Database Viewer</span>
+        </div>
+        <div class="menu-item" id="tickets-link">
+          <i class="fas fa-ticket-alt"></i>
+          <span class="menu-text">Tickets</span>
+        </div>
+        <div class="menu-item admin-only" id="payments-link">
+          <i class="fas fa-money-check-alt"></i>
+          <span class="menu-text">Payments</span>
+        </div>
+        <div class="menu-item admin-only" id="courses-link">
+          <i class="fas fa-graduation-cap"></i>
+          <span class="menu-text">Learning Hub</span>
+        </div>
+
+        <hr class="ui-style-2">
+
+        <div class="menu-item" onclick="window.location.href='profile.html'">
+          <i class="fas fa-user-circle"></i>
+          <span class="menu-text">My Profile</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Toggle Sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle Mobile Menu"><i
+              class="fas fa-bars"></i></button>
+          <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="task-search" title="Search tasks" placeholder="Search tasks...">
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <div class="notification-bell" id="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notification-badge">0</span>
+            <div class="notification-dropdown glass-card ui-style-3" id="notification-dropdown">
+              <div class="ui-style-4">
+                <span class="ui-style-5">Notifications</span>
+                <span onclick="api.put('/notifications/read-all').then(loadNotifications)" class="ui-style-6">Mark all
+                  read</span>
+              </div>
+              <div id="notification-list" class="ui-style-7"></div>
+            </div>
+          </div>
+
+          <div class="user-profile-nav" onclick="window.location.href='profile.html'">
+            <div class="ui-style-8">
+              <div id="nav-user-name" class="ui-style-9">User Name</div>
+              <div id="nav-user-role" class="ui-style-10">Role</div>
+            </div>
+            <img id="nav-avatar" class="user-avatar" src="" alt="Avatar">
+          </div>
+        </div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Workspace / Tasks</div>
+          <div class="page-title">TASK OVERVIEW</div>
+        </div>
+        <div class="admin-tl-only">
+          <button class="btn-primary" onclick="openModal('new-task-modal')"><i class="fas fa-plus"></i><span>New
+              Task</span></button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-item"><select class="form-control" id="filter-project" title="Filter by Client"
+            onchange="loadTasks()">
+            <option value="">All Clients</option>
+          </select></div>
+        <div class="filter-item"><select class="form-control" id="filter-priority" title="Filter by Priority"
+            onchange="loadTasks()">
+            <option value="">All Priorities</option>
+            <option value="urgent">Urgent</option>
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+          </select></div>
+        <div class="filter-item"><select class="form-control" id="filter-status" title="Filter by Status"
+            onchange="loadTasks()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="submitted">Submitted</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="rework">Rework</option>
+          </select></div>
+      </div>
+
+      <div class="task-table-wrap">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Task Details</th>
+              <th>Members</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Deadline</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="task-list-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Task Modal -->
+  <div class="modal" id="new-task-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">CREATE TASK</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('new-task-modal')"></i>
+      </div>
+      <form id="new-task-form">
+        <div class="form-group"><label>Client</label><select class="form-control" title="Task Client" id="task-project"
+            required></select>
+        </div>
+        <div class="form-group"><label>Task Title</label><input type="text" class="form-control" id="task-title"
+            title="Task Title" placeholder="Enter task title" required></div>
+        <div class="form-group"><label>Description</label><textarea class="form-control" id="task-desc"
+            title="Task Description" placeholder="Enter task description" rows="2"></textarea></div>
+        <div class="form-group">
+          <label>Assign Members</label>
+          <div class="member-picker-wrap">
+            <div class="member-picker" id="new-member-picker"
+              onclick="togglePickerDropdown('new-picker-dropdown', 'new-picker-search')">
+              <input type="text" class="member-picker-search" id="new-picker-search" title="Search Members"
+                placeholder="Search & add members..." autocomplete="off"
+                oninput="filterPickerOptions('new-picker-dropdown', this.value)"
+                onfocus="openPickerDropdown('new-picker-dropdown')">
+            </div>
+            <div class="member-picker-dropdown" id="new-picker-dropdown"></div>
+          </div>
+          <input type="hidden" id="new-task-members">
+        </div>
+        <div class="ui-style-11">
+          <div class="form-group"><label>Priority</label><select class="form-control" id="task-priority"
+              title="Task Priority">
+              <option value="low">Low</option>
+              <option value="normal" selected>Normal</option>
+              <option value="urgent">Urgent</option>
+            </select></div>
+          <div class="form-group"><label>Deadline</label><input type="date" title="Task Deadline" class="form-control"
+              id="task-deadline">
+          </div>
+        </div>
+        <button type="submit" class="btn-primary ui-style-12">Create Task</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Submit Modal -->
+  <div class="modal" id="submit-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">SUBMIT WORK</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('submit-modal')"></i>
+      </div>
+      <div id="submit-task-info" class="ui-style-13"></div>
+      <form id="submit-form">
+        <input type="hidden" id="submit-task-id">
+        <div class="form-group"><label>Content / Notes</label><textarea class="form-control" id="submit-text" rows="4"
+            placeholder="Describe your work or paste content here..."></textarea></div>
+        <div class="form-group">
+          <label>File Attachment</label>
+          <div class="upload-zone" id="upload-zone"><i class="fas fa-cloud-upload-alt"></i>
+            <div>Drag & drop or click to upload</div>
+            <div class="ui-style-14">Max size: 50MB</div><input type="file" id="file-input" class="ui-style-15">
+          </div>
+          <div class="upload-preview ui-style-15" id="upload-preview"></div>
+        </div>
+        <button type="submit" class="btn-primary ui-style-12" id="submit-btn">Submit for
+          Review</button>
+      </form>
+
+      <div id="nexus-result" class="ui-style-16">
+        <div class="ui-style-17">
+          NEXUS AI EVALUATION</div>
+        <div id="nexus-ring-container"></div>
+        <div id="nexus-feedback" class="ui-style-18"></div>
+        <button class="btn-primary ui-style-19" onclick="finishSubmissionReview()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div class="modal" id="edit-task-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">EDIT TASK</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('edit-task-modal')"></i>
+      </div>
+      <form id="edit-task-form">
+        <input type="hidden" id="edit-task-id">
+        <div class="form-group"><label>Task Title</label><input type="text" class="form-control" id="edit-task-title"
+            title="Task Title" placeholder="Enter task title" required></div>
+        <div class="form-group"><label>Description</label><textarea class="form-control" id="edit-task-desc"
+            title="Task Description" placeholder="Enter task description" rows="3"></textarea></div>
+        <div class="form-group">
+          <label>Assign Members</label>
+          <div class="member-picker-wrap">
+            <div class="member-picker" id="edit-member-picker"
+              onclick="togglePickerDropdown('edit-picker-dropdown', 'edit-picker-search')">
+              <input type="text" class="member-picker-search" id="edit-picker-search" title="Search Members"
+                placeholder="Search & add members..." autocomplete="off"
+                oninput="filterPickerOptions('edit-picker-dropdown', this.value)"
+                onfocus="openPickerDropdown('edit-picker-dropdown')">
+            </div>
+            <div class="member-picker-dropdown" id="edit-picker-dropdown"></div>
+          </div>
+          <input type="hidden" id="edit-task-members">
+        </div>
+        <div class="ui-style-11">
+          <div class="form-group"><label>Priority</label><select class="form-control" title="Task Priority"
+              id="edit-task-priority">
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select></div>
+          <div class="form-group"><label>Max Revisions</label><input type="number" min="1" max="10"
+              title="Max Revisions" placeholder="Max Revisions" class="form-control" id="edit-task-max-revisions"
+              value="3"></div>
+        </div>
+        <div class="ui-style-11">
+          <div class="form-group"><label>Deadline</label><input type="date" title="Task Deadline" class="form-control"
+              id="edit-task-deadline"></div>
+        </div>
+        <button type="submit" class="btn-primary ui-style-12">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Unified Modals Section -->
+  <div id="dbadmin-modal" class="ui-style-20">
+    <div class="glass-card ui-style-21">
+      <div class="ui-style-22">
+        <span><i class="fas fa-database"></i> Database Viewer</span>
+        <i class="fas fa-times ui-style-23" id="dbadmin-close"></i>
+      </div>
+      <div id="dbadmin-content" class="ui-style-24"></div>
+    </div>
+  </div>
+  <div id="tickets-modal" class="ui-style-20">
+    <div class="glass-card ui-style-25">
+      <div class="ui-style-22">
+        <span><i class="fas fa-ticket-alt"></i> Tickets</span>
+        <i class="fas fa-times ui-style-23" id="tickets-close"></i>
+      </div>
+      <div id="tickets-list" class="ui-style-24"></div>
+      <form id="tickets-add-form" class="ui-style-26">
+        <input id="ticket-title" type="text" title="Ticket Title" placeholder="Title" class="form-input ui-style-27"
+          required />
+        <input id="ticket-desc" type="text" title="Ticket Description" placeholder="Description"
+          class="form-input ui-style-28" />
+        <input id="ticket-priority" type="text" title="Ticket Priority" placeholder="Priority"
+          class="form-input ui-style-29" />
+        <button type="submit" class="btn-primary ui-style-30">Add</button>
+      </form>
+    </div>
+  </div>
+  <div id="payments-modal" class="ui-style-20">
+    <div class="glass-card ui-style-25">
+      <div class="ui-style-22">
+        <span><i class="fas fa-money-check-alt"></i> Payments</span>
+        <i class="fas fa-times ui-style-23" id="payments-close"></i>
+      </div>
+      <div id="payments-list" class="ui-style-24"></div>
+      <form id="payments-add-form" class="ui-style-31">
+        <input id="payment-user-id" type="number" title="User ID" placeholder="User ID" class="form-input" required />
+        <input id="payment-amount" type="number" step="0.01" title="Payment Amount" placeholder="Amount"
+          class="form-input" required />
+        <input id="payment-currency" type="text" title="Currency" placeholder="Currency (USD)" class="form-input" />
+        <input id="payment-method" type="text" title="Payment Method" placeholder="Method" class="form-input" />
+        <button type="submit" class="btn-primary ui-style-32">Add Payment</button>
+      </form>
+    </div>
+  </div>
+  <div id="courses-modal" class="ui-style-20">
+    <div class="glass-card ui-style-33">
+      <div class="ui-style-22">
+        <span><i class="fas fa-graduation-cap"></i> Learning Hub</span>
+        <i class="fas fa-times ui-style-23" id="courses-close"></i>
+      </div>
+      <div id="courses-list" class="ui-style-24"></div>
+      <form id="courses-add-form" class="ui-style-34">
+        <input id="course-title" type="text" title="Course Title" placeholder="Course Title" class="form-input"
+          required />
+        <input id="course-link" type="url" title="Course Link" placeholder="Course Link (URL)" class="form-input"
+          required />
+        <button type="submit" class="btn-primary">Add Course</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/score-ring.js" defer></script>
+  <script src="js/tasks.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      const user = auth.getUser();
+      if (!user) return;
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initTasks) initTasks();
+      initModuleUI();
+    });
+
+    function initModuleUI() {
+      const setupModal = (linkId, modalId, closeId) => {
+        const link = document.getElementById(linkId);
+        const modal = document.getElementById(modalId);
+        const close = document.getElementById(closeId);
+        if (link && modal && close) {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            modal.style.display = 'flex';
+          });
+          close.addEventListener('click', () => modal.style.display = 'none');
+          modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        }
+      };
+
+      setupModal('tickets-link', 'tickets-modal', 'tickets-close');
+      setupModal('payments-link', 'payments-modal', 'payments-close');
+      setupModal('courses-link', 'courses-modal', 'courses-close');
+    }
+  </script>
+  <script src="js/dbadmin.js" defer></script>
+</body>
+
+</html>

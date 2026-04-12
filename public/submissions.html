@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <style>
+    .mobile-hamburger {
+      display: none;
+      background: none;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+    }
+
+    @media(max-width:768px) {
+      .mobile-hamburger {
+        display: flex;
+      }
+    }
+  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Submissions</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    .submissions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      padding: 0 24px 24px;
+    }
+
+    .submission-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .submission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .submission-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .submission-project {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .submitter-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .feedback-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .feedback-item {
+      margin-bottom: 12px;
+    }
+
+    .feedback-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .feedback-label {
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .submission-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: auto;
+    }
+
+    @media (max-width: 1024px) {
+      .submissions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <style>
+    .sub-auto-1 {
+      color: var(--accent-pink);
+    }
+
+    .sub-auto-2 {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+      opacity: 0.3;
+    }
+
+    .sub-auto-3 {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+      opacity: 0.3;
+    }
+
+    .sub-auto-4 {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 10px 0;
+      opacity: 0.3;
+    }
+
+    .sub-auto-5 {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      width: 320px;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    .sub-auto-6 {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .sub-auto-7 {
+      font-weight: 700;
+    }
+
+    .sub-auto-8 {
+      font-size: 0.7rem;
+      color: var(--accent-primary);
+      cursor: pointer;
+    }
+
+    .sub-auto-9 {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .sub-auto-10 {
+      text-align: right;
+    }
+
+    .sub-auto-11 {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .sub-auto-12 {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .sub-auto-13 {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .sub-auto-14 {
+      padding: 0;
+      margin: 0;
+    }
+
+    .sub-auto-15 {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2200;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .sub-auto-16 {
+      width: 95vw;
+      max-width: 900px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sub-auto-17 {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sub-auto-18 {
+      cursor: pointer;
+    }
+
+    .sub-auto-19 {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg-card);
+    }
+
+    .sub-auto-20 {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2200;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .sub-auto-21 {
+      width: 95vw;
+      max-width: 700px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sub-auto-22 {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sub-auto-23 {
+      cursor: pointer;
+    }
+
+    .sub-auto-24 {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg-card);
+    }
+
+    .sub-auto-25 {
+      padding: 12px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sub-auto-26 {
+      flex: 2;
+    }
+
+    .sub-auto-27 {
+      flex: 3;
+    }
+
+    .sub-auto-28 {
+      flex: 1;
+    }
+
+    .sub-auto-29 {
+      margin-top: 0;
+    }
+
+    .sub-auto-30 {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2200;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .sub-auto-31 {
+      width: 95vw;
+      max-width: 700px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sub-auto-32 {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sub-auto-33 {
+      cursor: pointer;
+    }
+
+    .sub-auto-34 {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg-card);
+    }
+
+    .sub-auto-35 {
+      padding: 20px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .sub-auto-36 {
+      grid-column: span 2;
+    }
+
+    .sub-auto-37 {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2200;
+      background: rgba(0, 0, 0, 0.6);
+      align-items: center;
+      justify-content: center;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+
+    .sub-auto-38 {
+      width: 95vw;
+      max-width: 600px;
+      max-height: 90vh;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sub-auto-39 {
+      background: var(--accent-primary);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sub-auto-40 {
+      cursor: pointer;
+    }
+
+    .sub-auto-41 {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      background: var(--bg-card);
+    }
+
+    .sub-auto-42 {
+      padding: 15px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sub-auto-43 {
+      max-width: 500px;
+    }
+
+    .sub-auto-44 {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .sub-auto-45 {
+      padding: 20px;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sub-auto-46 {
+      font-size: 1.5rem;
+      color: var(--accent-primary);
+      margin-bottom: 10px;
+    }
+
+    .sub-auto-47 {
+      font-size: 0.8rem;
+    }
+
+    .sub-auto-48 {
+      display: none;
+    }
+
+    .sub-auto-49 {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--accent-green);
+      display: none;
+    }
+
+    .sub-auto-50 {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Detailed Modal Styles */
+    .detail-modal-wide {
+      max-width: 800px !important;
+    }
+
+    .detail-modal-narrow {
+      max-width: 600px !important;
+    }
+
+    .modal-scrollable {
+      max-height: 90vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .modal-header-shrink {
+      flex-shrink: 0 !important;
+    }
+
+    .modal-body-scroll {
+      flex: 1 !important;
+      overflow-y: auto !important;
+      padding: 20px !important;
+    }
+
+    .asset-header {
+      background: var(--accent-secondary) !important;
+    }
+
+    /* Assets Categorization Classes */
+    .asset-category-sec {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .asset-category-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .asset-category-title i {
+      font-size: 0.8rem;
+    }
+
+    .asset-item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .asset-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+
+    .asset-item-row:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .asset-item-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+    }
+
+    .asset-item-icon {
+      font-size: 1.1rem;
+      color: var(--accent-primary);
+      width: 24px;
+      text-align: center;
+    }
+
+    .asset-item-info {
+      overflow: hidden;
+    }
+
+    .asset-item-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .asset-item-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .asset-preview {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .asset-video-preview {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-top: 10px;
+      background: #000;
+      border: 1px solid var(--border);
+    }
+
+    .asset-preview-container {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .detail-section {
+      margin-bottom: 24px;
+    }
+
+    .detail-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      display: block;
+      font-weight: 700;
+    }
+
+    .detail-bubble {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .detail-meta-box {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .detail-meta-title {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-meta-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .sub-card-clickable {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .sub-card-clickable:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      border-color: var(--accent-primary);
+    }
+
+    .sub-auto-note {
+      font-size: 0.7rem;
+      color: var(--accent-orange);
+      margin-top: -5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .external-link-info {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+          <i class="fas fa-th-large"></i>
+          <span class="menu-text">Dashboard</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='projects.html'">
+          <i class="fas fa-project-diagram"></i>
+          <span class="menu-text">Projects</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='tasks.html'">
+          <i class="fas fa-tasks"></i>
+          <span class="menu-text">Tasks</span>
+        </div>
+        <div class="menu-item active" onclick="window.location.href='submissions.html'">
+          <i class="fas fa-file-upload"></i>
+          <span class="menu-text">Submissions</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='clients.html'">
+          <i class="fas fa-user-tie"></i>
+          <span class="menu-text">Clients</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='announcements.html'">
+          <i class="fas fa-bullhorn"></i>
+          <span class="menu-text">Announcements</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='drive.html'">
+          <i class="fas fa-hdd"></i>
+          <span class="menu-text">Secure Drive</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
+          <i class="sub-auto-1 fas fa-robot"></i>
+          <span class="menu-text">Nexus AI Terminal</span>
+        </div>
+
+        <hr class="sub-auto-2">
+
+        <!-- Role-Based Control Centers -->
+        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+          <i class="fas fa-users-cog"></i>
+          <span class="menu-text">User Management</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+          <i class="fas fa-shield-alt"></i>
+          <span class="menu-text">Admin Warp</span>
+        </div>
+
+        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+          <i class="fas fa-flask"></i>
+          <span class="menu-text">Nexus Lab</span>
+        </div>
+
+
+
+
+        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+          <i class="fas fa-handshake"></i>
+          <span class="menu-text">Client Connect</span>
+        </div>
+
+
+        <hr class="sub-auto-3">
+
+        <div class="menu-item admin-only" id="dbadmin-link">
+          <i class="fas fa-database"></i>
+          <span class="menu-text">Database Viewer</span>
+        </div>
+        <div class="menu-item" id="tickets-link">
+          <i class="fas fa-ticket-alt"></i>
+          <span class="menu-text">Tickets</span>
+        </div>
+        <div class="menu-item admin-only" id="payments-link">
+          <i class="fas fa-money-check-alt"></i>
+          <span class="menu-text">Payments</span>
+        </div>
+        <div class="menu-item admin-only" id="courses-link">
+          <i class="fas fa-graduation-cap"></i>
+          <span class="menu-text">Learning Hub</span>
+        </div>
+
+        <hr class="sub-auto-4">
+
+        <div class="menu-item" onclick="window.location.href='profile.html'">
+          <i class="fas fa-user-circle"></i>
+          <span class="menu-text">My Profile</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Toggle Sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle Mobile Menu"><i
+              class="fas fa-bars"></i></button>
+          <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search submissions...">
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <div class="notification-bell" id="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notification-badge">0</span>
+            <div class="sub-auto-5 notification-dropdown glass-card" id="notification-dropdown">
+              <div class="sub-auto-6">
+                <span class="sub-auto-7">Notifications</span>
+                <span class="sub-auto-8" onclick="api.put('/notifications/read-all').then(loadNotifications)">Mark all
+                  read</span>
+              </div>
+              <div id="notification-list" class="sub-auto-9"></div>
+            </div>
+          </div>
+
+          <div class="user-profile-nav" onclick="window.location.href='profile.html'">
+            <div class="sub-auto-10">
+              <div id="nav-user-name" class="sub-auto-11">User Name</div>
+              <div id="nav-user-role" class="sub-auto-12">Role</div>
+            </div>
+            <img id="nav-avatar" class="user-avatar" src="" alt="Avatar">
+          </div>
+        </div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Workspace / Submissions</div>
+          <div class="page-title">WORK REVIEW</div>
+        </div>
+        <div class="sub-auto-13">
+          <div class="sub-auto-14 filter-bar">
+            <select class="form-control" id="filter-status" onchange="loadSubmissions()" title="Filter by Status">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rework">Rework</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <button class="btn-primary admin-tl-only" onclick="openModal('manual-submission-modal')">
+            <i class="fas fa-cloud-upload-alt"></i> <span>Manual Upload</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="submissions-grid" id="submissions-list"></div>
+    </main>
+  </div>
+
+  <!-- Unified Modals Section -->
+  <div id="dbadmin-modal" class="sub-auto-15">
+    <div class="sub-auto-16 glass-card">
+      <div class="sub-auto-17">
+        <span><i class="fas fa-database"></i> Database Viewer</span>
+        <i class="sub-auto-18 fas fa-times" id="dbadmin-close"></i>
+      </div>
+      <div id="dbadmin-content" class="sub-auto-19"></div>
+    </div>
+  </div>
+  <div id="tickets-modal" class="sub-auto-20">
+    <div class="sub-auto-21 glass-card">
+      <div class="sub-auto-22">
+        <span><i class="fas fa-ticket-alt"></i> Tickets</span>
+        <i class="sub-auto-23 fas fa-times" id="tickets-close"></i>
+      </div>
+      <div id="tickets-list" class="sub-auto-24"></div>
+      <form id="tickets-add-form" class="sub-auto-25">
+        <input id="ticket-title" type="text" placeholder="Title" class="sub-auto-26 form-input" required />
+        <input id="ticket-desc" type="text" placeholder="Description" class="sub-auto-27 form-input" />
+        <input id="ticket-priority" type="text" placeholder="Priority" class="sub-auto-28 form-input" />
+        <button type="submit" class="sub-auto-29 btn-primary">Add</button>
+      </form>
+    </div>
+  </div>
+  <div id="payments-modal" class="sub-auto-30">
+    <div class="sub-auto-31 glass-card">
+      <div class="sub-auto-32">
+        <span><i class="fas fa-money-check-alt"></i> Payments</span>
+        <i class="sub-auto-33 fas fa-times" id="payments-close"></i>
+      </div>
+      <div id="payments-list" class="sub-auto-34"></div>
+      <form id="payments-add-form" class="sub-auto-35">
+        <input id="payment-user-id" type="number" placeholder="User ID" class="form-input" required />
+        <input id="payment-amount" type="number" step="0.01" placeholder="Amount" class="form-input" required />
+        <input id="payment-currency" type="text" placeholder="Currency (USD)" class="form-input" />
+        <input id="payment-method" type="text" placeholder="Method" class="form-input" />
+        <button type="submit" class="sub-auto-36 btn-primary">Add Payment</button>
+      </form>
+    </div>
+  </div>
+  <div id="courses-modal" class="sub-auto-37">
+    <div class="sub-auto-38 glass-card">
+      <div class="sub-auto-39">
+        <span><i class="fas fa-graduation-cap"></i> Learning Hub</span>
+        <i class="sub-auto-40 fas fa-times" id="courses-close"></i>
+      </div>
+      <div id="courses-list" class="sub-auto-41"></div>
+      <form id="courses-add-form" class="sub-auto-42">
+        <input id="course-title" type="text" placeholder="Course Title" class="form-input" required />
+        <input id="course-link" type="url" placeholder="Course Link (URL)" class="form-input" required />
+        <button type="submit" class="btn-primary">Add Course</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Work Assets Bundle Modal -->
+  <div class="modal" id="work-assets-modal">
+    <div class="sub-auto-16 glass-card modal-content detail-modal-narrow">
+      <div class="sub-auto-17 asset-header">
+        <span><i class="fas fa-cubes"></i> WORK ASSETS HUD</span>
+        <i class="fas fa-times close-modal" onclick="closeModal('work-assets-modal')"></i>
+      </div>
+      <div class="sub-auto-19" id="work-assets-body">
+        <!-- Sections injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Submission Detail Modal -->
+  <div class="modal" id="submission-detail-modal">
+    <div class="sub-auto-16 glass-card modal-content detail-modal-wide">
+      <div class="sub-auto-17">
+        <span><i class="fas fa-file-invoice"></i> WORK INSPECTION</span>
+        <i class="fas fa-times close-modal" onclick="closeModal('submission-detail-modal')"></i>
+      </div>
+      <div class="sub-auto-19" id="submission-detail-body">
+        <!-- Content injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Submission Modal -->
+  <div class="modal" id="manual-submission-modal">
+    <div class="sub-auto-43 glass-card modal-content modal-scrollable">
+      <div class="modal-header modal-header-shrink">
+        <div class="modal-title">MANUAL WORK UPLOAD</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('manual-submission-modal'); clearManualQueue();"></i>
+      </div>
+      <div class="sub-auto-19 modal-body-scroll">
+        <form id="manual-submission-form">
+          <div class="form-group">
+            <label>Target Task (Optional)</label>
+            <select class="form-control" id="manual-task-id" title="Target Task">
+              <option value="">Loading tasks...</option>
+            </select>
+            <div class="sub-auto-44">Select the task this work belongs to,
+              if any.</div>
+          </div>
+          <div class="form-group">
+            <label>Client</label>
+            <select class="form-control" id="manual-client-id" title="Select a Client">
+              <option value="">Select a client...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" class="form-control" id="manual-project-name" placeholder="Enter project name">
+          </div>
+          <div class="form-group">
+            <label>Submission Notes</label>
+            <textarea class="form-control" id="manual-text" rows="3"
+              placeholder="Describe the work being uploaded..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Work File</label>
+            <div class="sub-auto-note">Only 500 MB worth of documents can be added</div>
+            <div class="sub-auto-45 upload-zone" onclick="document.getElementById('manual-file').click()">
+              <i class="sub-auto-46 fas fa-file-upload"></i>
+              <div class="sub-auto-47">Click to select file</div>
+              <input type="file" id="manual-file" class="sub-auto-48" onchange="addFilesToManualQueue(this)"
+                title="Select work file(s)" multiple>
+            </div>
+            <div id="manual-file-preview" class="sub-auto-49"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="manual-external-link">External File Link (if > 500MB)</label>
+            <input type="url" class="form-control" id="manual-external-link" placeholder="https://drive.google.com/..."
+              title="External link for large files">
+            <div class="external-link-info">If your files exceed 500MB, please upload them to a cloud service (Drive,
+              Dropbox, etc.) and paste the link here.</div>
+          </div>
+
+          <button type="submit" class="sub-auto-50 btn-primary">Upload Submission</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/score-ring.js" defer></script>
+  <script src="js/submissions.js" defer></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      const user = auth.getUser();
+      if (!user) return;
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initSubmissions) initSubmissions();
+      initModuleUI();
+    });
+
+    function initModuleUI() {
+      const setupModal = (linkId, modalId, closeId) => {
+        const link = document.getElementById(linkId);
+        const modal = document.getElementById(modalId);
+        const close = document.getElementById(closeId);
+        if (link && modal && close) {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            modal.style.display = 'flex';
+          });
+          close.addEventListener('click', () => modal.style.display = 'none');
+          modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+        }
+      };
+
+      setupModal('tickets-link', 'tickets-modal', 'tickets-close');
+      setupModal('payments-link', 'payments-modal', 'payments-close');
+      setupModal('courses-link', 'courses-modal', 'courses-close');
+    }
+  </script>
+  <script src="js/dbadmin.js" defer></script>
+</body>
+
+</html>

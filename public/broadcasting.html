@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Broadcast Hub</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .broadcast-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      padding: 0 24px 24px;
+    }
+    .post-item {
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .platform-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: var(--accent-primary);
+      margin-right: 12px;
+    }
+    .transcode-box {
+      background: rgba(108, 99, 255, 0.05);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 15px;
+      border-left: 4px solid var(--accent-pink);
+      display: none;
+    }
+    @media (max-width: 1200px) {
+      .broadcast-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.2rem; margin-left:15px;">BROADCAST HUB</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Media / Scheduling / Transcoding</div>
+          <div class="page-title">GLOBAL TRANSMISSION HQ</div>
+        </div>
+        <div class="media-only">
+          <button class="btn-primary" onclick="openModal('new-post-modal')">
+            <i class="fas fa-plus"></i> Schedule Post
+          </button>
+        </div>
+      </div>
+
+      <div class="broadcast-grid">
+        <div class="glass-card dash-card anim-fade-up">
+           <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="font-family:var(--font-display); font-weight:700;">SCHEDULED TRANSMISSIONS</div>
+            <i class="fas fa-satellite-dish" style="color:var(--accent-orange);"></i>
+          </div>
+          <div id="post-list"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:24px;">
+           <div class="glass-card dash-card anim-fade-up">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+              <div style="font-family:var(--font-display); font-weight:700;">TRANSCODE ENGINE</div>
+              <i class="fas fa-cogs" style="color:var(--accent-pink);"></i>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:15px;">Optimize video assets for web and social distribution.</div>
+            <div class="form-group">
+                <label>Source Submission</label>
+                <select class="form-control" id="trans-submission-id"></select>
+            </div>
+            <div class="form-group">
+                <label>Target Format</label>
+                <select class="form-control" id="trans-format">
+                    <option value="web">Web Optimized (MP4)</option>
+                    <option value="social">Social Media (MOV)</option>
+                    <option value="archive">Master Quality (MKV)</option>
+                </select>
+            </div>
+            <button class="btn-secondary" style="width:100%; margin-top:10px;" onclick="runTranscode()">START ENGINE</button>
+            <div id="trans-result" class="transcode-box anim-slide-up"></div>
+          </div>
+
+          <div class="glass-card dash-card anim-fade-up">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+              <div style="font-family:var(--font-display); font-weight:700;">RIGHTS TRACKER</div>
+              <i class="fas fa-shield-alt" style="color:var(--accent-primary);"></i>
+            </div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">Monitor licensing for stock footage and assets.</div>
+             <div style="margin-top:15px; font-size:0.75rem; color:var(--accent-green);">All assets currently compliant with global licensing standards.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="new-post-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">SCHEDULE TRANSMISSION</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('new-post-modal')"></i>
+      </div>
+      <form id="new-post-form">
+        <div class="form-group">
+          <label>Post Title</label>
+          <input type="text" class="form-control" id="post-title" placeholder="Platform Blast..." required>
+        </div>
+        <div class="form-group">
+          <label>Platform</label>
+          <select class="form-control" id="post-platform">
+            <option value="linkedin">LinkedIn</option>
+            <option value="x">X (Twitter)</option>
+            <option value="instagram">Instagram</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Schedule At</label>
+           <input type="datetime-local" class="form-control" id="post-date" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">SCHEDULE BROADCAST</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/broadcast-hub.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if(window.initBroadcastHub) initBroadcastHub();
+    });
+  </script>
+</body>
+</html>
+
