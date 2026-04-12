@@ -33,6 +33,7 @@ async function initDashboard() {
         loadMyTasks();
         loadProjectProgress();
         loadNexusLatest();
+        loadDriveFiles();
         loadAnnouncements();
         loadNotifications(); // Initial call
 
@@ -163,6 +164,37 @@ async function loadNexusLatest() {
         });
     } catch (e) {
         container.innerHTML = '<div class="error-text">Error loading nexus updates</div>';
+    }
+}
+
+async function loadDriveFiles() {
+    const container = document.getElementById('dash-drive-list');
+    if (!container) return;
+    try {
+        const items = await api.get('/drive/items');
+        if (!items || items.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <div class="empty-title">No drive files</div>
+                    <div class="empty-action"><button class="btn-primary" onclick="window.location.href='drive.html'">Open Drive</button></div>
+                </div>
+            `;
+            return;
+        }
+
+        const latest = items.slice(0, 5);
+        container.innerHTML = latest.map(item => `
+            <div class="dashboard-list-item" style="align-items:flex-start;">
+                <div>
+                    <div class="item-title">${item.name}</div>
+                    <div class="item-subtitle">${item.type}${item.file_size ? ` • ${Math.round(item.file_size / 1024)} KB` : ''}</div>
+                </div>
+                <div class="badge badge-info">LIVE</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<div class="error-text">Error loading drive files</div>';
     }
 }
 
@@ -467,6 +499,7 @@ async function loadRoleHub() {
 }
 
 window.initDashboard = initDashboard;
+window.loadDriveFiles = loadDriveFiles;
 window.loadNotifications = async function () {
     // Basic placeholder if not defined elsewhere
     const badge = document.getElementById('notification-badge');

@@ -23,10 +23,6 @@ router.get('/', verifyToken, (req, res) => {
     WHERE 1=1
   `;
   const params = [];
-  if (!['admin', 'team_leader'].includes(req.user.role)) {
-    query += ` AND (t.assigned_to=? OR t.id IN (SELECT task_id FROM task_members WHERE user_id=?))`;
-    params.push(req.user.id, req.user.id);
-  }
   if (project_id) { query += ' AND t.project_id=?'; params.push(project_id); }
   if (status) {
     if (status.includes(',')) {

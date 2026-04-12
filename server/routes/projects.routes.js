@@ -15,12 +15,6 @@ router.get('/', verifyToken, (req, res) => {
     WHERE 1=1
   `;
   const params = [];
-  if (req.user.role === 'team_leader') {
-    query += ' AND p.team_leader_id=?'; params.push(req.user.id);
-  } else if (!['admin'].includes(req.user.role)) {
-    query += ' AND p.id IN (SELECT DISTINCT project_id FROM tasks WHERE assigned_to=?)';
-    params.push(req.user.id);
-  }
   if (status) { query += ' AND p.status=?'; params.push(status); }
   if (search) {
     query += ' AND (p.title LIKE ? OR COALESCE(p.description, "") LIKE ? OR COALESCE(c.name, "") LIKE ?)';

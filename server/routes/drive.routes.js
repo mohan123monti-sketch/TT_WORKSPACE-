@@ -57,38 +57,8 @@ const userCanAccessItem = (userId, itemId) => {
 router.get('/items', verifyToken, (req, res) => {
   const pId = req.query.parentId;
   const parentId = (pId && pId !== 'null' && pId !== 'undefined') ? pId : null;
-  const admin = isAdmin(req.user);
-  
-  let query, params;
-  if (admin) {
-    // Admins see everything
-    query = 'SELECT * FROM drive_items WHERE (parent_id = ? OR (? IS NULL AND parent_id IS NULL)) ORDER BY type DESC, name ASC';
-    params = [parentId, parentId];
-  } else {
-    // Employees see items they have direct access to, or items in a folder they have access to
-    query = `
-      SELECT DISTINCT di.* FROM drive_items di
-      LEFT JOIN drive_access da ON da.item_id = di.id
-      WHERE (di.parent_id = ? OR (? IS NULL AND di.parent_id IS NULL))
-      AND (
-        da.user_id = ? 
-        OR di.created_by = ?
-        OR EXISTS (
-          WITH RECURSIVE parents(id, parent_id) AS (
-            SELECT id, parent_id FROM drive_items WHERE id = di.id
-            UNION ALL
-            SELECT d.id, d.parent_id FROM drive_items d
-            JOIN parents ON d.id = parents.parent_id
-          )
-          SELECT 1 FROM parents p
-          JOIN drive_access da2 ON da2.item_id = p.id
-          WHERE da2.user_id = ?
-        )
-      )
-      ORDER BY di.type DESC, di.name ASC
-    `;
-    params = [parentId, parentId, req.user.id, req.user.id, req.user.id];
-  }
+  const query = 'SELECT * FROM drive_items WHERE (parent_id = ? OR (? IS NULL AND parent_id IS NULL)) ORDER BY type DESC, name ASC';
+  const params = [parentId, parentId];
   
   try {
     const items = db.prepare(query).all(...params);
