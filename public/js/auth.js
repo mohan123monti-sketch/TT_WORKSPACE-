@@ -64,7 +64,7 @@ const auth = {
     const avatar = document.getElementById('nav-avatar');
     const name = document.getElementById('nav-user-name');
     const role = document.getElementById('nav-user-role');
-    if (avatar) avatar.src = getInitialsAvatar(user.name, 40);
+    if (avatar) avatar.src = user.avatar ? user.avatar : getInitialsAvatar(user.name, 40);
     if (name) name.textContent = user.name;
     if (role) role.textContent = formatRole(user.role);
 

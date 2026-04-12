@@ -1,5 +1,65 @@
 async function initProfile() {
+  bindProfileEditForm();
   loadProfileData();
+}
+
+function getAvatarUrl(user, size = 120) {
+  if (user && user.avatar && String(user.avatar).trim() !== '') {
+    return user.avatar;
+  }
+  return getInitialsAvatar(user.name || 'U', size);
+}
+
+function bindProfileEditForm() {
+  const form = document.getElementById('profile-edit-form');
+  const avatarInput = document.getElementById('profile-avatar-input');
+  const avatarPreview = document.getElementById('profile-avatar-preview');
+  if (!form) return;
+
+  if (avatarInput && avatarPreview) {
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files && avatarInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        avatarPreview.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalHtml = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    try {
+      const payload = new FormData();
+      payload.append('name', document.getElementById('edit-profile-name').value || '');
+      payload.append('mobile', document.getElementById('edit-profile-mobile').value || '');
+      payload.append('github_link', document.getElementById('edit-profile-github').value || '');
+      payload.append('bio', document.getElementById('edit-profile-bio').value || '');
+
+      const avatarFile = document.getElementById('profile-avatar-input').files[0];
+      if (avatarFile) payload.append('avatar', avatarFile);
+
+      const updated = await api.upload('/users/me/profile', payload);
+      if (updated && updated.user) {
+        auth.setUser(updated.user);
+      }
+
+      showToast('Profile updated successfully', 'success');
+      await loadProfileData();
+      document.getElementById('profile-avatar-input').value = '';
+    } catch (err) {
+      showToast(err.message || 'Failed to update profile', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalHtml;
+    }
+  };
 }
 
 async function loadProfileData() {
@@ -9,11 +69,26 @@ async function loadProfileData() {
     const allUsers = await api.get('/users');
     
     // Sidebar info
-    document.getElementById('profile-avatar').src = getInitialsAvatar(user.name, 120);
+    document.getElementById('profile-avatar').src = getAvatarUrl(user, 120);
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-email').textContent = user.email;
     document.getElementById('profile-points').textContent = user.points;
     document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(108,99,255,0.1); color:var(--accent-primary); border:1px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
+
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) navAvatar.src = getAvatarUrl(user, 40);
+
+    const avatarPreview = document.getElementById('profile-avatar-preview');
+    if (avatarPreview) avatarPreview.src = getAvatarUrl(user, 64);
+
+    const nameInput = document.getElementById('edit-profile-name');
+    const mobileInput = document.getElementById('edit-profile-mobile');
+    const githubInput = document.getElementById('edit-profile-github');
+    const bioInput = document.getElementById('edit-profile-bio');
+    if (nameInput) nameInput.value = user.name || '';
+    if (mobileInput) mobileInput.value = user.mobile || '';
+    if (githubInput) githubInput.value = user.github_link || '';
+    if (bioInput) bioInput.value = user.bio || '';
     
     if (user.badge) {
       document.getElementById('profile-badge-display').innerHTML = `

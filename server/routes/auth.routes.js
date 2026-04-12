@@ -22,7 +22,7 @@ router.post('/login', async (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', verifyToken, (req, res) => {
-  const user = db.prepare('SELECT id,name,email,role,secondary_roles,avatar,badge,points,is_active,created_at FROM users WHERE id=?').get(req.user.id);
+  const user = db.prepare('SELECT id,name,email,role,secondary_roles,avatar,badge,points,mobile,github_link,bio,is_active,created_at FROM users WHERE id=?').get(req.user.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
   res.json(user);
 });

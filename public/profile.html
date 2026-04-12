@@ -267,6 +267,47 @@
         </div>
 
         <div class="profile-main">
+          <div class="glass-card anim-fade-up" style="padding:24px; margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+              <div style="font-family:var(--font-display); font-size:1rem;">PROFILE SETTINGS</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">Editable by all users</div>
+            </div>
+
+            <form id="profile-edit-form" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div style="grid-column:span 2; display:flex; align-items:center; gap:14px;">
+                <img id="profile-avatar-preview" src="" alt="Avatar Preview" style="width:64px; height:64px; border-radius:50%; border:2px solid var(--accent-primary);">
+                <div style="flex:1;">
+                  <label style="display:block; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Profile Photo</label>
+                  <input id="profile-avatar-input" type="file" accept="image/*" class="form-control" />
+                </div>
+              </div>
+
+              <div>
+                <label style="display:block; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Full Name</label>
+                <input id="edit-profile-name" type="text" class="form-control" placeholder="Your name" />
+              </div>
+
+              <div>
+                <label style="display:block; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Mobile Number</label>
+                <input id="edit-profile-mobile" type="text" class="form-control" placeholder="+91..." />
+              </div>
+
+              <div style="grid-column:span 2;">
+                <label style="display:block; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">GitHub Profile Link</label>
+                <input id="edit-profile-github" type="url" class="form-control" placeholder="https://github.com/username" />
+              </div>
+
+              <div style="grid-column:span 2;">
+                <label style="display:block; font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Short Description</label>
+                <textarea id="edit-profile-bio" class="form-control" rows="3" placeholder="Write a short profile about yourself"></textarea>
+              </div>
+
+              <div style="grid-column:span 2; display:flex; justify-content:flex-end;">
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Profile</button>
+              </div>
+            </form>
+          </div>
+
           <div class="stats-row">
             <div class="glass-card stat-box anim-fade-up"><div id="stat-total" class="stat-val">0</div><div class="stat-label">Submissions</div></div>
             <div class="glass-card stat-box anim-fade-up"><div id="stat-approved" class="stat-val">0</div><div class="stat-label">Approved</div></div>

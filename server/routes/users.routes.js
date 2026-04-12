@@ -1,11 +1,30 @@
 const router = require('express').Router();
 const db     = require('../db');
 const { verifyToken, checkRole, hashPassword } = require('../auth');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+
+const avatarsDir = path.join(__dirname, '../../uploads/avatars');
+if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, avatarsDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.png';
+    const safeExt = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext) ? ext : '.png';
+    cb(null, `avatar_u${req.user.id}_${Date.now()}${safeExt}`);
+  }
+});
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 // GET /api/users
 router.get('/', verifyToken, (req, res) => {
   const { role, search, is_active } = req.query;
-  let query  = 'SELECT id,name,email,role,secondary_roles,avatar,badge,points,is_active,created_at FROM users WHERE 1=1';
+  let query  = 'SELECT id,name,email,role,secondary_roles,avatar,badge,points,mobile,github_link,bio,is_active,created_at FROM users WHERE 1=1';
   const params = [];
   if (role) { 
     query += ' AND (role=? OR secondary_roles LIKE ?)'; 
@@ -30,9 +49,48 @@ router.get('/', verifyToken, (req, res) => {
 
 // GET /api/users/:id
 router.get('/:id', verifyToken, (req, res) => {
-  const user = db.prepare('SELECT id,name,email,role,avatar,badge,points,is_active,created_at FROM users WHERE id=?').get(req.params.id);
+  const user = db.prepare('SELECT id,name,email,role,secondary_roles,avatar,badge,points,mobile,github_link,bio,is_active,created_at FROM users WHERE id=?').get(req.params.id);
   if (!user) return res.status(404).json({ message: 'Not found' });
   res.json(user);
+});
+
+// PUT /api/users/me/profile
+router.put('/me/profile', verifyToken, avatarUpload.single('avatar'), (req, res) => {
+  const { name, mobile, github_link, bio } = req.body;
+
+  if (github_link !== undefined && github_link !== null && github_link !== '') {
+    const validGitHub = /^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/?$/i.test(github_link.trim());
+    if (!validGitHub) {
+      return res.status(400).json({ message: 'Invalid GitHub profile URL' });
+    }
+  }
+
+  const avatarPath = req.file ? `/uploads/avatars/${req.file.filename}` : undefined;
+
+  try {
+    db.prepare(`
+      UPDATE users
+      SET
+        name=COALESCE(?,name),
+        mobile=COALESCE(?,mobile),
+        github_link=COALESCE(?,github_link),
+        bio=COALESCE(?,bio),
+        avatar=COALESCE(?,avatar)
+      WHERE id=?
+    `).run(
+      name !== undefined ? String(name).trim() : null,
+      mobile !== undefined ? String(mobile).trim() : null,
+      github_link !== undefined ? String(github_link).trim() : null,
+      bio !== undefined ? String(bio).trim() : null,
+      avatarPath !== undefined ? avatarPath : null,
+      req.user.id
+    );
+
+    const updated = db.prepare('SELECT id,name,email,role,secondary_roles,avatar,badge,points,mobile,github_link,bio,is_active,created_at FROM users WHERE id=?').get(req.user.id);
+    res.json({ message: 'Profile updated', user: updated });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update profile' });
+  }
 });
 
 // GET /api/users/:id/performance

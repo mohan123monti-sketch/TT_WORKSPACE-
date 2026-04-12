@@ -398,4 +398,16 @@ CREATE INDEX IF NOT EXISTS idx_portal_access_client_id ON portal_access(client_i
 CREATE INDEX IF NOT EXISTS idx_portal_access_expires_at ON portal_access(expires_at);
 `);
 
+// Backfill profile fields for older databases.
+const userColumns = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+if (!userColumns.includes('mobile')) {
+  db.exec('ALTER TABLE users ADD COLUMN mobile TEXT');
+}
+if (!userColumns.includes('github_link')) {
+  db.exec('ALTER TABLE users ADD COLUMN github_link TEXT');
+}
+if (!userColumns.includes('bio')) {
+  db.exec('ALTER TABLE users ADD COLUMN bio TEXT');
+}
+
 module.exports = db;
