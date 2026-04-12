@@ -3,10 +3,12 @@
  * Centralized configuration for Tech Turf
  */
 
+const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+
 const CONFIG = {
   // API Configuration
   API: {
-    BASE_URL: window.__TECHTURF_API_BASE__ || localStorage.getItem('tt_api_base') || '/api',
+    BASE_URL: window.__TECHTURF_API_BASE__ || localStorage.getItem('tt_api_base') || (isLocalDev ? 'http://localhost:8080/api' : '/api'),
     TIMEOUT: 30000,
     RETRY_ATTEMPTS: 3
   },

@@ -1,6 +1,7 @@
 // Shop Logic for Tech Turf
 
-window.API_BASE_URL = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || '/api';
+const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+window.API_BASE_URL = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || (isLocalDev ? 'http://localhost:8080/api' : '/api');
 
 // --- State Management ---
 // Keep cart key aligned with layout.js (tt_cart). Migrate legacy key if needed.

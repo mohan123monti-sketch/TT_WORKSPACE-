@@ -4,13 +4,22 @@ import { hashPassword, verifyPassword } from '../../utils/password.js';
 import { signToken } from '../../utils/jwt.js';
 
 export const registerValidators = [
-  body('name').isString().isLength({ min: 2, max: 100 }),
+  body('name').optional().isString().isLength({ min: 2, max: 100 }),
+  body('username').optional().isString().isLength({ min: 2, max: 100 }),
   body('email').isEmail(),
-  body('password').isLength({ min: 8 })
+  body('password').isLength({ min: 8 }),
+  // Ensure at least one of name or username is provided
+  body().custom((value, { req }) => {
+    if (!req.body.name && !req.body.username) {
+      throw new Error('Name or username is required');
+    }
+    return true;
+  })
 ];
 
 export async function register(req, res) {
-  const { name, email, password } = req.body;
+  const { name, username, email, password } = req.body;
+  const displayName = name || username;
   const existing = await findUserByEmail(email);
 
   if (existing) {
@@ -18,7 +27,7 @@ export async function register(req, res) {
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await createUser({ name, email, passwordHash, role: 'user' });
+  const user = await createUser({ name: displayName, email, passwordHash, role: 'user' });
   const token = signToken(user);
 
   res.status(201).json({ success: true, token, user });

@@ -311,11 +311,8 @@
                 if (typeof window.showMessage !== 'function' || typeof window.API_BASE_URL === 'undefined') {
                     // Fallback if layout.js is slow or failed
                     console.warn('Layout dependencies missing, using fallbacks');
-                    if (window.location.protocol === 'file:') {
-                        window.API_BASE_URL = 'http://localhost:5000/api';
-                    } else {
-                        window.API_BASE_URL = '/api';
-                    }
+                    const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+                    window.API_BASE_URL = isLocalDev ? 'http://localhost:8080/api' : '/api';
 
                     window.showMessage = (type, msg) => alert(`${type.toUpperCase()}: ${msg}`);
                     window.isLoggedIn = () => !!localStorage.getItem('tt_token');
@@ -345,12 +342,12 @@
                         // Save token with confirmation
                         localStorage.setItem('tt_token', data.token);
                         localStorage.setItem('tt_user', JSON.stringify(data.user));
-                        
+
                         // Debug: Verify token was saved
                         const savedToken = localStorage.getItem('tt_token');
                         console.log('[LOGIN] Token saved:', !!savedToken);
                         console.log('[LOGIN] localStorage keys:', Object.keys(localStorage));
-                        
+
                         // Redirect after delay
                         setTimeout(() => {
                             const checkToken = localStorage.getItem('tt_token');
@@ -387,10 +384,10 @@
             if (token && social) {
                 localStorage.setItem('tt_token', token);
                 // Ideally prompt for user details or fetch them, but for now just redirect
-                 window.showMessage('success', `${social.charAt(0).toUpperCase() + social.slice(1)} Access Granted.`);
-                 setTimeout(() => {
-                     window.location.href = 'index.html';
-                 }, 1500);
+                window.showMessage('success', `${social.charAt(0).toUpperCase() + social.slice(1)} Access Granted.`);
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
             }
 
             // Redirect if already logged in

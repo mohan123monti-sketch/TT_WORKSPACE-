@@ -1,4 +1,5 @@
 import express from 'express';
+import asyncHandler from 'express-async-handler';
 import {
   allOrdersHandler,
   createOrderHandler,
@@ -12,9 +13,9 @@ import { validateRequest } from '../../middleware/validate.js';
 
 const router = express.Router();
 
-router.post('/', requireAuth, createOrderValidators, validateRequest, createOrderHandler);
-router.get('/mine', requireAuth, myOrdersHandler);
-router.get('/', requireAuth, requireAdmin, allOrdersHandler);
-router.patch('/:id/status', requireAuth, requireAdmin, updateOrderStatusValidators, validateRequest, updateOrderStatusHandler);
+router.post('/', requireAuth, createOrderValidators, validateRequest, asyncHandler(createOrderHandler));
+router.get('/mine', requireAuth, asyncHandler(myOrdersHandler));
+router.get('/', requireAuth, requireAdmin, asyncHandler(allOrdersHandler));
+router.patch('/:id/status', requireAuth, requireAdmin, updateOrderStatusValidators, validateRequest, asyncHandler(updateOrderStatusHandler));
 
 export default router;

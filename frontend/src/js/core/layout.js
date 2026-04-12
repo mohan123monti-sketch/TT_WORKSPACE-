@@ -9,7 +9,9 @@
    ======================================================================== */
 
 const apiOverride = localStorage.getItem('tt_api_base');
-window.API_BASE_URL = window.API_BASE_URL || apiOverride || window.__TECHTURF_API_BASE__ || '/api';
+const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+const defaultApiBase = isLocalDev ? 'http://localhost:8080/api' : '/api';
+window.API_BASE_URL = window.API_BASE_URL || apiOverride || window.__TECHTURF_API_BASE__ || defaultApiBase;
 
 // --- Real-time Order Updates (Socket.io) ---
 function initOrderSocket() {
@@ -187,7 +189,7 @@ function handleLogout() {
     } else {
         localStorage.removeItem('tt_token');
         window.showMessage('info', 'Logged out successfully.');
-        setTimeout(() => window.location.href = 'index.html', 1000);
+        setTimeout(() => window.location.href = '/index.html', 1000);
     }
     localStorage.removeItem('tt_cart');
     window.updateCartDisplay();
@@ -200,11 +202,11 @@ function generateHeader() {
     const currentPageFile = window.location.pathname.split('/').pop();
 
     const divisions = [
-        { name: 'Tech Turf', href: 'index.html' },
-        { name: 'Quinta', href: 'quinta.html' },
-        { name: 'Trend Hive', href: 'trend_hive.html' },
-        { name: 'Click Sphere', href: 'click_sphere.html' },
-        { name: 'Shop', href: 'shopping.html' }
+        { name: 'Tech Turf', href: '/index.html' },
+        { name: 'Quinta', href: '/pages/quinta.html' },
+        { name: 'Trend Hive', href: '/pages/trend_hive.html' },
+        { name: 'Click Sphere', href: '/pages/click_sphere.html' },
+        { name: 'Shop', href: '/pages/shopping.html' }
     ];
 
     const loggedIn = isLoggedIn();
@@ -213,14 +215,14 @@ function generateHeader() {
 
 function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
     const authLinks = isUserLoggedIn ?
-        `<a href="account.html" class="transition-link text-white/70 hover:text-white px-3 py-2 rounded-lg transition-colors font-medium text-sm border border-transparent hover:border-white/10">
+        `<a href="/pages/account.html" class="transition-link text-white/70 hover:text-white px-3 py-2 rounded-lg transition-colors font-medium text-sm border border-transparent hover:border-white/10">
                <i data-lucide="user" class="w-5 h-5 inline-block mr-1 align-sub"></i> Account
            </a>
            <button onclick="window.handleLogout()" class="magnetic-btn transition-link px-4 py-2 bg-red-600/70 text-white font-semibold rounded-lg hover:bg-red-500 transition-all text-sm">
                Sign Out
            </button>` :
-        `<a href="login.html" class="transition-link text-white/70 hover:text-white px-3 py-2 rounded-lg transition-colors font-medium text-sm">Sign In</a>
-           <a href="register.html" class="magnetic-btn transition-link px-4 py-2 bg-orange-600/70 text-white font-semibold rounded-lg hover:bg-orange-500 transition-all text-sm">
+        `<a href="/pages/login.html" class="transition-link text-white/70 hover:text-white px-3 py-2 rounded-lg transition-colors font-medium text-sm">Sign In</a>
+           <a href="/pages/register.html" class="magnetic-btn transition-link px-4 py-2 bg-orange-600/70 text-white font-semibold rounded-lg hover:bg-orange-500 transition-all text-sm">
                Register
            </a>`;
 
@@ -228,7 +230,7 @@ function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
        <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl z-50 transition-all duration-500 liquid-glass" id="site-header">
            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                <div class="flex justify-between items-center h-16">
-                   <a href="index.html" class="flex-shrink-0 flex items-center transition-link">
+                   <a href="/index.html" class="flex-shrink-0 flex items-center transition-link">
                        <i data-lucide="rocket" class="w-7 h-7 text-orange-500 mr-2"></i>
                        <span class="text-xl font-bold tracking-wider text-white hidden sm:block">TECH TURF</span>
                        <span class="text-xl font-bold tracking-wider text-white sm:hidden">TT</span>
@@ -237,21 +239,21 @@ function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
                    <div class="hidden md:flex md:items-center space-x-1">
                        ${divisions.map(d => `
                            <a href="${d.href}" class="transition-link text-white/70 hover:text-white px-3 py-2 rounded-lg transition-colors font-medium text-sm
-                           ${d.href === currentPageFile ? 'bg-orange-600/20 text-white' : ''}">
+                           ${d.href.endsWith('/' + currentPageFile) ? 'bg-orange-600/20 text-white' : ''}">
                                ${d.name}
                            </a>
                        `).join('')}
                    </div>
                    
                    <!-- Desktop Wishlist Button -->
-                   <a href="wishlist.html" class="hidden md:flex relative items-center gap-2 text-white/80 hover:text-white px-3 py-2 mr-2 rounded-lg border border-white/10 hover:border-white/30 transition-colors">
+                   <a href="/pages/wishlist.html" class="hidden md:flex relative items-center gap-2 text-white/80 hover:text-white px-3 py-2 mr-2 rounded-lg border border-white/10 hover:border-white/30 transition-colors">
                        <i data-lucide="heart" class="w-5 h-5"></i>
                        <span class="text-[11px] font-black uppercase tracking-widest">Wishlist</span>
                        <span class="wishlist-count absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-bold leading-none text-white bg-red-600 rounded-full hidden transform translate-x-1/4 -translate-y-1/4">0</span>
                    </a>
 
                    <!-- Desktop Cart Button -->
-                   <a href="cart.html" class="hidden md:flex relative items-center gap-2 text-white/80 hover:text-white px-3 py-2 mr-2 rounded-lg border border-white/10 hover:border-white/30 transition-colors">
+                   <a href="/pages/cart.html" class="hidden md:flex relative items-center gap-2 text-white/80 hover:text-white px-3 py-2 mr-2 rounded-lg border border-white/10 hover:border-white/30 transition-colors">
                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                        <span class="text-[11px] font-black uppercase tracking-widest">Cart</span>
                        <span class="cart-count absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-bold leading-none text-white bg-orange-600 rounded-full hidden transform translate-x-1/4 -translate-y-1/4">0</span>
@@ -262,11 +264,11 @@ function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
                    </div>
    
                    <div class="md:hidden flex items-center gap-4">
-                       <a href="wishlist.html" class="relative text-white hover:text-red-400">
+                       <a href="/pages/wishlist.html" class="relative text-white hover:text-red-400">
                            <i data-lucide="heart" class="w-6 h-6"></i>
                            <span class="wishlist-count absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full hidden">0</span>
                        </a>
-                       <a href="cart.html" class="relative text-white hover:text-orange-400">
+                       <a href="/pages/cart.html" class="relative text-white hover:text-orange-400">
                            <i data-lucide="shopping-bag" class="w-6 h-6"></i>
                            <span class="cart-count absolute -top-2 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full hidden">0</span>
                        </a>
@@ -281,7 +283,7 @@ function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                    ${divisions.map(d => `
                        <a href="${d.href}" class="transition-link block text-white/70 hover:text-white px-3 py-2 rounded-md font-medium
-                       ${d.href === currentPageFile ? 'bg-orange-600/20 text-white' : ''}">
+                       ${d.href.endsWith('/' + currentPageFile) ? 'bg-orange-600/20 text-white' : ''}">
                            ${d.name}
                        </a>
                    `).join('')}
@@ -325,11 +327,11 @@ function renderNavHTML(isUserLoggedIn, divisions, currentPageFile) {
 
 window.updateAuthUI = function (user) {
     const divisions = [
-        { name: 'Tech Turf', href: 'index.html' },
-        { name: 'Quinta', href: 'quinta.html' },
-        { name: 'Trend Hive', href: 'trend_hive.html' },
-        { name: 'Click Sphere', href: 'click_sphere.html' },
-        { name: 'Shop', href: 'shopping.html' }
+        { name: 'Tech Turf', href: '/index.html' },
+        { name: 'Quinta', href: '/pages/quinta.html' },
+        { name: 'Trend Hive', href: '/pages/trend_hive.html' },
+        { name: 'Click Sphere', href: '/pages/click_sphere.html' },
+        { name: 'Shop', href: '/pages/shopping.html' }
     ];
     const currentPageFile = window.location.pathname.split('/').pop();
     renderNavHTML(!!user, divisions, currentPageFile);
@@ -341,7 +343,7 @@ function generateFooter() {
            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
                    <div class="col-span-2 md:col-span-1">
-                       <a href="index.html" class="flex items-center transition-link">
+                       <a href="/index.html" class="flex items-center transition-link">
                            <i data-lucide="rocket" class="w-6 h-6 text-orange-500 mr-2"></i>
                            <span class="text-xl font-bold tracking-wider text-white">TECH TURF</span>
                        </a>
@@ -352,32 +354,32 @@ function generateFooter() {
                    <div>
                        <h3 class="text-lg font-semibold text-white mb-4">Company</h3>
                        <ul class="space-y-3 text-sm">
-                           <li><a href="about.html" class="text-gray-400 hover:text-orange-400 transition-link">About Us</a></li>
-                           <li><a href="projects.html" class="text-gray-400 hover:text-orange-400 transition-link">Projects</a></li>
-                           <li><a href="contact.html" class="text-gray-400 hover:text-orange-400 transition-link">Contact</a></li>
+                           <li><a href="/pages/about.html" class="text-gray-400 hover:text-orange-400 transition-link">About Us</a></li>
+                           <li><a href="/pages/projects.html" class="text-gray-400 hover:text-orange-400 transition-link">Projects</a></li>
+                           <li><a href="/pages/contact.html" class="text-gray-400 hover:text-orange-400 transition-link">Contact</a></li>
                        </ul>
                    </div>
                    <div>
                        <h3 class="text-lg font-semibold text-white mb-4">Divisions</h3>
                        <ul class="space-y-3 text-sm">
-                           <li><a href="quinta.html" class="text-gray-400 hover:text-orange-400 transition-link">Quinta</a></li>
-                           <li><a href="trend_hive.html" class="text-gray-400 hover:text-orange-400 transition-link">Trend Hive</a></li>
-                           <li><a href="click_sphere.html" class="text-gray-400 hover:text-orange-400 transition-link">Click Sphere</a></li>
-                           <li><a href="shopping.html" class="text-gray-400 hover:text-orange-400 transition-link">Shop</a></li>
+                           <li><a href="/pages/quinta.html" class="text-gray-400 hover:text-orange-400 transition-link">Quinta</a></li>
+                           <li><a href="/pages/trend_hive.html" class="text-gray-400 hover:text-orange-400 transition-link">Trend Hive</a></li>
+                           <li><a href="/pages/click_sphere.html" class="text-gray-400 hover:text-orange-400 transition-link">Click Sphere</a></li>
+                           <li><a href="/pages/shopping.html" class="text-gray-400 hover:text-orange-400 transition-link">Shop</a></li>
                        </ul>
                    </div>
                    <div>
                        <h3 class="text-lg font-semibold text-white mb-4">Legal</h3>
                        <ul class="space-y-3 text-sm">
-                           <li><a href="terms_of_service.html" class="text-gray-400 hover:text-orange-400 transition-link">Terms</a></li>
-                           <li><a href="privacy_policy.html" class="text-gray-400 hover:text-orange-400 transition-link">Privacy</a></li>
+                           <li><a href="/pages/terms_of_service.html" class="text-gray-400 hover:text-orange-400 transition-link">Terms</a></li>
+                           <li><a href="/pages/privacy_policy.html" class="text-gray-400 hover:text-orange-400 transition-link">Privacy</a></li>
                        </ul>
                    </div>
                    <div>
                         <h3 class="text-lg font-semibold text-white mb-4">Connect</h3>
                         <ul class="space-y-3 text-sm">
-                            <li><a href="nexus_ai.html" class="text-gray-400 hover:text-orange-400 transition-link">Nexus AI</a></li>
-                            <li><a href="estimator.html" class="text-gray-400 hover:text-orange-400 transition-link">Estimator</a></li>
+                            <li><a href="/pages/nexus_ai.html" class="text-gray-400 hover:text-orange-400 transition-link">Nexus AI</a></li>
+                            <li><a href="/pages/estimator.html" class="text-gray-400 hover:text-orange-400 transition-link">Estimator</a></li>
                         </ul>
                         <p class="text-gray-400 text-sm mt-6">Coimbatore, India</p>
                    </div>

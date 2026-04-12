@@ -4,12 +4,13 @@
  */
 
 import express from 'express';
-import { getSubscriptions, isRealtimeConnected } from '../services/realtimeService.js';
+import asyncHandler from 'express-async-handler';
+import { getSubscriptions, isRealtimeConnected } from '../../services/realtimeService.js';
 
 const router = express.Router();
 
 // GET real-time status
-router.get('/status', (req, res) => {
+router.get('/status', asyncHandler((req, res) => {
   const status = {
     realtime: {
       connected: isRealtimeConnected(),
@@ -24,10 +25,10 @@ router.get('/status', (req, res) => {
     success: true,
     data: status
   });
-});
+}));
 
 // GET usage documentation
-router.get('/docs', (req, res) => {
+router.get('/docs', asyncHandler((req, res) => {
   const docs = {
     title: 'Tech Turf Real-time API Documentation',
     description: 'Real-time database updates via WebSocket using Supabase',
@@ -136,6 +137,6 @@ realtime.disconnect();
   };
 
   res.json(docs);
-});
+}));
 
 export default router;

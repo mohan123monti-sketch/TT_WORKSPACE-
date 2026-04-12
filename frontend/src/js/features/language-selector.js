@@ -115,7 +115,9 @@ class LanguageSelector {
     async loadTranslations() {
         try {
             // Load translations from backend
-            const response = await fetch(`${window.API_BASE_URL || '/api'}/translations/${this.currentLang}`);
+            const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+            const fallbackApiBase = isLocalDev ? 'http://localhost:8080/api' : '/api';
+            const response = await fetch(`${window.API_BASE_URL || fallbackApiBase}/translations/${this.currentLang}`);
             if (response.ok) {
                 this.translations = await response.json();
             } else {

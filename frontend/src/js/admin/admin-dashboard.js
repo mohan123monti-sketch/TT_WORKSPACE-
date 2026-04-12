@@ -1,5 +1,6 @@
 // Admin Dashboard JavaScript
-const API_BASE = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || '/api';
+const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+const API_BASE = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || (isLocalDev ? 'http://localhost:8080/api' : '/api');
 
 let currentTab = 'dashboard';
 let charts = {};

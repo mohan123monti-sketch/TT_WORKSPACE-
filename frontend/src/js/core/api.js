@@ -1,6 +1,9 @@
+const isLocalDev = typeof window !== 'undefined' && (
+    ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:'
+);
 const API_BASE = (typeof window !== 'undefined' && window.API_BASE_URL)
     ? window.API_BASE_URL
-    : '/api';
+    : (isLocalDev ? 'http://localhost:8080/api' : '/api');
 
 const apiRequest = async (endpoint, method = 'GET', body = null, token = null) => {
     const headers = {

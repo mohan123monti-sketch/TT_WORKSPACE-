@@ -1,6 +1,5 @@
-#!/usr/bin/env pwsh
 # Tech Turf - Quick Start Script (PowerShell)
-# This script starts both backend and frontend servers
+# This script starts the backend server
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "Tech Turf - India Edition" -ForegroundColor Cyan
@@ -12,9 +11,11 @@ Write-Host ""
 Write-Host "Checking Node.js installation..." -ForegroundColor Yellow
 try {
     $nodeVersion = node --version
-    Write-Host "✓ Node.js found: $nodeVersion" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Node.js not found. Please install Node.js from https://nodejs.org" -ForegroundColor Red
+    Write-Host "[OK] Node.js found: $nodeVersion" -ForegroundColor Green
+}
+catch {
+    Write-Host "[ERROR] Node.js not found. Please install Node.js from https://nodejs.org" -ForegroundColor Red
+    Read-Host "Press Enter to exit..."
     exit 1
 }
 
@@ -22,9 +23,11 @@ try {
 Write-Host "Checking npm installation..." -ForegroundColor Yellow
 try {
     $npmVersion = npm --version
-    Write-Host "✓ npm found: $npmVersion" -ForegroundColor Green
-} catch {
-    Write-Host "✗ npm not found. Please install npm." -ForegroundColor Red
+    Write-Host "[OK] npm found: $npmVersion" -ForegroundColor Green
+}
+catch {
+    Write-Host "[ERROR] npm not found. Please install npm." -ForegroundColor Red
+    Read-Host "Press Enter to exit..."
     exit 1
 }
 
@@ -36,20 +39,23 @@ if (-not (Test-Path "backend\node_modules")) {
     Push-Location backend
     npm install
     Pop-Location
-    Write-Host "✓ Backend dependencies installed" -ForegroundColor Green
-} else {
-    Write-Host "✓ Backend dependencies already installed" -ForegroundColor Green
+    Write-Host "[OK] Backend dependencies installed" -ForegroundColor Green
+}
+else {
+    Write-Host "[OK] Backend dependencies already installed" -ForegroundColor Green
 }
 
 Write-Host ""
 
 # Check if .env exists
 if (-not (Test-Path "backend\.env")) {
-    Write-Host "✗ .env file not found in backend folder" -ForegroundColor Red
+    Write-Host "[ERROR] .env file not found in backend folder" -ForegroundColor Red
     Write-Host "Please ensure backend/.env file exists with proper configuration" -ForegroundColor Yellow
+    Read-Host "Press Enter to exit..."
     exit 1
-} else {
-    Write-Host "✓ .env file found" -ForegroundColor Green
+}
+else {
+    Write-Host "[OK] .env file found" -ForegroundColor Green
 }
 
 Write-Host ""
@@ -60,8 +66,20 @@ Write-Host ""
 
 # Start backend server
 Set-Location backend
-Write-Host "Backend starting on http://localhost:5000" -ForegroundColor Green
+Write-Host "Backend attempting to start on http://localhost:8080" -ForegroundColor Green
 Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Yellow
 Write-Host ""
 
-npm start
+try {
+    npm start
+}
+catch {
+    Write-Host ""
+    Write-Host "[ERROR] The backend server failed to start." -ForegroundColor Red
+    Write-Host "Please check the error messages above and ensure your .env file is correct." -ForegroundColor Yellow
+    Write-Host "(Common issue: DATABASE_URL password placeholder not replaced)" -ForegroundColor Yellow
+    Write-Host ""
+}
+
+Set-Location ..
+Read-Host "Press Enter to exit..."

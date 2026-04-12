@@ -59,12 +59,14 @@ const SocialLogin = {
     },
 
     loginWithGoogle() {
-        const baseUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || '/api';
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+        const baseUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || (isLocalDev ? 'http://localhost:8080/api' : '/api');
         window.location.href = `${baseUrl}/auth/social/google`;
     },
 
     loginWithFacebook() {
-        const baseUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || '/api';
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+        const baseUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || (isLocalDev ? 'http://localhost:8080/api' : '/api');
         window.location.href = `${baseUrl}/auth/social/facebook`;
     },
 

@@ -1,4 +1,5 @@
 import express from 'express';
+import asyncHandler from 'express-async-handler';
 import {
   createProductHandler,
   createProductValidators,
@@ -13,10 +14,10 @@ import { validateRequest } from '../../middleware/validate.js';
 
 const router = express.Router();
 
-router.get('/', listProductsHandler);
-router.get('/:id', productIdValidator, validateRequest, getProductHandler);
-router.post('/', requireAuth, requireAdmin, createProductValidators, validateRequest, createProductHandler);
-router.put('/:id', requireAuth, requireAdmin, productIdValidator, validateRequest, updateProductHandler);
-router.delete('/:id', requireAuth, requireAdmin, productIdValidator, validateRequest, deleteProductHandler);
+router.get('/', asyncHandler(listProductsHandler));
+router.get('/:id', productIdValidator, validateRequest, asyncHandler(getProductHandler));
+router.post('/', requireAuth, requireAdmin, createProductValidators, validateRequest, asyncHandler(createProductHandler));
+router.put('/:id', requireAuth, requireAdmin, productIdValidator, validateRequest, asyncHandler(updateProductHandler));
+router.delete('/:id', requireAuth, requireAdmin, productIdValidator, validateRequest, asyncHandler(deleteProductHandler));
 
 export default router;

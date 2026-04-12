@@ -287,7 +287,8 @@
       // 1. Safety Check for dependencies
       if (typeof window.showMessage !== 'function' || typeof window.API_BASE_URL === 'undefined') {
         console.warn('Registration: Layout dependencies missing, using fallbacks');
-        window.API_BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:5000/api' : '/api';
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+        window.API_BASE_URL = isLocalDev ? 'http://localhost:8080/api' : '/api';
         window.showMessage = (type, msg) => alert(`${type.toUpperCase()}: ${msg}`);
         window.isLoggedIn = () => !!localStorage.getItem('tt_token');
       }

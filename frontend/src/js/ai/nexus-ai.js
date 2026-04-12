@@ -1,7 +1,8 @@
 // Nexus AI Chatbot - Powered by Gemini API
 class NexusAI {
     constructor() {
-        this.apiUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || '/api';
+        const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname) || window.location.protocol === 'file:';
+        this.apiUrl = window.API_BASE_URL || window.__TECHTURF_API_BASE__ || (isLocalDev ? 'http://localhost:8080/api' : '/api');
         this.knowledge = null;
         this.conversationHistory = [];
         this.isOpen = false;
