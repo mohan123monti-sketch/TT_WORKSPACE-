@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
+const { notifyUsers } = require('../services/notification.service');
 
 // GET /api/tasks
 router.get('/', verifyToken, (req, res) => {
@@ -116,11 +117,8 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
       .run(req.user.id, 'INSERT', 'tasks', taskId, JSON.stringify(req.body));
 
     // Notify all members
-    const notifStmt = db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)");
     const notifyIds = memberIds.length > 0 ? [...new Set(memberIds)] : (primaryAssignee ? [primaryAssignee] : []);
-    notifyIds.forEach(uid => {
-      notifStmt.run(uid, `📌 New task assigned to you: "${title}"`, 'info');
-    });
+    notifyUsers(notifyIds, `📌 New task assigned to you: "${title}"`, 'info', 'Tech Turf Task Assignment').catch(() => {});
 
     res.json({ message: 'Task created', id: taskId });
   } catch (err) {
@@ -160,17 +158,14 @@ router.put('/:id', verifyToken, checkRole('admin', 'team_leader'), (req, res) =>
 
     // Sync task_members if provided
     if (memberIds !== undefined) {
+      const prevIds = db.prepare('SELECT user_id FROM task_members WHERE task_id=?').all(req.params.id).map(r => r.user_id);
       db.prepare('DELETE FROM task_members WHERE task_id=?').run(req.params.id);
       const memStmt = db.prepare('INSERT OR IGNORE INTO task_members(task_id, user_id) VALUES(?,?)');
       memberIds.forEach(uid => memStmt.run(req.params.id, uid));
 
       // Notify newly added members
-      const prevIds = db.prepare('SELECT user_id FROM task_members WHERE task_id=?').all(req.params.id).map(r => r.user_id);
       const newIds = memberIds.filter(uid => !prevIds.includes(uid));
-      const notifStmt = db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)");
-      newIds.forEach(uid => {
-        notifStmt.run(uid, `📌 You've been added to task: "${oldTask.title}"`, 'info');
-      });
+      notifyUsers(newIds, `📌 You've been added to task: "${oldTask.title}"`, 'info', 'Tech Turf Task Assignment Update').catch(() => {});
     }
 
     // AUDIT LOG (Warp Snapshot)
@@ -191,15 +186,32 @@ router.post('/:id/rework', verifyToken, checkRole('admin', 'team_leader'), (req,
     return res.status(400).json({ message: `Max revisions (${task.max_revisions}) reached. Escalate to Admin.` });
   }
   db.prepare("UPDATE tasks SET status='rework', revision_count=revision_count+1 WHERE id=?").run(task.id);
-  db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-    .run(task.assigned_to, `🔄 Task "${task.title}" sent back for rework (${task.revision_count + 1}/${task.max_revisions})`, 'warning');
+  notifyUsers(task.assigned_to, `🔄 Task "${task.title}" sent back for rework (${task.revision_count + 1}/${task.max_revisions})`, 'warning', 'Tech Turf Task Rework').catch(() => {});
 
   if (task.revision_count + 1 >= task.max_revisions) {
     const admin = db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get();
-    if (admin) db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(admin.id, `⚠️ FINAL revision for task "${task.title}" — review urgently`, 'danger');
+    if (admin) notifyUsers(admin.id, `⚠️ FINAL revision for task "${task.title}" — review urgently`, 'danger', 'Tech Turf Escalation Alert').catch(() => {});
   }
   res.json({ message: 'Sent for rework' });
+});
+
+router.post('/bulk-action', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
+  const { ids, status, assigned_to, archive } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'ids array required' });
+  }
+
+  const placeholders = ids.map(() => '?').join(',');
+  const updates = [];
+  const params = [];
+
+  if (status !== undefined) { updates.push('status=?'); params.push(status); }
+  if (assigned_to !== undefined) { updates.push('assigned_to=?'); params.push(assigned_to || null); }
+  if (archive === true) { updates.push("status='rejected'"); }
+  if (updates.length === 0) return res.status(400).json({ message: 'No bulk updates provided' });
+
+  db.prepare(`UPDATE tasks SET ${updates.join(', ')} WHERE id IN (${placeholders})`).run(...params, ...ids);
+  res.json({ message: 'Bulk task update completed' });
 });
 
 // PUT /api/tasks/:id/start

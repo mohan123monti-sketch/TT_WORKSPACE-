@@ -3,6 +3,8 @@ let messageTeams = [];
 let messageConversations = [];
 let activeConversationId = null;
 let selectedParticipantIds = new Set();
+let eventSource = null;
+let typingTimer = null;
 
 function getUserAvatar(user) {
   if (user.avatar) return user.avatar;
@@ -17,6 +19,7 @@ async function initMessages() {
   bindComposerActions();
   await Promise.all([loadMessageUsers(), loadTeams(), loadConversations()]);
   renderSelectedSummary();
+  initRealtimeStream();
 }
 
 function bindComposerActions() {
@@ -25,7 +28,9 @@ function bindComposerActions() {
   const clearBtn = document.getElementById('clear-selection-btn');
   const sendBtn = document.getElementById('send-message-btn');
   const messageInput = document.getElementById('message-input');
+  const attachmentInput = document.getElementById('message-attachment');
   const chatTitle = document.getElementById('chat-title');
+  const conversationSearch = document.getElementById('conversation-search');
 
   if (search) {
     search.addEventListener('input', () => {
@@ -59,7 +64,63 @@ function bindComposerActions() {
         sendCurrentMessage();
       }
     });
+
+    messageInput.addEventListener('input', () => {
+      if (!activeConversationId) return;
+      api.post(`/messages/conversations/${activeConversationId}/typing`, { isTyping: true }).catch(() => {});
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        api.post(`/messages/conversations/${activeConversationId}/typing`, { isTyping: false }).catch(() => {});
+      }, 1200);
+    });
   }
+
+  if (conversationSearch) {
+    conversationSearch.addEventListener('input', async () => {
+      if (!activeConversationId) return;
+      const q = conversationSearch.value.trim();
+      if (!q) return openConversation(activeConversationId);
+      try {
+        const rows = await api.get(`/messages/conversations/${activeConversationId}/search?q=${encodeURIComponent(q)}`);
+        renderMessages(rows);
+      } catch (_) {}
+    });
+  }
+
+  if (attachmentInput) {
+    attachmentInput.value = '';
+  }
+}
+
+function initRealtimeStream() {
+  try {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+    eventSource = new EventSource(`/api/messages/stream?token=${encodeURIComponent(auth.getToken() || '')}`);
+    eventSource.addEventListener('message', async (event) => {
+      const payload = JSON.parse(event.data || '{}');
+      if (Number(payload.conversationId) === Number(activeConversationId)) {
+        await openConversation(activeConversationId);
+      } else {
+        await loadConversations();
+      }
+    });
+    eventSource.addEventListener('typing', (event) => {
+      const payload = JSON.parse(event.data || '{}');
+      if (Number(payload.conversationId) !== Number(activeConversationId)) return;
+      if (Number(payload.userId) === Number(auth.getUser()?.id)) return;
+      const meta = document.getElementById('active-chat-meta');
+      if (!meta) return;
+      if (payload.isTyping) {
+        meta.textContent = `${payload.userName || 'Someone'} is typing...`;
+      } else {
+        const current = messageConversations.find(item => Number(item.id) === Number(activeConversationId));
+        meta.textContent = current ? (current.participant_names || 'Participants') : 'Conversation loaded';
+      }
+    });
+  } catch (_) {}
 }
 
 async function loadMessageUsers() {
@@ -273,6 +334,8 @@ async function openConversation(conversationId) {
   try {
     const messages = await api.get(`/messages/conversations/${activeConversationId}/messages`);
     renderMessages(messages);
+    await api.put(`/messages/conversations/${activeConversationId}/read`);
+    await loadConversations();
   } catch (err) {
     if (stream) {
       stream.innerHTML = `<div class="empty-state-lite">${err.message}</div>`;
@@ -291,11 +354,16 @@ function renderMessages(messages) {
 
   stream.innerHTML = messages.map(message => {
     const isSelf = Number(message.sender_id) === Number(auth.getUser()?.id);
+    const attachmentHtml = Array.isArray(message.attachments) && message.attachments.length > 0
+      ? `<div style="margin-top:8px; display:flex; flex-direction:column; gap:4px;">${message.attachments.map(a => `<a href="${a.file_path}" target="_blank" style="font-size:0.72rem; color:${isSelf ? '#fff' : 'var(--accent-primary)'}; text-decoration:underline;">📎 ${escapeHtml(a.file_name || 'Attachment')}</a>`).join('')}</div>`
+      : '';
+    const readCount = Array.isArray(message.read_receipts) ? message.read_receipts.length : 0;
     return `
       <div class="message-bubble ${isSelf ? 'self' : 'other'}">
         <div style="font-weight:700; font-size:0.78rem; margin-bottom:4px;">${escapeHtml(isSelf ? 'You' : message.sender_name || 'Teammate')}</div>
         <div>${escapeHtml(message.message)}</div>
-        <div class="message-meta">${timeAgo(message.created_at)}</div>
+        ${attachmentHtml}
+        <div class="message-meta">${timeAgo(message.created_at)}${isSelf ? ` • Seen by ${readCount}` : ''}</div>
       </div>
     `;
   }).join('');
@@ -310,12 +378,20 @@ async function sendCurrentMessage() {
   }
 
   const input = document.getElementById('message-input');
+  const attachmentInput = document.getElementById('message-attachment');
   const text = input?.value.trim();
-  if (!text) return;
+  const hasAttachment = attachmentInput?.files && attachmentInput.files.length > 0;
+  if (!text && !hasAttachment) return;
 
   try {
-    await api.post(`/messages/conversations/${activeConversationId}/messages`, { message: text });
+    const formData = new FormData();
+    if (text) formData.append('message', text);
+    if (hasAttachment) {
+      Array.from(attachmentInput.files).forEach(file => formData.append('attachments', file));
+    }
+    await api.request('POST', `/messages/conversations/${activeConversationId}/messages`, formData, true);
     if (input) input.value = '';
+    if (attachmentInput) attachmentInput.value = '';
     await loadConversations();
     await openConversation(activeConversationId);
   } catch (err) {

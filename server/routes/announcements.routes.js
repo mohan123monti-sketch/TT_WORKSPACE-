@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db     = require('../db');
 const { verifyToken, checkRole } = require('../auth');
+const { notifyUsers } = require('../services/notification.service');
 
 router.get('/', verifyToken, (req, res) => {
   const items = db.prepare(`
@@ -15,8 +16,8 @@ router.post('/', verifyToken, checkRole('admin'), (req, res) => {
   const { title, body, pinned } = req.body;
   if (!title || !body) return res.status(400).json({ message: 'Title and body required' });
   const result = db.prepare('INSERT INTO announcements(title,body,created_by,pinned) VALUES(?,?,?,?)').run(title,body,req.user.id,pinned?1:0);
-  const users = db.prepare("SELECT id FROM users WHERE is_active=1 AND id!=?").all(req.user.id);
-  users.forEach(u => db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)").run(u.id,`📢 New announcement: "${title}"`, 'info'));
+  const users = db.prepare("SELECT id FROM users WHERE is_active=1 AND id!=?").all(req.user.id).map(u => u.id);
+  notifyUsers(users, `📢 New announcement: "${title}"`, 'info', 'Tech Turf Announcement').catch(() => {});
   res.json({ message: 'Announcement posted', id: result.lastInsertRowid });
 });
 
@@ -55,8 +56,8 @@ router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
 router.post('/broadcast', verifyToken, checkRole('admin'), (req, res) => {
   const { body } = req.body;
   if (!body) return res.status(400).json({ message: 'Message required' });
-  const users = db.prepare('SELECT id FROM users WHERE is_active=1').all();
-  users.forEach(u => db.prepare('INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)').run(u.id, `📢 Broadcast: ${body}`, 'info'));
+  const users = db.prepare('SELECT id FROM users WHERE is_active=1').all().map(u => u.id);
+  notifyUsers(users, `📢 Broadcast: ${body}`, 'info', 'Tech Turf Broadcast').catch(() => {});
   res.json({ message: 'Broadcast sent' });
 });
 

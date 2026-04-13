@@ -469,6 +469,295 @@ if (!userColumns.includes('github_link')) {
 if (!userColumns.includes('bio')) {
   db.exec('ALTER TABLE users ADD COLUMN bio TEXT');
 }
+if (!userColumns.includes('department')) {
+  db.exec('ALTER TABLE users ADD COLUMN department TEXT');
+}
+if (!userColumns.includes('branch')) {
+  db.exec('ALTER TABLE users ADD COLUMN branch TEXT');
+}
+if (!userColumns.includes('site')) {
+  db.exec('ALTER TABLE users ADD COLUMN site TEXT');
+}
+if (!userColumns.includes('employment_status')) {
+  db.exec("ALTER TABLE users ADD COLUMN employment_status TEXT DEFAULT 'active'");
+}
+if (!userColumns.includes('offboarding_note')) {
+  db.exec('ALTER TABLE users ADD COLUMN offboarding_note TEXT');
+}
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS invitations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  name TEXT,
+  department TEXT,
+  role TEXT,
+  secondary_roles TEXT,
+  branch TEXT,
+  site TEXT,
+  team_id INTEGER REFERENCES teams(id),
+  token TEXT UNIQUE NOT NULL,
+  expires_at DATETIME NOT NULL,
+  accepted_at DATETIME,
+  status TEXT DEFAULT 'pending',
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_invitations_email ON invitations(email);
+CREATE INDEX IF NOT EXISTS idx_invitations_token ON invitations(token);
+
+CREATE TABLE IF NOT EXISTS role_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  department TEXT,
+  primary_role TEXT,
+  secondary_roles TEXT,
+  description TEXT,
+  is_default INTEGER DEFAULT 0,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+  key TEXT PRIMARY KEY,
+  category TEXT,
+  description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS role_template_permissions (
+  template_id INTEGER REFERENCES role_templates(id) ON DELETE CASCADE,
+  permission_key TEXT REFERENCES permissions(key) ON DELETE CASCADE,
+  PRIMARY KEY (template_id, permission_key)
+);
+
+CREATE TABLE IF NOT EXISTS access_scopes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  scope_type TEXT DEFAULT 'global',
+  branch TEXT,
+  site TEXT,
+  team_id INTEGER REFERENCES teams(id),
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_access_scopes_user_id ON access_scopes(user_id);
+
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  purpose TEXT NOT NULL,
+  otp TEXT NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_password_reset_otps_user ON password_reset_otps(user_id, purpose);
+
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  jti TEXT NOT NULL,
+  ip TEXT,
+  user_agent TEXT,
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  last_seen_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS chat_message_reads (
+  message_id INTEGER REFERENCES chat_messages(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (message_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS chat_attachments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message_id INTEGER REFERENCES chat_messages(id) ON DELETE CASCADE,
+  file_path TEXT NOT NULL,
+  file_name TEXT,
+  mime_type TEXT,
+  file_size INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS team_announcements (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  body TEXT,
+  pinned INTEGER DEFAULT 0,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS team_inbox_threads (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+  client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+  subject TEXT NOT NULL,
+  status TEXT DEFAULT 'open',
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS team_inbox_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  thread_id INTEGER REFERENCES team_inbox_threads(id) ON DELETE CASCADE,
+  sender_id INTEGER REFERENCES users(id),
+  message TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS task_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  role TEXT,
+  team_id INTEGER REFERENCES teams(id),
+  title TEXT NOT NULL,
+  description TEXT,
+  priority TEXT DEFAULT 'normal',
+  sla_hours INTEGER DEFAULT 24,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS recurring_tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  template_id INTEGER REFERENCES task_templates(id) ON DELETE CASCADE,
+  frequency TEXT NOT NULL,
+  next_run_at DATETIME NOT NULL,
+  last_run_at DATETIME,
+  is_active INTEGER DEFAULT 1,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sla_rules (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  target_hours INTEGER NOT NULL,
+  warning_hours INTEGER DEFAULT 4,
+  team_id INTEGER REFERENCES teams(id),
+  is_active INTEGER DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS escalation_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_type TEXT NOT NULL,
+  entity_id INTEGER NOT NULL,
+  escalated_to INTEGER REFERENCES users(id),
+  message TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS meeting_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  task_id INTEGER REFERENCES tasks(id) ON DELETE SET NULL,
+  client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+  team_id INTEGER REFERENCES teams(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  notes TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS work_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  started_at DATETIME NOT NULL,
+  ended_at DATETIME,
+  duration_minutes INTEGER,
+  source TEXT DEFAULT 'manual'
+);
+
+CREATE TABLE IF NOT EXISTS goals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  team_id INTEGER REFERENCES teams(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  target_value REAL,
+  current_value REAL DEFAULT 0,
+  due_date DATE,
+  status TEXT DEFAULT 'active',
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS feedback_cycles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  reviewer_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  cycle_name TEXT,
+  self_review TEXT,
+  manager_review TEXT,
+  status TEXT DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS skill_matrix (
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  skill TEXT,
+  level INTEGER DEFAULT 1,
+  last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, skill)
+);
+
+CREATE TABLE IF NOT EXISTS help_articles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  role_scope TEXT,
+  language TEXT DEFAULT 'en',
+  created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_onboarding (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  is_completed INTEGER DEFAULT 0,
+  walkthrough_version TEXT DEFAULT 'v1',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_feedback (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  page TEXT,
+  category TEXT,
+  message TEXT NOT NULL,
+  status TEXT DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS policies (
+  key TEXT PRIMARY KEY,
+  value TEXT,
+  updated_by INTEGER REFERENCES users(id),
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS job_queue (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  payload TEXT,
+  status TEXT DEFAULT 'pending',
+  run_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  attempts INTEGER DEFAULT 0,
+  last_error TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+`);
 
 const roleSeedStmt = db.prepare(`
   INSERT OR IGNORE INTO company_roles (name, description, color, is_system)
@@ -484,5 +773,42 @@ const roleSeedStmt = db.prepare(`
   ['creator', 'Creator and production role', '#14b8a6'],
   ['client_handler', 'Client communication and support', '#f97316']
 ].forEach(([name, description, color]) => roleSeedStmt.run(name, description, color));
+
+const permissionSeedStmt = db.prepare('INSERT OR IGNORE INTO permissions (key, category, description) VALUES (?,?,?)');
+[
+  ['dashboard.view', 'dashboard', 'View dashboard and summary cards'],
+  ['tasks.view', 'tasks', 'View tasks'],
+  ['tasks.create', 'tasks', 'Create tasks'],
+  ['tasks.edit', 'tasks', 'Edit tasks'],
+  ['tasks.approve', 'tasks', 'Approve/reject submissions'],
+  ['tasks.bulk', 'tasks', 'Bulk update/archive tasks'],
+  ['projects.view', 'projects', 'View projects'],
+  ['projects.create', 'projects', 'Create projects'],
+  ['projects.edit', 'projects', 'Edit projects'],
+  ['projects.archive', 'projects', 'Archive/restore projects'],
+  ['users.view', 'users', 'View users'],
+  ['users.edit', 'users', 'Edit user profiles/roles'],
+  ['users.lifecycle', 'users', 'Manage probation/suspension/offboarding'],
+  ['invites.manage', 'governance', 'Create and manage invitations'],
+  ['teams.manage', 'teams', 'Create and manage teams'],
+  ['chat.send', 'chat', 'Send direct/group messages'],
+  ['announcements.manage', 'announcements', 'Publish company and team announcements'],
+  ['submissions.review', 'submissions', 'Review project submissions'],
+  ['policies.manage', 'admin', 'Update policy center'],
+  ['reports.view', 'analytics', 'View monitoring and reports']
+].forEach(([key, category, description]) => permissionSeedStmt.run(key, category, description));
+
+const roleTemplateSeedStmt = db.prepare(`
+  INSERT OR IGNORE INTO role_templates (name, department, primary_role, secondary_roles, description, is_default)
+  VALUES (?, ?, ?, ?, ?, 1)
+`);
+[
+  ['content_team_default', 'Content', 'writer', 'creator', 'Default content department template'],
+  ['design_team_default', 'Design', 'designer', 'creator', 'Default design department template'],
+  ['client_ops_default', 'Client', 'client_handler', 'team_leader', 'Default client operations template'],
+  ['operations_default', 'Operations', 'team_leader', 'media_manager,creator', 'Default operations template']
+].forEach(([name, department, primary_role, secondary_roles, description]) => {
+  roleTemplateSeedStmt.run(name, department, primary_role, secondary_roles, description);
+});
 
 module.exports = db;

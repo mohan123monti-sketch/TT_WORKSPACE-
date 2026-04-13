@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 require('dotenv').config();
 
 // Initialize the database connection (this also creates tables if missing)
@@ -37,6 +38,8 @@ async function startServer() {
         fs.appendFileSync(logPath, `[${time}] ${msg}\n`);
     };
     app.use((req, res, next) => {
+        req.requestId = crypto.randomUUID();
+        res.setHeader('x-request-id', req.requestId);
         logToFile(`${req.method} ${req.url}`);
         next();
     });
@@ -64,6 +67,7 @@ async function startServer() {
     app.use('/api/messages', require('./routes/messages.routes'));
     app.use('/api/workspace', require('./routes/workspace.routes'));
     app.use('/api/client-connect', require('./routes/client_connect.routes'));
+    app.use('/api/enterprise', require('./routes/enterprise.routes'));
 
 
     // --- ANALYTICS (Injected Routes) ---
@@ -156,6 +160,33 @@ async function startServer() {
     runDeadlineAlerts();
 
     // --- START SERVER ---
+    // Startup diagnostics to ensure environment is deployable before serving heavy traffic.
+    const runStartupDiagnostics = () => {
+        const diagnostics = {
+            dbPath: process.env.DB_PATH || path.join(__dirname, '../techturf.db'),
+            uploadsDir: path.join(__dirname, '../uploads'),
+            jwtConfigured: Boolean(process.env.JWT_SECRET)
+        };
+
+        try {
+            if (!fs.existsSync(diagnostics.uploadsDir)) fs.mkdirSync(diagnostics.uploadsDir, { recursive: true });
+            fs.accessSync(diagnostics.uploadsDir, fs.constants.W_OK);
+            diagnostics.uploadsWritable = true;
+        } catch {
+            diagnostics.uploadsWritable = false;
+        }
+
+        try {
+            db.prepare('SELECT 1').get();
+            diagnostics.dbReachable = true;
+        } catch {
+            diagnostics.dbReachable = false;
+        }
+
+        console.log('[Startup Diagnostics]', diagnostics);
+    };
+    runStartupDiagnostics();
+
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n🚀 Tech Turf OS is operational at PORT ${PORT}`);
         console.log(`   - Frontend: http://localhost:${PORT}`);
@@ -165,7 +196,8 @@ async function startServer() {
 
 // Global error handling for the process
 process.on('uncaughtException', (err) => {
-    console.error('CRITICAL ERROR:', err.message);
+    const errorId = crypto.randomUUID();
+    console.error('CRITICAL ERROR:', { errorId, message: err.message, stack: err.stack });
     process.exit(1);
 });
 

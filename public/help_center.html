@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Help Center Ops</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .help-grid {
+      padding: 0 24px 24px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .help-card {
+      padding: 20px;
+    }
+
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 620px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .article-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--bg-glass);
+    }
+
+    .article-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .article-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      margin-bottom: 8px;
+    }
+
+    .article-content {
+      font-size: 0.83rem;
+      line-height: 1.4;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+    }
+
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      gap: 12px;
+    }
+
+    .toggle-row small {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    @media (max-width: 1024px) {
+      .help-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Expand/Collapse Sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle sidebar"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.1rem;">HELP CENTER OPS</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Admin / Enterprise</div>
+          <div class="page-title">HELP CENTER OPERATIONS</div>
+        </div>
+      </div>
+
+      <div class="help-grid">
+        <div class="glass-card help-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:12px;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:1rem;">HELP ARTICLES</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Publish role-scoped knowledge base content.</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input id="article-search" class="form-control" placeholder="Search title or content" style="min-width:220px;">
+              <button class="btn-secondary" id="refresh-articles-btn"><i class="fas fa-rotate"></i></button>
+            </div>
+          </div>
+          <div class="article-list" id="article-list"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="glass-card help-card">
+            <div style="font-family:var(--font-display); margin-bottom:12px;">CREATE ARTICLE</div>
+            <form id="help-article-form">
+              <div class="form-group">
+                <label>Title</label>
+                <input id="help-title" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Role Scope</label>
+                <input id="help-role-scope" class="form-control" placeholder="admin,team_leader,writer">
+              </div>
+              <div class="form-group">
+                <label>Language</label>
+                <input id="help-language" class="form-control" value="en">
+              </div>
+              <div class="form-group">
+                <label>Content</label>
+                <textarea id="help-content" class="form-control" rows="6" required></textarea>
+              </div>
+              <button class="btn-primary" type="submit" style="width:100%;"><i class="fas fa-plus"></i><span>Publish Article</span></button>
+            </form>
+          </div>
+
+          <div class="glass-card help-card">
+            <div style="font-family:var(--font-display); margin-bottom:10px;">WALKTHROUGH TOGGLES</div>
+            <div id="walkthrough-toggle-list"></div>
+            <div class="wizard-note" id="onboarding-status" style="font-size:0.72rem; color:var(--text-muted); margin:10px 0;"></div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn-secondary" id="save-walkthrough-btn" style="flex:1;"><i class="fas fa-floppy-disk"></i><span>Save Toggles</span></button>
+              <button class="btn-secondary" id="reset-my-onboarding-btn" style="flex:1;"><i class="fas fa-rotate-left"></i><span>Reset My Walkthrough</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/help-center.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.requireRole('admin');
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initHelpCenterOps) await initHelpCenterOps();
+    });
+  </script>
+</body>
+
+</html>

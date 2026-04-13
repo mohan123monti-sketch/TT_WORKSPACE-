@@ -83,4 +83,50 @@ function checkRole(...roles) {
   };
 }
 
-module.exports = { hashPassword, comparePassword, generateToken, verifyToken, checkRole };
+const ROLE_PERMISSION_MAP = {
+  admin: ['*'],
+  team_leader: [
+    'dashboard.view', 'tasks.view', 'tasks.create', 'tasks.edit', 'tasks.approve',
+    'projects.view', 'projects.create', 'projects.edit', 'chat.send', 'submissions.review'
+  ],
+  writer: ['dashboard.view', 'tasks.view', 'projects.view', 'chat.send'],
+  designer: ['dashboard.view', 'tasks.view', 'projects.view', 'chat.send'],
+  rnd: ['dashboard.view', 'tasks.view', 'projects.view', 'reports.view', 'chat.send'],
+  creator: ['dashboard.view', 'tasks.view', 'projects.view', 'chat.send'],
+  media_manager: ['dashboard.view', 'tasks.view', 'projects.view', 'announcements.manage', 'chat.send'],
+  client_handler: ['dashboard.view', 'projects.view', 'tasks.view', 'chat.send']
+};
+
+function collectPermissions(user) {
+  const roles = [user.role, ...(user.secondary_roles || '').split(',').map(r => r.trim()).filter(Boolean)];
+  const permissionSet = new Set();
+  roles.forEach(role => {
+    (ROLE_PERMISSION_MAP[role] || []).forEach(permission => permissionSet.add(permission));
+  });
+  return permissionSet;
+}
+
+function checkPermission(...permissions) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const permissionSet = collectPermissions(req.user);
+    if (permissionSet.has('*')) return next();
+    const allowed = permissions.some(permission => permissionSet.has(permission));
+    if (!allowed) {
+      return res.status(403).json({ message: `Forbidden — requires permission: ${permissions.join(' | ')}` });
+    }
+    return next();
+  };
+}
+
+function isStrongPassword(password) {
+  const value = String(password || '');
+  const hasLength = value.length >= 10;
+  const hasUpper = /[A-Z]/.test(value);
+  const hasLower = /[a-z]/.test(value);
+  const hasNumber = /\d/.test(value);
+  const hasSymbol = /[^A-Za-z0-9]/.test(value);
+  return hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
+}
+
+module.exports = { hashPassword, comparePassword, generateToken, verifyToken, checkRole, checkPermission, isStrongPassword };

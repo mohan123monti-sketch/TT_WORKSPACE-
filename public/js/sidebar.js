@@ -88,6 +88,18 @@ function initSidebar() {
           <i class="fas fa-shield-alt"></i>
           <span class="menu-text">Admin Warp</span>
         </div>
+        <div class="menu-item admin-only" onclick="window.location.href='setup_wizard.html'">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <span class="menu-text">Setup Wizard</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='policy_center.html'">
+          <i class="fas fa-scale-balanced"></i>
+          <span class="menu-text">Policy Center</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='help_center.html'">
+          <i class="fas fa-circle-question"></i>
+          <span class="menu-text">Help Center Ops</span>
+        </div>
         <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
           <i class="fas fa-flask"></i>
           <span class="menu-text">Nexus Lab</span>

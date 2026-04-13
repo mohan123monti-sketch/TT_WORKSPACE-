@@ -311,13 +311,17 @@
               <div class="chat-title" id="active-chat-title">No conversation selected</div>
               <div class="chat-subtitle" id="active-chat-meta">Choose a conversation or start a new one.</div>
             </div>
-            <div class="badge badge-normal" id="active-chat-badge" style="font-size:0.65rem; display:none;">CHAT</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="text" id="conversation-search" class="messenger-search" style="margin:0; width:220px;" placeholder="Search in this chat">
+              <div class="badge badge-normal" id="active-chat-badge" style="font-size:0.65rem; display:none;">CHAT</div>
+            </div>
           </div>
           <div class="chat-stream" id="chat-stream">
             <div class="empty-state-lite">Open a chat from the left panel or start a new direct/group chat.</div>
           </div>
           <div class="composer">
             <textarea id="message-input" placeholder="Write a message..." disabled></textarea>
+            <input type="file" id="message-attachment" style="max-width:200px;" title="Attach file">
             <button class="btn-primary" id="send-message-btn" style="min-width:120px; height:46px;" disabled>Send</button>
           </div>
         </section>

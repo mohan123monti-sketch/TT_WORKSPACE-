@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { verifyToken, checkRole } = require('../auth');
+const { notifyUsers, notifyByRole } = require('../services/notification.service');
 
 // Multer setup
 const uploadsDir = path.join(__dirname, '../../uploads');
@@ -87,17 +88,12 @@ router.post('/', verifyToken, (req, res) => {
         if (task?.project_id) {
           const project = db.prepare('SELECT team_leader_id FROM projects WHERE id=?').get(task.project_id);
           if (project?.team_leader_id) {
-            db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-              .run(project.team_leader_id, `📤 New submission for task "${task?.title}" — review required`, 'info');
+            notifyUsers(project.team_leader_id, `📤 New submission for task "${task?.title}" — review required`, 'info', 'Tech Turf Submission Alert').catch(() => {});
           }
         }
       } else {
         db.prepare("INSERT INTO performance_log(user_id,action,task_id) VALUES(?,?,?)").run(req.user.id, 'Submitted manual work', null);
-        const admins = db.prepare('SELECT id FROM users WHERE role="admin"').all();
-        admins.forEach(a => {
-          db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-            .run(a.id, `📤 New manual work for "${project_name || 'Project'}" — review required`, 'info');
-        });
+        notifyByRole('admin', `📤 New manual work for "${project_name || 'Project'}" — review required`, 'info', 'Tech Turf Manual Submission Alert').catch(() => {});
       }
 
       res.json({ message: 'Submitted successfully', id: result.lastInsertRowid, version });
@@ -175,15 +171,12 @@ router.put('/:id/leader-review', verifyToken, checkRole('admin', 'team_leader'),
   if (status === 'approved') {
     db.prepare("UPDATE users SET points=points+10 WHERE id=?").run(sub.submitted_by);
     db.prepare("INSERT INTO performance_log(user_id,action,score,task_id) VALUES(?,?,?,?)").run(sub.submitted_by, 'Task Approved', 10, sub.task_id);
-    db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(sub.submitted_by, `✅ Your submission for "${task?.title}" was APPROVED! +10 points`, 'success');
+    notifyUsers(sub.submitted_by, `✅ Your submission for "${task?.title}" was APPROVED! +10 points`, 'success', 'Tech Turf Submission Approved').catch(() => {});
     await checkAndAssignBadges(sub.submitted_by);
   } else if (status === 'rejected') {
-    db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(sub.submitted_by, `❌ Your submission for "${task?.title}" was rejected. ${note || ''}`, 'danger');
+    notifyUsers(sub.submitted_by, `❌ Your submission for "${task?.title}" was rejected. ${note || ''}`, 'danger', 'Tech Turf Submission Rejected').catch(() => {});
   } else {
-    db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(sub.submitted_by, `🔄 Your submission for "${task?.title}" needs rework. ${note || ''}`, 'warning');
+    notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title}" needs rework. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
   res.json({ message: `Submission ${status}` });
 });

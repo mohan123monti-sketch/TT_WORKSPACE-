@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db     = require('../db');
 const { verifyToken, checkRole } = require('../auth');
+const { notifyUsers } = require('../services/notification.service');
 
 router.get('/', verifyToken, (req, res) => {
   const items = db.prepare('SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50').all(req.user.id);
@@ -26,7 +27,7 @@ router.post('/broadcast', verifyToken, checkRole('admin'), (req, res) => {
   } else {
     users = db.prepare('SELECT id FROM users WHERE is_active=1 AND id!=?').all(req.user.id);
   }
-  users.forEach(u => db.prepare('INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)').run(u.id, message, type||'info'));
+  notifyUsers(users.map(u => u.id), message, type || 'info', 'Tech Turf Broadcast').catch(() => {});
   res.json({ message: `Broadcast sent to ${users.length} users` });
 });
 

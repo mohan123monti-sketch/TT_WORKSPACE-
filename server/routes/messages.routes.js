@@ -1,6 +1,26 @@
 const router = require('express').Router();
 const db = require('../db');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const { verifyToken } = require('../auth');
+const { publish, subscribe } = require('../services/realtime');
+const { notifyUsers } = require('../services/notification.service');
+
+const chatUploadDir = path.join(__dirname, '../../uploads/chat');
+if (!fs.existsSync(chatUploadDir)) fs.mkdirSync(chatUploadDir, { recursive: true });
+
+const attachmentUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, chatUploadDir),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const safeBase = path.basename(file.originalname, ext).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      cb(null, `chat_${Date.now()}_u${req.user.id}_${safeBase}${ext}`);
+    }
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 }
+});
 
 function normalizeIds(values) {
   if (!Array.isArray(values)) return [];
@@ -27,12 +47,46 @@ function assertParticipant(conversationId, userId) {
 }
 
 function notifyParticipants(conversationId, senderId, message) {
-  const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=? AND user_id != ?').all(conversationId, senderId);
-  const notifStmt = db.prepare('INSERT INTO notifications(user_id, message, type) VALUES(?,?,?)');
-  participants.forEach(participant => {
-    notifStmt.run(participant.user_id, message, 'info');
-  });
+  const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=? AND user_id != ?').all(conversationId, senderId).map(p => p.user_id);
+  notifyUsers(participants, message, 'info', 'Tech Turf New Chat Message').catch(() => {});
 }
+
+router.get('/stream', verifyToken, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const userId = Number(req.user.id);
+  const onMessage = (payload) => {
+    if (!payload || !Array.isArray(payload.participantIds)) return;
+    if (!payload.participantIds.includes(userId)) return;
+    res.write(`event: message\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  const onTyping = (payload) => {
+    if (!payload || !Array.isArray(payload.participantIds)) return;
+    if (!payload.participantIds.includes(userId)) return;
+    res.write(`event: typing\n`);
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  const unsubMessage = subscribe('chat.message', onMessage);
+  const unsubTyping = subscribe('chat.typing', onTyping);
+
+  const heartbeat = setInterval(() => {
+    res.write(`event: ping\n`);
+    res.write(`data: {"ok":true}\n\n`);
+  }, 30000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    unsubMessage();
+    unsubTyping();
+    res.end();
+  });
+});
 
 router.get('/users', verifyToken, (req, res) => {
   const users = db.prepare(`
@@ -82,11 +136,21 @@ router.get('/conversations', verifyToken, (req, res) => {
         SELECT COUNT(*)
         FROM conversation_participants cp
         WHERE cp.conversation_id = c.id
-      ) as participant_count
+      ) as participant_count,
+      (
+        SELECT COUNT(*)
+        FROM chat_messages m
+        WHERE m.conversation_id = c.id
+          AND m.sender_id != ?
+          AND NOT EXISTS (
+            SELECT 1 FROM chat_message_reads r
+            WHERE r.message_id = m.id AND r.user_id = ?
+          )
+      ) as unread_count
     FROM conversations c
     JOIN conversation_participants me ON me.conversation_id = c.id AND me.user_id = ?
     ORDER BY COALESCE(last_message_at, c.updated_at) DESC, c.id DESC
-  `).all(req.user.id);
+  `).all(req.user.id, req.user.id, req.user.id);
 
   res.json(conversations);
 });
@@ -152,25 +216,108 @@ router.get('/conversations/:id/messages', verifyToken, (req, res) => {
     ORDER BY m.created_at ASC, m.id ASC
   `).all(req.params.id);
 
+  const attachmentStmt = db.prepare('SELECT * FROM chat_attachments WHERE message_id=? ORDER BY id ASC');
+  const readStmt = db.prepare('SELECT user_id, read_at FROM chat_message_reads WHERE message_id=? ORDER BY read_at ASC');
+  messages.forEach(message => {
+    message.attachments = attachmentStmt.all(message.id);
+    message.read_receipts = readStmt.all(message.id);
+  });
+
   res.json(messages);
 });
 
+router.get('/conversations/:id/search', verifyToken, (req, res) => {
+  if (!assertParticipant(req.params.id, req.user.id)) {
+    return res.status(403).json({ message: 'You are not part of this conversation' });
+  }
+  const q = String(req.query.q || '').trim();
+  if (!q) return res.json([]);
+
+  const rows = db.prepare(`
+    SELECT m.*, u.name as sender_name
+    FROM chat_messages m
+    LEFT JOIN users u ON u.id = m.sender_id
+    WHERE m.conversation_id=? AND m.message LIKE ?
+    ORDER BY m.created_at DESC
+    LIMIT 100
+  `).all(req.params.id, `%${q}%`);
+  res.json(rows);
+});
+
+router.put('/conversations/:id/read', verifyToken, (req, res) => {
+  if (!assertParticipant(req.params.id, req.user.id)) {
+    return res.status(403).json({ message: 'You are not part of this conversation' });
+  }
+  const unread = db.prepare(`
+    SELECT m.id
+    FROM chat_messages m
+    WHERE m.conversation_id=?
+      AND m.sender_id != ?
+      AND NOT EXISTS (
+        SELECT 1 FROM chat_message_reads r
+        WHERE r.message_id = m.id AND r.user_id = ?
+      )
+  `).all(req.params.id, req.user.id, req.user.id);
+
+  const markRead = db.prepare('INSERT OR IGNORE INTO chat_message_reads(message_id,user_id) VALUES(?,?)');
+  unread.forEach(row => markRead.run(row.id, req.user.id));
+  res.json({ message: 'Conversation marked as read', count: unread.length });
+});
+
+router.post('/conversations/:id/typing', verifyToken, (req, res) => {
+  if (!assertParticipant(req.params.id, req.user.id)) {
+    return res.status(403).json({ message: 'You are not part of this conversation' });
+  }
+  const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=?').all(req.params.id).map(p => p.user_id);
+  publish('chat.typing', {
+    conversationId: Number(req.params.id),
+    userId: req.user.id,
+    userName: req.user.name,
+    isTyping: Boolean(req.body?.isTyping),
+    participantIds: participants,
+    at: new Date().toISOString()
+  });
+  res.json({ message: 'Typing status published' });
+});
+
 router.post('/conversations/:id/messages', verifyToken, (req, res) => {
+  attachmentUpload.any()(req, res, (uploadErr) => {
+    if (uploadErr) return res.status(400).json({ message: uploadErr.message || 'Attachment upload failed' });
+
   if (!assertParticipant(req.params.id, req.user.id)) {
     return res.status(403).json({ message: 'You are not part of this conversation' });
   }
 
   const message = String(req.body.message || '').trim();
-  if (!message) return res.status(400).json({ message: 'Message required' });
+  const files = Array.isArray(req.files) ? req.files : [];
+  if (!message && files.length === 0) return res.status(400).json({ message: 'Message or attachment required' });
 
   try {
     const result = db.prepare(`
       INSERT INTO chat_messages (conversation_id, sender_id, message)
       VALUES (?, ?, ?)
-    `).run(req.params.id, req.user.id, message);
+    `).run(req.params.id, req.user.id, message || '[Attachment]');
+
+    if (files.length > 0) {
+      const attachStmt = db.prepare(`
+        INSERT INTO chat_attachments (message_id,file_path,file_name,mime_type,file_size)
+        VALUES (?,?,?,?,?)
+      `);
+      files.forEach(file => {
+        attachStmt.run(
+          result.lastInsertRowid,
+          `/uploads/chat/${file.filename}`,
+          file.originalname,
+          file.mimetype || null,
+          file.size || null
+        );
+      });
+    }
 
     db.prepare('UPDATE conversations SET updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.params.id);
     notifyParticipants(req.params.id, req.user.id, `New message from ${req.user.name || 'a teammate'}: ${message.slice(0, 120)}`);
+
+    const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=?').all(req.params.id).map(p => p.user_id);
 
     const sent = db.prepare(`
       SELECT m.*, u.name as sender_name, u.avatar as sender_avatar, u.role as sender_role
@@ -179,10 +326,20 @@ router.post('/conversations/:id/messages', verifyToken, (req, res) => {
       WHERE m.id=?
     `).get(result.lastInsertRowid);
 
+    sent.attachments = db.prepare('SELECT * FROM chat_attachments WHERE message_id=? ORDER BY id ASC').all(sent.id);
+
+    publish('chat.message', {
+      conversationId: Number(req.params.id),
+      message: sent,
+      participantIds: participants,
+      at: new Date().toISOString()
+    });
+
     res.json({ message: 'Message sent', data: sent });
   } catch (err) {
     res.status(500).json({ message: 'Failed to send message: ' + err.message });
   }
+  });
 });
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
+const { notifyUsers } = require('../services/notification.service');
 
 // GET /api/projects
 router.get('/', verifyToken, (req, res) => {
@@ -71,8 +72,7 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
   }
 
   if (effectiveLeaderId && effectiveLeaderId !== req.user.id) {
-    db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(effectiveLeaderId, `📋 You've been assigned as Team Leader for project: "${title}"`, 'info');
+    notifyUsers(effectiveLeaderId, `📋 You've been assigned as Team Leader for project: "${title}"`, 'info', 'Tech Turf Project Assignment').catch(() => {});
   }
   res.json({ message: 'Project created', id: result.lastInsertRowid });
 });
