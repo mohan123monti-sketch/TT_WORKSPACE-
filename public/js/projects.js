@@ -244,7 +244,7 @@ async function openProjectDetail(id) {
     let actionControls = '';
     const userRole = auth.getUser().role;
 
-    if (['admin', 'team_leader'].includes(userRole)) {
+    if (['admin', 'team_leader', 'backend', 'frontend_backend'].includes(userRole)) {
       actionControls += `<button class="btn-primary" style="margin-right:8px;" onclick="openEditProjectModal(${p.id})">Edit</button>`;
     }
 

@@ -2,6 +2,13 @@ const Database = require('better-sqlite3');
 const path = require('path');
 require('dotenv').config();
 
+const BUILTIN_ROLE_NAMES = [
+  'admin', 'team_leader', 'rnd', 'writer',
+  'designer', 'media_manager', 'creator', 'client_handler',
+  'frontend', 'backend', 'frontend_backend', 'production'
+];
+const USER_ROLE_CHECK_VALUES = BUILTIN_ROLE_NAMES.map(role => `'${role}'`).join(',');
+
 const dbPath = process.env.DB_PATH || path.join(__dirname, '../techturf.db');
 const db = new Database(dbPath);
 db.exec(`
@@ -10,10 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN (
-    'admin','team_leader','rnd','writer',
-    'designer','media_manager','creator','client_handler'
-  )),
+  role TEXT NOT NULL CHECK(role IN (${USER_ROLE_CHECK_VALUES})),
   secondary_roles TEXT,
   avatar TEXT,
   badge TEXT DEFAULT NULL,
@@ -485,6 +489,55 @@ if (!userColumns.includes('offboarding_note')) {
   db.exec('ALTER TABLE users ADD COLUMN offboarding_note TEXT');
 }
 
+// Keep primary role CHECK constraint synced when role list expands.
+const usersTableSql = (db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get() || {}).sql || '';
+const missingPrimaryRoles = BUILTIN_ROLE_NAMES.filter(role => !usersTableSql.includes(`'${role}'`));
+if (missingPrimaryRoles.length) {
+  db.exec('PRAGMA foreign_keys = OFF');
+  try {
+    db.exec('BEGIN IMMEDIATE');
+    db.exec(`
+      CREATE TABLE users_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN (${USER_ROLE_CHECK_VALUES})),
+        secondary_roles TEXT,
+        avatar TEXT,
+        badge TEXT DEFAULT NULL,
+        points INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        mobile TEXT,
+        github_link TEXT,
+        bio TEXT,
+        department TEXT,
+        branch TEXT,
+        site TEXT,
+        employment_status TEXT DEFAULT 'active',
+        offboarding_note TEXT
+      );
+      INSERT INTO users_new (
+        id, name, email, password, role, secondary_roles, avatar, badge, points, is_active,
+        created_at, mobile, github_link, bio, department, branch, site, employment_status, offboarding_note
+      )
+      SELECT
+        id, name, email, password, role, secondary_roles, avatar, badge, points, is_active,
+        created_at, mobile, github_link, bio, department, branch, site, COALESCE(employment_status, 'active'), offboarding_note
+      FROM users;
+      DROP TABLE users;
+      ALTER TABLE users_new RENAME TO users;
+    `);
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  } finally {
+    db.exec('PRAGMA foreign_keys = ON');
+  }
+}
+
 db.exec(`
 CREATE TABLE IF NOT EXISTS invitations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -771,7 +824,11 @@ const roleSeedStmt = db.prepare(`
   ['designer', 'Design and visual work', '#a855f7'],
   ['media_manager', 'Media planning and publishing', '#ec4899'],
   ['creator', 'Creator and production role', '#14b8a6'],
-  ['client_handler', 'Client communication and support', '#f97316']
+  ['client_handler', 'Client communication and support', '#f97316'],
+  ['frontend', 'Frontend engineering role', '#0ea5e9'],
+  ['backend', 'Backend engineering role', '#10b981'],
+  ['frontend_backend', 'Full-stack engineering role', '#6366f1'],
+  ['production', 'Production operations role', '#f59e0b']
 ].forEach(([name, description, color]) => roleSeedStmt.run(name, description, color));
 
 const permissionSeedStmt = db.prepare('INSERT OR IGNORE INTO permissions (key, category, description) VALUES (?,?,?)');

@@ -83,6 +83,9 @@ const auth = {
     toggleVisibility('.media-only', 'media_manager');
     toggleVisibility('.creator-only', 'creator');
     toggleVisibility('.handler-only', 'client_handler');
+    toggleVisibility('.task-create-only', 'admin', 'team_leader', 'frontend_backend', 'production');
+    toggleVisibility('.project-create-only', 'admin', 'team_leader', 'frontend_backend');
+    toggleVisibility('.announce-manage-only', 'admin', 'media_manager', 'production');
   }
 };
 window.auth = auth;

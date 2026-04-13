@@ -74,7 +74,7 @@ async function loadAnnouncements() {
         <div class="announcement-body">${a.body}</div>
         <div class="announcement-footer">
           <span>Tech Turf Internal Feed</span>
-          ${auth.getUser().role === 'admin' ? `
+          ${['admin', 'media_manager', 'production'].includes(auth.getUser().role) ? `
             <div style="display:flex; gap:16px;">
               <span style="cursor:pointer; color:var(--accent-primary);" onclick="togglePin(${a.id},${a.pinned ? 0 : 1})">${a.pinned ? 'Unpin' : 'Pin'}</span>
               <span style="cursor:pointer; color:var(--accent-secondary);" onclick="deleteAnnouncement(${a.id})">Delete</span>

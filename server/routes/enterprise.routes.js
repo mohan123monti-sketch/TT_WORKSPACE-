@@ -339,7 +339,7 @@ router.post('/help/articles', verifyToken, checkRole('admin', 'team_leader'), (r
 
 router.get('/help/articles', verifyToken, (req, res) => {
   const language = req.query.language || 'en';
-  const rows = db.prepare('SELECT * FROM help_articles WHERE language=? OR language="" ORDER BY created_at DESC').all(language);
+  const rows = db.prepare("SELECT * FROM help_articles WHERE language=? OR language='' ORDER BY created_at DESC").all(language);
   res.json(rows);
 });
 

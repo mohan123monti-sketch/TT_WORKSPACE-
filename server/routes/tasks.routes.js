@@ -72,7 +72,7 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // POST /api/tasks
-router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
+router.post('/', verifyToken, checkRole('admin', 'team_leader', 'frontend_backend', 'production'), (req, res) => {
   const { project_id, title, description, assigned_to, role_required, priority, deadline, depends_on, max_revisions, task_members } = req.body;
   if (!project_id || !title) return res.status(400).json({ message: 'project_id and title required' });
 
@@ -128,7 +128,7 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
 });
 
 // PUT /api/tasks/:id
-router.put('/:id', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
+router.put('/:id', verifyToken, checkRole('admin', 'team_leader', 'backend', 'frontend_backend', 'production'), (req, res) => {
   const { title, description, assigned_to, status, priority, deadline, max_revisions, role_required, task_members } = req.body;
   const oldTask = db.prepare('SELECT * FROM tasks WHERE id=?').get(req.params.id);
   if (!oldTask) return res.status(404).json({ message: 'Task not found' });

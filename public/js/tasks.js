@@ -144,14 +144,14 @@ async function loadTasks() {
         <div class="empty-state">
           <i class="fas fa-tasks"></i>
           <div class="empty-title">No tasks found</div>
-          <div class="empty-action admin-tl-only"><button class="btn-primary" onclick="openModal('new-task-modal')">Create Task</button></div>
+          <div class="empty-action task-create-only"><button class="btn-primary" onclick="openModal('new-task-modal')">Create Task</button></div>
         </div>
       </td></tr>`;
       return;
     }
 
     const currentUserId = auth.getUser().id;
-    const isAtLeastTL = ['admin', 'team_leader'].includes(auth.getUser().role);
+    const canEditTasks = ['admin', 'team_leader', 'backend', 'frontend_backend', 'production'].includes(auth.getUser().role);
 
     tbody.innerHTML = tasks.map(t => {
       // Render member avatars (stacked)
@@ -183,7 +183,7 @@ async function loadTasks() {
         <td>${memberAvatarsHtml}</td>
         <td><div class="badge badge-${t.priority}">${t.priority}</div></td>
         <td>
-          ${isAtLeastTL ?
+          ${canEditTasks ?
           `<select class="form-control" style="width:130px; font-size:0.75rem; padding:4px 8px; border-radius:12px; font-weight:700; height:auto; display:inline-block; appearance:auto; background-color: var(--bg-hover);" onchange="updateTaskStatus(${t.id}, this.value)">
                 <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>Pending</option>
                 <option value="in_progress" ${t.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
@@ -206,7 +206,7 @@ async function loadTasks() {
           `<button class="btn-primary" style="padding:6px 12px; font-size:0.7rem;" onclick="openSubmitModal(${t.id}, '${t.title.replace(/'/g, "\\'")}')">SUBMIT</button>` : ''}
             ${(isMember && t.status === 'pending') ?
           `<button class="btn-secondary" style="padding:6px 12px; font-size:0.7rem;" onclick="startTask(${t.id})">START</button>` : ''}
-            ${isAtLeastTL ? `<button class="btn-secondary" style="padding:6px 12px; font-size:0.7rem;" onclick="editTask(${t.id})"><i class="fas fa-edit"></i></button>` : ''}
+            ${canEditTasks ? `<button class="btn-secondary" style="padding:6px 12px; font-size:0.7rem;" onclick="editTask(${t.id})"><i class="fas fa-edit"></i></button>` : ''}
             ${auth.getUser().role === 'admin' ? `<button class="btn-danger" style="padding:6px 12px; font-size:0.7rem;" onclick="deleteTask(${t.id})"><i class="fas fa-trash"></i></button>` : ''}
           </div>
         </td>

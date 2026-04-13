@@ -2,7 +2,11 @@ const router = require('express').Router();
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
 
-const BUILTIN_ROLE_NAMES = ['admin', 'team_leader', 'rnd', 'writer', 'designer', 'media_manager', 'creator', 'client_handler'];
+const BUILTIN_ROLE_NAMES = [
+  'admin', 'team_leader', 'rnd', 'writer',
+  'designer', 'media_manager', 'creator', 'client_handler',
+  'frontend', 'backend', 'frontend_backend', 'production'
+];
 
 function normalizeRoleName(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '_');
@@ -45,7 +49,7 @@ router.get('/audit', verifyToken, checkRole('admin'), (req, res) => {
 
 // GET /api/admin/heatmap (Departmental Load)
 router.get('/heatmap', verifyToken, checkRole('admin'), (req, res) => {
-  const roles = ['admin', 'team_leader', 'rnd', 'writer', 'designer', 'media_manager', 'creator', 'client_handler'];
+  const roles = BUILTIN_ROLE_NAMES;
   const data = roles.map(role => {
     const count = db.prepare('SELECT COUNT(*) as c FROM tasks WHERE role_required=? AND status != "approved"').get(role).c;
     const pending = db.prepare('SELECT COUNT(*) as c FROM tasks WHERE role_required=? AND status="pending"').get(role).c;

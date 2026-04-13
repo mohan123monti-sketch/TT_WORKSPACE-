@@ -94,7 +94,11 @@ function getRoleColor(role) {
     rnd: '#43e97b',
     creator: '#ff6584',
     media_manager: '#aaaacc',
-    client_handler: '#00d2ff'
+    client_handler: '#00d2ff',
+    frontend: '#0ea5e9',
+    backend: '#10b981',
+    frontend_backend: '#6366f1',
+    production: '#f59e0b'
   };
   return map[role] || '#8888aa';
 }

@@ -474,6 +474,34 @@ async function loadRoleHub() {
             icon: 'fa-handshake',
             color: 'var(--accent-primary)',
             url: 'client_connect.html'
+        },
+        'frontend': {
+            title: 'DESIGN VAULT',
+            desc: 'Coordinate UI assets, style systems, and front-end delivery tasks.',
+            icon: 'fa-code',
+            color: 'var(--accent-primary)',
+            url: 'design_vault.html'
+        },
+        'backend': {
+            title: 'OPERATION HQ',
+            desc: 'Track API-facing execution work, delivery constraints, and implementation flow.',
+            icon: 'fa-server',
+            color: 'var(--accent-orange)',
+            url: 'operation_hq.html'
+        },
+        'frontend_backend': {
+            title: 'WORKSPACE BRIDGE',
+            desc: 'Run cross-stack execution across interface polish and service integration tasks.',
+            icon: 'fa-layer-group',
+            color: 'var(--accent-pink)',
+            url: 'workspace.html'
+        },
+        'production': {
+            title: 'CREATOR SLATE',
+            desc: 'Drive production schedules, event timelines, and content shipment readiness.',
+            icon: 'fa-clapperboard',
+            color: 'var(--accent-orange)',
+            url: 'creator_slate.html'
         }
     };
 

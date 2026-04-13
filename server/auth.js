@@ -94,7 +94,20 @@ const ROLE_PERMISSION_MAP = {
   rnd: ['dashboard.view', 'tasks.view', 'projects.view', 'reports.view', 'chat.send'],
   creator: ['dashboard.view', 'tasks.view', 'projects.view', 'chat.send'],
   media_manager: ['dashboard.view', 'tasks.view', 'projects.view', 'announcements.manage', 'chat.send'],
-  client_handler: ['dashboard.view', 'projects.view', 'tasks.view', 'chat.send']
+  client_handler: ['dashboard.view', 'projects.view', 'tasks.view', 'chat.send'],
+  frontend: ['dashboard.view', 'tasks.view', 'projects.view', 'chat.send'],
+  backend: [
+    'dashboard.view', 'tasks.view', 'tasks.edit',
+    'projects.view', 'projects.edit', 'reports.view', 'chat.send'
+  ],
+  frontend_backend: [
+    'dashboard.view', 'tasks.view', 'tasks.create', 'tasks.edit',
+    'projects.view', 'projects.create', 'projects.edit', 'chat.send'
+  ],
+  production: [
+    'dashboard.view', 'tasks.view', 'tasks.create', 'tasks.edit',
+    'projects.view', 'announcements.manage', 'chat.send'
+  ]
 };
 
 function collectPermissions(user) {

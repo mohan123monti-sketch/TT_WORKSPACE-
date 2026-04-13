@@ -6,6 +6,10 @@ const BUILTIN_ROLE_OPTIONS = [
   { value: 'creator', label: 'Creator' },
   { value: 'media_manager', label: 'Media Mgr' },
   { value: 'client_handler', label: 'Client Handler' },
+  { value: 'frontend', label: 'Frontend' },
+  { value: 'backend', label: 'Backend' },
+  { value: 'frontend_backend', label: 'Frontend + Backend' },
+  { value: 'production', label: 'Production' },
   { value: 'admin', label: 'Admin' }
 ];
 
@@ -22,6 +26,11 @@ function getRoleOptions() {
 }
 
 function renderRoleOptionSelects() {
+  const primarySelect = document.getElementById('user-role');
+  if (primarySelect) {
+    primarySelect.innerHTML = getRoleOptions().map(role => `<option value="${role.value}">${role.label}</option>`).join('');
+  }
+
   const select = document.getElementById('user-secondary-roles');
   if (select) {
     select.innerHTML = getRoleOptions().map(role => `<option value="${role.value}">${role.label}</option>`).join('');
@@ -106,14 +115,7 @@ async function loadUsers() {
           <td>
             <div style="display:flex; flex-direction:column; gap:4px;">
               <select class="form-control" style="min-width:110px;" onchange="changeUserRole(${u.id}, this.value); event.stopPropagation();">
-                <option value="writer" ${u.role==='writer'?'selected':''}>Writer</option>
-                <option value="designer" ${u.role==='designer'?'selected':''}>Designer</option>
-                <option value="team_leader" ${u.role==='team_leader'?'selected':''}>Team Leader</option>
-                <option value="rnd" ${u.role==='rnd'?'selected':''}>R&D Specialist</option>
-                <option value="creator" ${u.role==='creator'?'selected':''}>Content Creator</option>
-                <option value="media_manager" ${u.role==='media_manager'?'selected':''}>Media Manager</option>
-                <option value="client_handler" ${u.role==='client_handler'?'selected':''}>Client Handler</option>
-                <option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option>
+                ${allRoles.map(role => `<option value="${role.val}" ${u.role===role.val?'selected':''}>${role.label}</option>`).join('')}
               </select>
               ${secBadges ? `<div style="display:flex; flex-wrap:wrap; gap:3px; margin-top:2px;">${secBadges}</div>` : ''}
             </div>

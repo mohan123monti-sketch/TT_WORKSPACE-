@@ -12,7 +12,7 @@ router.get('/', verifyToken, (req, res) => {
   res.json(items);
 });
 
-router.post('/', verifyToken, checkRole('admin'), (req, res) => {
+router.post('/', verifyToken, checkRole('admin', 'media_manager', 'production'), (req, res) => {
   const { title, body, pinned } = req.body;
   if (!title || !body) return res.status(400).json({ message: 'Title and body required' });
   const result = db.prepare('INSERT INTO announcements(title,body,created_by,pinned) VALUES(?,?,?,?)').run(title,body,req.user.id,pinned?1:0);
@@ -21,7 +21,7 @@ router.post('/', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ message: 'Announcement posted', id: result.lastInsertRowid });
 });
 
-router.put('/:id', verifyToken, checkRole('admin'), (req, res) => {
+router.put('/:id', verifyToken, checkRole('admin', 'media_manager', 'production'), (req, res) => {
   const { title, body, pinned } = req.body;
   const existing = db.prepare('SELECT * FROM announcements WHERE id=?').get(req.params.id);
   if (!existing) return res.status(404).json({ message: 'Not found' });
@@ -40,20 +40,20 @@ router.put('/:id', verifyToken, checkRole('admin'), (req, res) => {
   res.json({ message: 'Announcement updated' });
 });
 
-router.put('/:id/pin', verifyToken, checkRole('admin'), (req, res) => {
+router.put('/:id/pin', verifyToken, checkRole('admin', 'media_manager', 'production'), (req, res) => {
   const a = db.prepare('SELECT * FROM announcements WHERE id=?').get(req.params.id);
   if (!a) return res.status(404).json({ message: 'Not found' });
   db.prepare('UPDATE announcements SET pinned=? WHERE id=?').run(a.pinned ? 0 : 1, req.params.id);
   res.json({ message: 'Pin toggled' });
 });
 
-router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
+router.delete('/:id', verifyToken, checkRole('admin', 'media_manager', 'production'), (req, res) => {
   db.prepare('DELETE FROM announcements WHERE id=?').run(req.params.id);
   res.json({ message: 'Deleted' });
 });
 
 // Admin broadcast endpoint
-router.post('/broadcast', verifyToken, checkRole('admin'), (req, res) => {
+router.post('/broadcast', verifyToken, checkRole('admin', 'media_manager', 'production'), (req, res) => {
   const { body } = req.body;
   if (!body) return res.status(400).json({ message: 'Message required' });
   const users = db.prepare('SELECT id FROM users WHERE is_active=1').all().map(u => u.id);

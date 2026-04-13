@@ -58,7 +58,7 @@ router.get('/:id/tasks', verifyToken, (req, res) => {
 });
 
 // POST /api/projects
-router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
+router.post('/', verifyToken, checkRole('admin', 'team_leader', 'frontend_backend'), (req, res) => {
   const { title, description, priority, deadline, team_leader_id, client_id, team_members } = req.body;
   if (!title) return res.status(400).json({ message: 'Title required' });
   const effectiveLeaderId = req.user.role === 'team_leader' ? req.user.id : (team_leader_id || null);
@@ -78,7 +78,7 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
 });
 
 // PUT /api/projects/:id
-router.put('/:id', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
+router.put('/:id', verifyToken, checkRole('admin', 'team_leader', 'backend', 'frontend_backend'), (req, res) => {
   const { title, description, status, priority, deadline, team_leader_id, client_id, team_members } = req.body;
   const oldProj = db.prepare('SELECT * FROM projects WHERE id=?').get(req.params.id);
   if (!oldProj) return res.status(404).json({ message: 'Project not found' });
