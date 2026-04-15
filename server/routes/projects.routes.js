@@ -57,8 +57,8 @@ router.get('/:id/tasks', verifyToken, (req, res) => {
   res.json(tasks);
 });
 
-// POST /api/projects
-router.post('/', verifyToken, checkRole('admin', 'team_leader', 'frontend_backend'), (req, res) => {
+// POST /api/projects - Only admin and team_leader can create projects
+router.post('/', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
   const { title, description, priority, deadline, team_leader_id, client_id, team_members } = req.body;
   if (!title) return res.status(400).json({ message: 'Title required' });
   const effectiveLeaderId = req.user.role === 'team_leader' ? req.user.id : (team_leader_id || null);
@@ -66,14 +66,24 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader', 'frontend_backen
     'INSERT INTO projects(title,description,priority,deadline,team_leader_id,client_id,created_by) VALUES(?,?,?,?,?,?,?)'
   ).run(title, description, priority || 'normal', deadline, effectiveLeaderId, client_id || null, req.user.id);
 
+  let addedMemberIds = [];
   if (team_members && Array.isArray(team_members)) {
     const memStmt = db.prepare('INSERT INTO project_members(project_id, user_id) VALUES(?,?)');
-    team_members.forEach(uid => { if (uid) memStmt.run(result.lastInsertRowid, uid); });
+    team_members.forEach(uid => { if (uid) { memStmt.run(result.lastInsertRowid, uid); addedMemberIds.push(uid); } });
   }
 
   if (effectiveLeaderId && effectiveLeaderId !== req.user.id) {
     notifyUsers(effectiveLeaderId, `📋 You've been assigned as Team Leader for project: "${title}"`, 'info', 'Tech Turf Project Assignment').catch(() => {});
   }
+
+  // Notify all added project members (except the creator and team leader if already notified)
+  const excludeIds = [req.user.id];
+  if (effectiveLeaderId) excludeIds.push(effectiveLeaderId);
+  const notifyMemberIds = addedMemberIds.filter(uid => !excludeIds.includes(uid));
+  if (notifyMemberIds.length > 0) {
+    notifyUsers(notifyMemberIds, `📋 You have been added to the project: "${title}"`, 'info', 'Tech Turf Project Assignment').catch(() => {});
+  }
+
   res.json({ message: 'Project created', id: result.lastInsertRowid });
 });
 

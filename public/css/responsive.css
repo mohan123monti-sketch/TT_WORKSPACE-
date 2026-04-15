@@ -1,0 +1,610 @@
+/* Safe responsive layer: additive overrides only.
+   This file avoids changing core desktop layout rules globally. */
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  min-width: 0;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Common layout wrappers */
+.dashboard-container,
+.workspace-container,
+.main-content,
+.dashboard-grid,
+.studio-grid,
+.drive-grid,
+.users-table-wrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Make wide tables and cards scroll safely on small screens */
+.users-table-wrap,
+.table-responsive,
+.glass-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.users-table,
+table {
+  min-width: 720px;
+}
+
+/* Better wrapping for headers and action bars */
+.page-header,
+.nav-left,
+.nav-actions,
+.header-actions,
+.toolbar,
+.filters-row {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Buttons and controls stay touch-friendly */
+button,
+.btn-primary,
+.btn-secondary,
+.btn-tertiary {
+  min-height: 40px;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+  .dashboard-grid,
+  .studio-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .page-header {
+    padding: 16px;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    line-height: 1.2;
+  }
+
+  .navbar {
+    padding: 0 12px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+  }
+
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  .mobile-hamburger,
+  #mobile-toggle {
+    display: flex !important;
+  }
+
+  .sidebar-collapse-btn {
+    display: none !important;
+  }
+
+  .nav-search,
+  .user-profile-nav span,
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+
+  .page-header,
+  .dashboard-grid,
+  .users-table-wrap {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .glass-card,
+  .dash-card,
+  .widget,
+  .stat-card {
+    padding: 14px;
+  }
+
+  .users-table,
+  table {
+    min-width: 640px;
+  }
+
+  .modal,
+  .modal-content {
+    max-width: calc(100vw - 16px);
+  }
+}
+
+/* Small phones */
+@media (max-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-tertiary {
+    width: 100%;
+  }
+
+  .users-table,
+  table {
+    min-width: 560px;
+  }
+}
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  h3 {
+    font-size: 1.3rem;
+  }
+}
+
+/* ===== SMALL DESKTOP (768px and up) ===== */
+@media (min-width: 768px) {
+  .sidebar {
+    position: static;
+    width: 260px;
+    transform: none;
+    max-width: 100%;
+  }
+
+  .sidebar.mobile-open {
+    transform: none;
+  }
+
+  .main-content {
+    margin-left: 260px;
+  }
+
+  .mobile-hamburger,
+  #mobile-toggle {
+    display: none;
+  }
+
+  .mobile-scroll {
+    overflow-x: visible;
+  }
+
+  .grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    bottom: auto;
+    right: auto;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: var(--radius);
+  }
+
+  .modal-content {
+    max-width: 100%;
+    padding: 28px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .hide-on-mobile {
+    display: block;
+  }
+
+  .show-only-mobile {
+    display: none;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+  }
+}
+
+/* ===== TABLET+ (1024px and up) ===== */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+    padding: 0 24px;
+  }
+
+  .grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .header {
+    padding: 20px 24px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-tertiary {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+  }
+
+  .modal-content {
+    padding: 32px;
+  }
+
+  table {
+    font-size: 0.95rem;
+  }
+
+  th,
+  td {
+    padding: 14px 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+}
+
+/* ===== LARGE DESKTOP (1280px and up) ===== */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+    padding: 0 32px;
+  }
+
+  .grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .header {
+    padding: 24px 32px;
+    gap: 20px;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-tertiary {
+    padding: 12px 28px;
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    padding: 36px;
+  }
+
+  table {
+    font-size: 1rem;
+  }
+
+  th,
+  td {
+    padding: 16px 20px;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+  }
+}
+
+/* ===== XL DESKTOP (1536px and up) ===== */
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+    padding: 0 40px;
+  }
+
+  .grid-auto {
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  }
+
+  .header {
+    padding: 28px 40px;
+  }
+}
+
+/* ===== SPECIAL CASES ===== */
+
+/* Flex Row - Wraps on Mobile */
+.flex-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .flex-row {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+/* Content Sidebar Layout */
+.layout-with-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+@media (min-width: 1024px) {
+  .layout-with-sidebar {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .layout-with-sidebar-main {
+    flex: 1;
+  }
+
+  .layout-with-sidebar-side {
+    width: 300px;
+    min-width: 300px;
+  }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile devices */
+  button {
+    min-height: 48px;
+  }
+
+  .menu-item {
+    padding: 16px;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .header {
+    padding: 8px 16px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .header,
+  .sidebar,
+  .navigation,
+  .btn-primary,
+  .btn-secondary {
+    display: none;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+}
+
+/* ===== UTILITIES ===== */
+
+/* Visibility Helpers */
+.hide-on-mobile {
+  display: none;
+}
+
+.show-only-mobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hide-on-mobile {
+    display: block;
+  }
+
+  .show-only-mobile {
+    display: none;
+  }
+}
+
+/* Responsive Text */
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-base {
+  font-size: 1rem;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+@media (min-width: 768px) {
+  .text-sm {
+    font-size: 0.9rem;
+  }
+
+  .text-base {
+    font-size: 1.025rem;
+  }
+
+  .text-lg {
+    font-size: 1.25rem;
+  }
+}
+
+/* Responsive Spacing */
+.gap-sm {
+  gap: 8px;
+}
+
+.gap-md {
+  gap: 16px;
+}
+
+.gap-lg {
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .gap-sm {
+    gap: 12px;
+  }
+
+  .gap-md {
+    gap: 20px;
+  }
+
+  .gap-lg {
+    gap: 32px;
+  }
+}
+
+/* Responsive Padding */
+.p-sm {
+  padding: 12px;
+}
+
+.p-md {
+  padding: 16px;
+}
+
+.p-lg {
+  padding: 24px;
+}
+
+@media (min-width: 768px) {
+  .p-sm {
+    padding: 16px;
+  }
+
+  .p-md {
+    padding: 20px;
+  }
+
+  .p-lg {
+    padding: 32px;
+  }
+}
+
+/* Scrollbar Styling - Mobile-friendly */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(108, 99, 255, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 99, 255, 0.6);
+}

@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link
     href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -828,13 +829,14 @@
           <div class="sub-auto-14 filter-bar">
             <select class="form-control" id="filter-status" onchange="loadSubmissions()" title="Filter by Status">
               <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
+              <option value="pending">Pending Leader Review</option>
+              <option value="awaiting_admin">Awaiting Admin Review</option>
+              <option value="approved">Fully Approved</option>
               <option value="rework">Rework</option>
               <option value="rejected">Rejected</option>
             </select>
           </div>
-          <button class="btn-primary admin-tl-only" onclick="openModal('manual-submission-modal')">
+          <button class="btn-primary" onclick="openModal('manual-submission-modal')">
             <i class="fas fa-cloud-upload-alt"></i> <span>Manual Upload</span>
           </button>
         </div>

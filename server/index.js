@@ -69,6 +69,11 @@ async function startServer() {
     app.use('/api/client-connect', require('./routes/client_connect.routes'));
     app.use('/api/enterprise', require('./routes/enterprise.routes'));
 
+    // --- FRONTEND STUDIO ROUTES ---
+    const frontendStudioRoutes = require('./routes/frontend_studio.routes');
+    app.use('/api/frontend-studio', frontendStudioRoutes);
+    // Route aliases for test compatibility
+    app.use('/api/frontend', frontendStudioRoutes);
 
     // --- ANALYTICS (Injected Routes) ---
     app.get('/api/analytics/summary', (req, res) => {

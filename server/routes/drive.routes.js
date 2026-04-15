@@ -68,13 +68,17 @@ router.get('/items', verifyToken, (req, res) => {
   }
 });
 
-// Create Folder
+// Create Folder - Only admin and team_leader can create folders
 router.post('/folder', verifyToken, (req, res) => {
   const { name, parentId: pId } = req.body;
   const parentId = (pId && pId !== 'null' && pId !== 'undefined') ? pId : null;
   
   if (!name) return res.status(400).json({ error: 'Folder name required' });
-  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Only admins can create folders' });
+  
+  // Check if user is admin or team_leader
+  const isTeamLeader = req.user.role === 'team_leader';
+  const isAuthorized = isAdmin(req.user) || isTeamLeader;
+  if (!isAuthorized) return res.status(403).json({ error: 'Only admins and team leaders can create folders' });
 
   try {
     const result = db.prepare('INSERT INTO drive_items (name, type, parent_id, created_by) VALUES (?, ?, ?, ?)').run(
@@ -86,14 +90,17 @@ router.post('/folder', verifyToken, (req, res) => {
   }
 });
 
-// Upload File
+// Upload File - Only admin and team_leader can upload files
 router.post('/upload', verifyToken, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   
   const { parentId: pId } = req.body;
   const parentId = (pId && pId !== 'null' && pId !== 'undefined') ? pId : null;
 
-  if (!isAdmin(req.user)) return res.status(403).json({ error: 'Only admins can upload files' });
+  // Check if user is admin or team_leader
+  const isTeamLeader = req.user.role === 'team_leader';
+  const isAuthorized = isAdmin(req.user) || isTeamLeader;
+  if (!isAuthorized) return res.status(403).json({ error: 'Only admins and team leaders can upload files' });
 
   try {
     const result = db.prepare('INSERT INTO drive_items (name, type, parent_id, mime_type, file_size, file_path, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(

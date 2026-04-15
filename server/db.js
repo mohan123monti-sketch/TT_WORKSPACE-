@@ -150,6 +150,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   nexus_feedback TEXT,
   nexus_status TEXT CHECK(nexus_status IN ('approved','improve','rejected')),
   leader_status TEXT DEFAULT 'pending' CHECK(leader_status IN ('approved','rejected','rework','pending')),
+  admin_status TEXT DEFAULT 'pending' CHECK(admin_status IN ('approved','rejected','rework','pending')),
 
   admin_override TEXT,
   external_link TEXT,
@@ -487,6 +488,11 @@ if (!userColumns.includes('employment_status')) {
 }
 if (!userColumns.includes('offboarding_note')) {
   db.exec('ALTER TABLE users ADD COLUMN offboarding_note TEXT');
+}
+
+const submissionColumns = db.prepare('PRAGMA table_info(submissions)').all().map(c => c.name);
+if (!submissionColumns.includes('admin_status')) {
+  db.exec("ALTER TABLE submissions ADD COLUMN admin_status TEXT DEFAULT 'pending'");
 }
 
 // Keep primary role CHECK constraint synced when role list expands.

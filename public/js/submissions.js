@@ -40,17 +40,60 @@ async function loadSubmissions() {
       return;
     }
 
-    const isAdminOrTL = ['admin', 'team_leader'].includes(auth.getUser().role);
+    const currentRole = auth.getUser().role;
+    const isTeamLeader = currentRole === 'team_leader';
+    const isAdmin = currentRole === 'admin';
+
+    const getWorkflowState = (s) => {
+      if (s.leader_status === 'rejected' || s.admin_status === 'rejected') return 'rejected';
+      if (s.leader_status === 'rework' || s.admin_status === 'rework') return 'rework';
+      if (s.leader_status === 'approved' && s.admin_status === 'approved') return 'approved';
+      if (s.leader_status === 'approved' && s.admin_status === 'pending') return 'awaiting_admin';
+      return 'pending';
+    };
+
+    const getBadgeLabel = (s) => {
+      const state = getWorkflowState(s);
+      if (state === 'awaiting_admin') return 'AWAITING ADMIN';
+      if (state === 'approved') return 'APPROVED';
+      if (state === 'rework') return 'REWORK';
+      if (state === 'rejected') return 'REJECTED';
+      return 'PENDING LEADER';
+    };
 
     container.innerHTML = subs.map(s => {
       const feedback = s.nexus_feedback || {};
-      const statusClass = s.leader_status === 'approved' ? 'success' :
-        s.leader_status === 'rework' ? 'warning' :
-          s.leader_status === 'rejected' ? 'danger' : 'pending';
+      const workflowState = getWorkflowState(s);
+      const statusClass = workflowState === 'approved' ? 'success' :
+        workflowState === 'awaiting_admin' ? 'warning' :
+          workflowState === 'rework' ? 'warning' :
+            workflowState === 'rejected' ? 'danger' : 'pending';
 
       let actionsHtml = '';
-      if (isAdminOrTL) {
-        if (s.leader_status === 'pending') {
+      if (isTeamLeader && s.leader_status === 'pending') {
+        actionsHtml = `
+          <div class="submission-actions">
+            <button class="btn-primary" style="background:var(--accent-green); flex:1;" onclick="event.stopPropagation(); reviewSubmission(${s.id}, 'approved')">APPROVE</button>
+            <button class="btn-secondary" style="background:var(--accent-orange); flex:1;" onclick="event.stopPropagation(); reviewSubmission(${s.id}, 'rework')">REWORK</button>
+            <button class="btn-danger" style="flex:1;" onclick="event.stopPropagation(); reviewSubmission(${s.id}, 'rejected')">REJECT</button>
+          </div>
+        `;
+      } else if (isAdmin && s.leader_status === 'approved' && s.admin_status !== 'approved') {
+        actionsHtml = `
+          <div class="submission-actions">
+            <button class="btn-primary" style="background:var(--accent-green); flex:1;" onclick="event.stopPropagation(); adminReviewSubmission(${s.id}, 'approved')">FINAL APPROVE</button>
+            <button class="btn-secondary" style="background:var(--accent-orange); flex:1;" onclick="event.stopPropagation(); adminReviewSubmission(${s.id}, 'rework')">SEND BACK</button>
+            <button class="btn-danger" style="flex:1;" onclick="event.stopPropagation(); adminReviewSubmission(${s.id}, 'rejected')">REJECT</button>
+          </div>
+        `;
+      } else if (isAdmin || isTeamLeader) {
+        if (workflowState === 'awaiting_admin' && isAdmin) {
+          actionsHtml = `
+            <div class="submission-actions" style="opacity:0.8;">
+              <button class="btn-secondary" style="flex:1;" disabled>Awaiting final admin decision</button>
+            </div>
+          `;
+        } else if (workflowState === 'pending' && isTeamLeader) {
           actionsHtml = `
             <div class="submission-actions">
               <button class="btn-primary" style="background:var(--accent-green); flex:1;" onclick="event.stopPropagation(); reviewSubmission(${s.id}, 'approved')">APPROVE</button>
@@ -61,8 +104,8 @@ async function loadSubmissions() {
         } else {
           actionsHtml = `
             <div class="submission-actions" style="opacity:0.8;">
-              <button class="btn-secondary" style="flex:1;" onclick="event.stopPropagation(); reEvaluateSubmission(${s.id})">RE-EVALUATE</button>
-              ${auth.getUser().role === 'admin' ? `<button class="btn-danger" style="flex:0.3;" onclick="event.stopPropagation(); deleteSubmission(${s.id})"><i class="fas fa-trash"></i></button>` : ''}
+              <button class="btn-secondary" style="flex:1;" disabled>${workflowState === 'approved' ? 'Approved' : 'In review'}</button>
+              ${isAdmin ? `<button class="btn-danger" style="flex:0.3;" onclick="event.stopPropagation(); deleteSubmission(${s.id})"><i class="fas fa-trash"></i></button>` : ''}
             </div>
           `;
         }
@@ -75,7 +118,7 @@ async function loadSubmissions() {
               <div class="submission-title">${s.task_title}</div>
               <div class="submission-project">${s.project_title || 'General'} • Version ${s.version}</div>
             </div>
-            <div class="badge badge-${statusClass}">${s.leader_status.toUpperCase()}</div>
+            <div class="badge badge-${statusClass}">${getBadgeLabel(s)}</div>
           </div>
 
           <div class="submitter-info">
@@ -136,7 +179,20 @@ async function reviewSubmission(id, status) {
 
   try {
     await api.put(`/submissions/${id}/leader-review`, { status, note });
-    showToast(`Work ${status} successfully`, 'success');
+    showToast(`Team leader review ${status} successfully`, 'success');
+    loadSubmissions();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function adminReviewSubmission(id, status) {
+  const note = prompt(`Admin ${status.toUpperCase()} review note (optional):`, '');
+  if (note === null) return;
+
+  try {
+    await api.put(`/submissions/${id}/admin-review`, { status, note });
+    showToast(`Admin review ${status} successfully`, 'success');
     loadSubmissions();
   } catch (err) {
     showToast(err.message, 'error');
@@ -286,8 +342,12 @@ async function viewSubmissionDetails(id) {
         <div class="detail-meta-value">${s.task_title}</div>
       </div>
       <div class="detail-meta-box">
-        <div class="detail-meta-title">Status</div>
+        <div class="detail-meta-title">Leader Status</div>
         <div class="detail-meta-value">${s.leader_status.toUpperCase()}</div>
+      </div>
+      <div class="detail-meta-box">
+        <div class="detail-meta-title">Admin Status</div>
+        <div class="detail-meta-value">${(s.admin_status || 'pending').toUpperCase()}</div>
       </div>
       <div class="detail-meta-box">
         <div class="detail-meta-title">Time Reference</div>

@@ -76,9 +76,9 @@ router.post('/', verifyToken, (req, res) => {
         : 1;
 
       const result = db.prepare(`
-      INSERT INTO submissions(task_id,submitted_by,file_path,content_text,version,client_id,project_name,external_link)
-      VALUES(?,?,?,?,?,?,?,?)
-    `).run(task_id || null, req.user.id, file_paths || null, content_text || null, version, client_id || null, project_name || null, external_link || null);
+      INSERT INTO submissions(task_id,submitted_by,file_path,content_text,version,client_id,project_name,external_link,admin_status)
+      VALUES(?,?,?,?,?,?,?,?,?)
+    `).run(task_id || null, req.user.id, file_paths || null, content_text || null, version, client_id || null, project_name || null, external_link || null, 'pending');
 
       if (task_id && task_id !== "") {
         db.prepare("UPDATE tasks SET status='submitted' WHERE id=?").run(task_id);
@@ -112,7 +112,8 @@ router.get('/', verifyToken, (req, res) => {
       COALESCE(t.title, 'Manual Upload') as task_title, 
       u.name as submitter_name, u.role as submitter_role,
       COALESCE(p.title, s.project_name) as project_title,
-      c.name as client_name
+      c.name as client_name,
+      COALESCE(s.admin_status, 'pending') as admin_status
     FROM submissions s
     LEFT JOIN tasks t ON t.id=s.task_id
     JOIN users u ON u.id=s.submitted_by
@@ -125,7 +126,16 @@ router.get('/', verifyToken, (req, res) => {
     query += ' AND s.submitted_by=?'; params.push(req.user.id);
   }
   if (task_id) { query += ' AND s.task_id=?'; params.push(task_id); }
-  if (status) { query += ' AND s.leader_status=?'; params.push(status); }
+  if (status) {
+    if (status === 'awaiting_admin') {
+      query += " AND s.leader_status='approved' AND COALESCE(s.admin_status, 'pending')='pending'";
+    } else if (status === 'approved') {
+      query += " AND s.leader_status='approved' AND COALESCE(s.admin_status, 'pending')='approved'";
+    } else {
+      query += ' AND s.leader_status=?';
+      params.push(status);
+    }
+  }
   query += ' ORDER BY s.created_at DESC';
 
   const rows = db.prepare(query).all(...params).map((row) => {
@@ -143,7 +153,8 @@ router.get('/:id', verifyToken, (req, res) => {
   const s = db.prepare(`
     SELECT s.*, 
       COALESCE(t.title, 'Manual Upload') as task_title, 
-      u.name as submitter_name
+      u.name as submitter_name,
+      COALESCE(s.admin_status, 'pending') as admin_status
     FROM submissions s 
     LEFT JOIN tasks t ON t.id=s.task_id 
     JOIN users u ON u.id=s.submitted_by
@@ -157,35 +168,73 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // PUT /api/submissions/:id/leader-review
-router.put('/:id/leader-review', verifyToken, checkRole('admin', 'team_leader'), async (req, res) => {
+router.put('/:id/leader-review', verifyToken, checkRole('team_leader'), async (req, res) => {
   const { status, note } = req.body;
   const sub = db.prepare('SELECT * FROM submissions WHERE id=?').get(req.params.id);
   if (!sub) return res.status(404).json({ message: 'Not found' });
 
-  db.prepare("UPDATE submissions SET leader_status=? WHERE id=?").run(status, sub.id);
+  db.prepare("UPDATE submissions SET leader_status=?, admin_status='pending' WHERE id=?").run(status, sub.id);
 
   const task = db.prepare('SELECT * FROM tasks WHERE id=?').get(sub.task_id);
-  const newTaskStatus = status === 'approved' ? 'approved' : status === 'rework' ? 'rework' : 'rejected';
-  db.prepare("UPDATE tasks SET status=? WHERE id=?").run(newTaskStatus, sub.task_id);
 
   if (status === 'approved') {
-    db.prepare("UPDATE users SET points=points+10 WHERE id=?").run(sub.submitted_by);
-    db.prepare("INSERT INTO performance_log(user_id,action,score,task_id) VALUES(?,?,?,?)").run(sub.submitted_by, 'Task Approved', 10, sub.task_id);
-    notifyUsers(sub.submitted_by, `✅ Your submission for "${task?.title}" was APPROVED! +10 points`, 'success', 'Tech Turf Submission Approved').catch(() => {});
-    await checkAndAssignBadges(sub.submitted_by);
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='submitted' WHERE id=?").run(sub.task_id);
+    }
+    notifyByRole('admin', `📣 Submission for "${task?.title || 'Manual Work'}" is ready for admin approval`, 'info', 'Tech Turf Admin Review Needed').catch(() => {});
   } else if (status === 'rejected') {
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='rejected' WHERE id=?").run(sub.task_id);
+    }
     notifyUsers(sub.submitted_by, `❌ Your submission for "${task?.title}" was rejected. ${note || ''}`, 'danger', 'Tech Turf Submission Rejected').catch(() => {});
   } else {
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='rework' WHERE id=?").run(sub.task_id);
+    }
     notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title}" needs rework. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
   res.json({ message: `Submission ${status}` });
 });
 
-// PUT /api/submissions/:id/admin-override
-router.put('/:id/admin-override', verifyToken, checkRole('admin'), (req, res) => {
+// PUT /api/submissions/:id/admin-review
+router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res) => {
   const { status, note } = req.body;
-  db.prepare("UPDATE submissions SET leader_status=?, admin_override=? WHERE id=?").run(status, note || 'Admin override', req.params.id);
-  res.json({ message: 'Override applied' });
+  const sub = db.prepare('SELECT * FROM submissions WHERE id=?').get(req.params.id);
+  if (!sub) return res.status(404).json({ message: 'Not found' });
+
+  if (sub.leader_status !== 'approved') {
+    return res.status(409).json({ message: 'Submission must be approved by team leader before admin review' });
+  }
+
+  db.prepare("UPDATE submissions SET admin_status=?, admin_override=? WHERE id=?").run(status, note || 'Admin review', req.params.id);
+
+  const task = db.prepare('SELECT * FROM tasks WHERE id=?').get(sub.task_id);
+
+  if (status === 'approved') {
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='approved' WHERE id=?").run(sub.task_id);
+    }
+    db.prepare("UPDATE users SET points=points+10 WHERE id=?").run(sub.submitted_by);
+    if (sub.task_id) {
+      db.prepare("INSERT INTO performance_log(user_id,action,score,task_id) VALUES(?,?,?,?)").run(sub.submitted_by, 'Task Approved', 10, sub.task_id);
+    } else {
+      db.prepare("INSERT INTO performance_log(user_id,action,score,task_id) VALUES(?,?,?,?)").run(sub.submitted_by, 'Manual Submission Approved', 10, null);
+    }
+    notifyUsers(sub.submitted_by, `✅ Your submission for "${task?.title || sub.project_name || 'Project'}" was finally APPROVED by admin! +10 points`, 'success', 'Tech Turf Submission Approved').catch(() => {});
+    await checkAndAssignBadges(sub.submitted_by);
+  } else if (status === 'rejected') {
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='rejected' WHERE id=?").run(sub.task_id);
+    }
+    notifyUsers(sub.submitted_by, `❌ Your submission for "${task?.title || sub.project_name || 'Project'}" was rejected by admin. ${note || ''}`, 'danger', 'Tech Turf Submission Rejected').catch(() => {});
+  } else {
+    if (sub.task_id) {
+      db.prepare("UPDATE tasks SET status='rework' WHERE id=?").run(sub.task_id);
+    }
+    notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title || sub.project_name || 'Project'}" needs more work from admin review. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
+  }
+
+  res.json({ message: `Admin review ${status}` });
 });
 
 // DELETE /api/submissions/:id

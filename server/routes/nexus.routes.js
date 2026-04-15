@@ -74,15 +74,26 @@ router.post('/evaluate', verifyToken, async (req, res) => {
       db.prepare("UPDATE users SET points=points+5 WHERE id=?").run(submission.submitted_by);
       db.prepare("INSERT INTO performance_log(user_id,action,score,task_id) VALUES(?,?,?,?)")
         .run(submission.submitted_by,'Nexus AI Bonus (90+)',5,submission.task_id);
-      db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-        .run(submission.submitted_by, `⭐ Nexus AI awarded you +5 bonus points for a score of ${evaluation.score}!`, 'success');
+      // Send notification and email
+      await require('../services/notification.service').notifyUsers(
+        submission.submitted_by,
+        `⭐ Nexus AI awarded you +5 bonus points for a score of ${evaluation.score}!`,
+        'success',
+        'Nexus AI Bonus Points'
+      );
     }
   }
 
   if (evaluation.score < 40) {
     const admin = db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get();
-    if (admin) db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)")
-      .run(admin.id, `🚨 Nexus AI flagged a low score (${evaluation.score}) on submission #${submissionId}`, 'danger');
+    if (admin) {
+      await require('../services/notification.service').notifyUsers(
+        admin.id,
+        `🚨 Nexus AI flagged a low score (${evaluation.score}) on submission #${submissionId}`,
+        'danger',
+        'Nexus AI Low Score Alert'
+      );
+    }
   }
 
   res.json(evaluation);
