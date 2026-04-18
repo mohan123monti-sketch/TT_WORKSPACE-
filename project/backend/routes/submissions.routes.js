@@ -31,7 +31,7 @@ async function checkAndAssignBadges(userId) {
     const recent = db.prepare("SELECT leader_status FROM submissions WHERE submitted_by=? ORDER BY created_at DESC LIMIT 5").all(userId);
     if (recent.length === 5 && recent.every(s => s.leader_status === 'approved')) {
       const updated = db.prepare("UPDATE users SET badge=? WHERE id=? AND (badge IS NULL OR badge!='Top Scorer')").run('Consistent Approver', userId);
-      if (updated.changes) db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)").run(userId, '🏅 You earned the "Consistent Approver" badge!', 'success');
+      if (updated.changes) await notifyUsers(userId, '🏅 You earned the "Consistent Approver" badge!', 'success', 'Tech Turf Badge Awarded');
     }
     const noRev = db.prepare("SELECT COUNT(*) as cnt FROM submissions WHERE submitted_by=? AND version=1 AND leader_status='approved'").get(userId);
     if (noRev.cnt >= 3) db.prepare("UPDATE users SET badge=? WHERE id=? AND badge IS NULL").run('Zero Revisions', userId);
@@ -39,7 +39,7 @@ async function checkAndAssignBadges(userId) {
     const top = db.prepare("SELECT submitted_by,AVG(nexus_score) as avg FROM submissions WHERE nexus_score IS NOT NULL AND created_at>=date('now','start of month') GROUP BY submitted_by ORDER BY avg DESC LIMIT 1").get();
     if (top && top.submitted_by === userId) {
       db.prepare("UPDATE users SET badge='Top Scorer' WHERE id=?").run(userId);
-      db.prepare("INSERT INTO notifications(user_id,message,type) VALUES(?,?,?)").run(userId, '🏆 You are the Top Scorer this month!', 'success');
+      await notifyUsers(userId, '🏆 You are the Top Scorer this month!', 'success', 'Tech Turf Badge Awarded');
     }
   } catch (e) { console.error('Badge error:', e.message); }
 }

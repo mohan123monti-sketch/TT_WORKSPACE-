@@ -1,41 +1,92 @@
 // Chunked upload backend for /api/drive/upload-chunk
 // Place in backend/routes/drive_upload_chunk.routes.js
+
 const router = require('express').Router();
 const fs = require('fs');
 const path = require('path');
 const { verifyToken } = require('../auth');
+const db = require('../db');
 
 const UPLOAD_DIR = path.join(__dirname, '../../storage/drive_storage');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 // POST /api/drive/upload-chunk
-router.post('/upload-chunk', verifyToken, (req, res) => {
+const { promisify } = require('util');
+const readdir = promisify(fs.readdir);
+const readFile = promisify(fs.readFile);
+const unlink = promisify(fs.unlink);
+const writeFile = promisify(fs.writeFile);
+const stat = promisify(fs.stat);
+
+// POST /api/drive/upload-chunk
+router.post('/upload-chunk', verifyToken, async (req, res) => {
   const chunkNumber = Number(req.headers['x-chunk-number']);
   const totalChunks = Number(req.headers['x-total-chunks']);
   const fileName = req.headers['x-file-name'];
   const uploadId = req.headers['x-upload-id'];
+  const parentId = req.headers['x-parent-id'] || null;
   if (!fileName || !uploadId) return res.status(400).json({ message: 'Missing fileName or uploadId' });
 
   const chunkPath = path.join(UPLOAD_DIR, `${uploadId}_chunk_${chunkNumber}`);
   const writeStream = fs.createWriteStream(chunkPath);
   req.pipe(writeStream);
-  writeStream.on('finish', () => {
-    // If last chunk, assemble
+  writeStream.on('finish', async () => {
     if (chunkNumber === totalChunks - 1) {
-      const finalPath = path.join(UPLOAD_DIR, fileName);
-      const out = fs.createWriteStream(finalPath);
-      for (let i = 0; i < totalChunks; i++) {
-        const chunk = fs.readFileSync(path.join(UPLOAD_DIR, `${uploadId}_chunk_${i}`));
-        out.write(chunk);
-        fs.unlinkSync(path.join(UPLOAD_DIR, `${uploadId}_chunk_${i}`));
+      // Assemble file asynchronously
+      try {
+        const finalPath = path.join(UPLOAD_DIR, fileName);
+        let totalSize = 0;
+        const out = fs.createWriteStream(finalPath);
+        for (let i = 0; i < totalChunks; i++) {
+          const chunkFile = path.join(UPLOAD_DIR, `${uploadId}_chunk_${i}`);
+          const chunk = await readFile(chunkFile);
+          totalSize += chunk.length;
+          out.write(chunk);
+          await unlink(chunkFile);
+        }
+        out.end();
+        out.on('finish', () => {
+          try {
+            const mimeType = require('mime-types').lookup(fileName) || 'application/octet-stream';
+            const result = db.prepare('INSERT INTO drive_items (name, type, parent_id, mime_type, file_size, file_path, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)').run(
+              fileName,
+              'file',
+              parentId,
+              mimeType,
+              totalSize,
+              fileName,
+              req.user.id
+            );
+            res.json({ message: 'Upload complete', file: fileName, id: result.lastInsertRowid });
+          } catch (e) {
+            res.status(500).json({ message: 'Upload succeeded but failed to record in drive_items', error: e.message });
+          }
+        });
+      } catch (err) {
+        res.status(500).json({ message: 'Failed to assemble file', error: err.message });
       }
-      out.end();
-      out.on('finish', () => res.json({ message: 'Upload complete', file: fileName }));
     } else {
       res.json({ message: 'Chunk received' });
     }
   });
   writeStream.on('error', err => res.status(500).json({ message: err.message }));
+});
+
+// GET /api/drive/upload-chunk/status?uploadId=...&totalChunks=...
+router.get('/upload-chunk/status', verifyToken, async (req, res) => {
+  const uploadId = req.query.uploadId;
+  const totalChunks = Number(req.query.totalChunks);
+  if (!uploadId || isNaN(totalChunks)) return res.status(400).json({ message: 'Missing uploadId or totalChunks' });
+  try {
+    const files = await readdir(UPLOAD_DIR);
+    const uploaded = [];
+    for (let i = 0; i < totalChunks; i++) {
+      if (files.includes(`${uploadId}_chunk_${i}`)) uploaded.push(i);
+    }
+    res.json({ uploaded });
+  } catch (e) {
+    res.status(500).json({ message: 'Failed to check chunk status', error: e.message });
+  }
 });
 
 module.exports = router;
