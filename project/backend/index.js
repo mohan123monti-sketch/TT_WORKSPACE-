@@ -59,6 +59,7 @@ async function startServer() {
     app.use('/api/notifications', require('./routes/notifications.routes'));
     app.use('/api/courses', require('./routes/courses.routes'));
     app.use('/api/drive', require('./routes/drive.routes'));
+    app.use('/api/drive', require('./routes/drive_upload_chunk.routes'));
     app.use('/api/dbadmin', require('./routes/dbadmin.routes'));
     app.use('/api/tickets', require('./routes/tickets.routes'));
     app.use('/api/payments', require('./routes/payments.routes'));

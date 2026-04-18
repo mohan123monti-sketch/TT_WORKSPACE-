@@ -262,6 +262,15 @@
                 <div>This folder is empty. Upload files or create folders to begin.</div>
             </div>
 
+            <div id="upload-progress-container" style="display:none; margin: 24px 0;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="flex:1; background:var(--bg-secondary); border-radius:8px; overflow:hidden; height:18px;">
+                        <div id="upload-progress-bar" style="height:18px; width:0%; background:linear-gradient(90deg, var(--accent-primary), var(--accent-green)); transition:width 0.2s;"></div>
+                    </div>
+                    <span id="upload-progress-text" style="min-width:60px; color:var(--accent-primary); font-family:var(--font-mono); font-size:0.95rem;">0%</span>
+                    <button id="upload-cancel-btn" type="button" style="margin-left:10px; background:var(--accent-secondary); color:#fff; border:none; border-radius:6px; padding:4px 16px; font-size:0.9rem; cursor:pointer;">Cancel</button>
+                </div>
+            </div>
             <div class="drive-grid" id="drive-items-grid"></div>
         </main>
     </div>

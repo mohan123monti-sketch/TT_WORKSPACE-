@@ -189,18 +189,139 @@ const drive = {
         const file = event.target.files[0];
         if (!file) return;
 
+        const progressContainer = document.getElementById('upload-progress-container');
+        const progressBar = document.getElementById('upload-progress-bar');
+        const progressText = document.getElementById('upload-progress-text');
+        const cancelBtn = document.getElementById('upload-cancel-btn');
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        progressContainer.style.display = 'block';
+
+        let cancelRequested = false;
+        let currentXhr = null;
+        cancelBtn.disabled = false;
+        cancelBtn.style.opacity = 1;
+        cancelBtn.onclick = () => {
+            cancelRequested = true;
+            if (currentXhr) currentXhr.abort();
+            progressContainer.style.display = 'none';
+            showToast('Upload canceled', 'error');
+        };
+
+        // Use chunked upload for files > 10MB
+        const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
+        if (file.size > CHUNK_SIZE) {
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            const uploadId = Math.random().toString(36).substring(2) + Date.now();
+            let uploaded = 0;
+            for (let chunk = 0; chunk < totalChunks; chunk++) {
+                if (cancelRequested) break;
+                const start = chunk * CHUNK_SIZE;
+                const end = Math.min(file.size, start + CHUNK_SIZE);
+                const blob = file.slice(start, end);
+                await new Promise((resolveChunk, rejectChunk) => {
+                    const xhr = new XMLHttpRequest();
+                    currentXhr = xhr;
+                    xhr.open('POST', api.BASE + '/drive/upload-chunk', true);
+                    const token = auth.getToken();
+                    if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.setRequestHeader('x-chunk-number', chunk);
+                    xhr.setRequestHeader('x-total-chunks', totalChunks);
+                    xhr.setRequestHeader('x-file-name', encodeURIComponent(file.name));
+                    xhr.setRequestHeader('x-upload-id', uploadId);
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            const percent = Math.round(((uploaded + e.loaded) / file.size) * 100);
+                            progressBar.style.width = percent + '%';
+                            progressText.textContent = percent + '%';
+                        }
+                    };
+                    xhr.onload = () => {
+                        uploaded += blob.size;
+                        const percent = Math.round((uploaded / file.size) * 100);
+                        progressBar.style.width = percent + '%';
+                        progressText.textContent = percent + '%';
+                        resolveChunk();
+                    };
+                    xhr.onerror = () => {
+                        if (!cancelRequested) {
+                            showToast('Chunk upload failed', 'error');
+                        }
+                        progressContainer.style.display = 'none';
+                        rejectChunk();
+                    };
+                    xhr.onabort = () => {
+                        // No toast here, handled by cancelBtn
+                        resolveChunk();
+                    };
+                    xhr.send(blob);
+                });
+            }
+            if (!cancelRequested) {
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                setTimeout(() => { progressContainer.style.display = 'none'; }, 800);
+                showToast('Upload successful', 'success');
+                this.loadItems(this.currentParentId);
+            }
+            cancelBtn.disabled = true;
+            cancelBtn.style.opacity = 0.5;
+            return;
+        }
+
+        // Fallback to normal upload for small files
         const formData = new FormData();
         formData.append('file', file);
         formData.append('parentId', this.currentParentId || '');
-
-        showToast('Uploading file...', 'info');
-        try {
-            await api.upload('/drive/upload', formData);
-            showToast('Upload successful', 'success');
-            this.loadItems(this.currentParentId);
-        } catch (e) {
-            showToast(e.message, 'error');
-        }
+        return new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            currentXhr = xhr;
+            xhr.open('POST', api.BASE + '/drive/upload', true);
+            const token = auth.getToken();
+            if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = percent + '%';
+                }
+            };
+            xhr.onload = () => {
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 800);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    showToast('Upload successful', 'success');
+                    this.loadItems(this.currentParentId);
+                    resolve();
+                } else {
+                    let msg = 'Upload failed';
+                    try { msg = JSON.parse(xhr.responseText).message || msg; } catch {}
+                    showToast(msg, 'error');
+                    resolve();
+                }
+                cancelBtn.disabled = true;
+                cancelBtn.style.opacity = 0.5;
+            };
+            xhr.onerror = () => {
+                if (!cancelRequested) {
+                    showToast('Upload failed', 'error');
+                }
+                progressContainer.style.display = 'none';
+                resolve();
+                cancelBtn.disabled = true;
+                cancelBtn.style.opacity = 0.5;
+            };
+            xhr.onabort = () => {
+                // No toast here, handled by cancelBtn
+                resolve();
+                cancelBtn.disabled = true;
+                cancelBtn.style.opacity = 0.5;
+            };
+            xhr.send(formData);
+        });
     },
 
     downloadFile(id) {
