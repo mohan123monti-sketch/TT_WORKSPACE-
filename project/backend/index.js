@@ -142,14 +142,14 @@ async function startServer() {
     app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }));
 
     // Serve documentation and static UI with 1-hour caching for faster re-loads
-    app.use(express.static(path.join(__dirname, '../public'), {
+    app.use(express.static(path.join(__dirname, '../frontend/public'), {
         etag: true,
         lastModified: true
     }));
 
     // Fallback to index.html for Single Page Application behavior
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../public/index.html'));
+        res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
     });
 
     // --- BACKGROUND SERVICES ---
