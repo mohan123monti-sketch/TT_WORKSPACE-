@@ -1,20 +1,72 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# TechTurf Production Deployment Guide
 
-# Run and deploy your AI Studio app
+## Folder Structure
 
-This contains everything you need to run your app locally.
+```
+techturf/
+├── frontend/
+│   └── dist/
+├── backend/
+│   ├── index.js
+│   ├── db.js
+│   ├── routes/
+│   └── services/
+├── storage/
+│   ├── techturf.db
+│   ├── uploads/
+│   └── drive_storage/
+├── .env
+├── package.json
+└── README.md
+```
 
-View your app in AI Studio: https://ai.studio/apps/cd08499d-3ba5-40e0-8303-b4a7b6c64b9a
+## Deployment Steps
 
-## Run Locally
+1. **Install dependencies and build frontend**
+   ```bash
+   cd frontend
+   npm ci
+   npm run build
+   cd ..
+   ```
+2. **Install backend dependencies**
+   ```bash
+   cd backend
+   npm ci
+   cd ..
+   ```
+3. **Start backend with PM2**
+   ```bash
+   pm2 start backend/index.js --name techturf-backend
+   ```
 
-**Prerequisites:**  Node.js
+## NGINX Example Config
 
+```
+server {
+    listen 80;
+    server_name yourdomain.com;
+    root /var/www/employee;
+    location / {
+        try_files $uri /index.html;
+    }
+    location /api/ {
+        proxy_pass http://localhost:5000/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Security
+- `.env`, `storage/`, and logs are ignored by git and not served by NGINX.
+- Database and uploads are not publicly accessible.
+
+## Validation Checklist
+- [ ] Frontend loads correctly
+- [ ] API works via `/api`
+- [ ] Database connects
+- [ ] File uploads work
+- [ ] No broken imports

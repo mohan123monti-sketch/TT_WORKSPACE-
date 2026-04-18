@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+      .mobile-hamburger{display:none;background:none;color:var(--text-primary);font-size:1.2rem;}
+      @media(max-width:768px){.mobile-hamburger{display:flex;}}
+    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | User Management</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .users-table-wrap {
+      padding: 0 24px 24px;
+    }
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-glass);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .users-table th {
+      text-align: left;
+      padding: 16px;
+      background: var(--bg-secondary);
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .users-table td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .user-avatar-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+    .user-name-text {
+      font-weight: 700;
+    }
+    .user-email-text {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .points-cell {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+          <i class="fas fa-th-large"></i>
+          <span class="menu-text">Command Center</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='projects.html'">
+          <i class="fas fa-project-diagram"></i>
+          <span class="menu-text">Operations</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='tasks.html'">
+          <i class="fas fa-tasks"></i>
+          <span class="menu-text">Task Stream</span>
+        </div>
+        <div class="menu-item tl-only" onclick="window.location.href='submissions.html'">
+          <i class="fas fa-check-double"></i>
+          <span class="menu-text">Directives</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='drive.html'">
+          <i class="fas fa-hdd"></i>
+          <span class="menu-text">Secure Drive</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
+          <i class="fas fa-robot" style="color:var(--accent-pink);"></i>
+          <span class="menu-text">Nexus AI Terminal</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        
+        <!-- Role-Based Control Centers -->
+        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+          <i class="fas fa-users-cog"></i>
+          <span class="menu-text">User Management</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+          <i class="fas fa-shield-alt"></i>
+          <span class="menu-text">Admin Warp</span>
+        </div>
+        
+        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+          <i class="fas fa-flask"></i>
+          <span class="menu-text">Nexus Lab</span>
+        </div>
+        
+        
+        
+        
+        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+          <i class="fas fa-handshake"></i>
+          <span class="menu-text">Client Connect</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <div class="menu-item" onclick="window.location.href='profile.html'">
+          <i class="fas fa-user-circle"></i>
+          <span class="menu-text">My Profile</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+      
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+          <div class="nav-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="user-search" placeholder="Search users...">
+          </div>
+        </div>
+        
+        <div class="nav-actions">
+          <div class="notification-bell" id="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notification-badge">0</span>
+            <div class="notification-dropdown glass-card" id="notification-dropdown" style="display:none; position:absolute; top:40px; right:0; width:320px; padding:16px; z-index:1000;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <span style="font-weight:700;">Notifications</span>
+                <span style="font-size:0.7rem; color:var(--accent-primary); cursor:pointer;" onclick="api.put('/notifications/read-all').then(loadNotifications)">Mark all read</span>
+              </div>
+              <div id="notification-list" style="max-height:300px; overflow-y:auto;"></div>
+            </div>
+          </div>
+          
+          <div class="user-profile-nav" onclick="window.location.href='profile.html'">
+            <div style="text-align:right;">
+              <div id="nav-user-name" style="font-weight:700; font-size:0.9rem;">User Name</div>
+              <div id="nav-user-role" style="font-size:0.7rem; color:var(--text-muted);">Role</div>
+            </div>
+            <img id="nav-avatar" class="user-avatar" src="" alt="Avatar">
+          </div>
+        </div>
+      </header>
+
+      <div class="page-header">
+        <div><div class="breadcrumb">Admin / Control</div><div class="page-title">USER MANAGEMENT</div></div>
+        <button class="btn-primary" onclick="openModal('add-user-modal')"><i class="fas fa-user-plus"></i><span>Add User</span></button>
+      </div>
+
+      <div class="users-table-wrap">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Points</th>
+              <th>Badge</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-list-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal" id="add-user-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">ADD NEW USER</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('add-user-modal')"></i>
+      </div>
+      <form id="add-user-form">
+        <div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="user-name" required></div>
+        <div class="form-group"><label>Email Address</label><input type="email" class="form-control" id="user-email" required></div>
+        <div class="form-group"><label>Initial Password</label><input type="password" class="form-control" id="user-password" required></div>
+        <div class="form-group">
+          <label>Primary Role</label>
+          <select class="form-control" id="user-role" required>
+            <option value="writer">Content Writer</option>
+            <option value="designer">Designer</option>
+            <option value="team_leader">Team Leader</option>
+            <option value="rnd">R&D Specialist</option>
+            <option value="creator">Content Creator</option>
+            <option value="media_manager">Media Manager</option>
+            <option value="client_handler">Client Handler</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label>Secondary Roles <span style="font-size:0.7rem; color:var(--text-muted);">(Hold Ctrl/Cmd to select multiple)</span></label>
+          <select class="form-control" id="user-secondary-roles" multiple style="height: 100px;">
+            <option value="writer">Content Writer</option>
+            <option value="designer">Designer</option>
+            <option value="team_leader">Team Leader</option>
+            <option value="rnd">R&D Specialist</option>
+            <option value="creator">Content Creator</option>
+            <option value="media_manager">Media Manager</option>
+            <option value="client_handler">Client Handler</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; margin-top:12px;">Create User Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Performance Detail Panel -->
+  <div class="detail-panel-overlay" id="detail-panel-overlay"></div>
+  <div class="detail-panel" id="detail-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <div id="panel-title" style="font-family:var(--font-display); font-size:1.4rem; font-weight:700;"></div>
+      <i class="fas fa-times" style="cursor:pointer;" onclick="closeDetailPanel()"></i>
+    </div>
+    <div id="panel-body"></div>
+  </div>
+
+  <!-- Unified Modals Section -->
+  <div id="dbadmin-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="glass-card" style="width:95vw;max-width:900px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-database"></i> Database Viewer</span>
+        <i class="fas fa-times" id="dbadmin-close" style="cursor:pointer;"></i>
+      </div>
+      <div id="dbadmin-content" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
+    </div>
+  </div>
+  <div id="tickets-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="glass-card" style="width:95vw;max-width:700px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-ticket-alt"></i> Tickets</span>
+        <i class="fas fa-times" id="tickets-close" style="cursor:pointer;"></i>
+      </div>
+      <div id="tickets-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
+      <form id="tickets-add-form" style="padding:12px;background:var(--bg-primary);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+        <input id="ticket-title" type="text" placeholder="Title" class="form-input" style="flex:2;" required />
+        <input id="ticket-desc" type="text" placeholder="Description" class="form-input" style="flex:3;" />
+        <input id="ticket-priority" type="text" placeholder="Priority" class="form-input" style="flex:1;" />
+        <button type="submit" class="btn-primary" style="margin-top:0;">Add</button>
+      </form>
+    </div>
+  </div>
+  <div id="payments-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="glass-card" style="width:95vw;max-width:700px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-money-check-alt"></i> Payments</span>
+        <i class="fas fa-times" id="payments-close" style="cursor:pointer;"></i>
+      </div>
+      <div id="payments-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
+      <form id="payments-add-form" style="padding:20px;background:var(--bg-primary);border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <input id="payment-user-id" type="number" placeholder="User ID" class="form-input" required />
+        <input id="payment-amount" type="number" step="0.01" placeholder="Amount" class="form-input" required />
+        <input id="payment-currency" type="text" placeholder="Currency (USD)" class="form-input" />
+        <input id="payment-method" type="text" placeholder="Method" class="form-input" />
+        <button type="submit" class="btn-primary" style="grid-column:span 2;">Add Payment</button>
+      </form>
+    </div>
+  </div>
+  <div id="courses-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+    <div class="glass-card" style="width:95vw;max-width:600px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-graduation-cap"></i> Learning Hub</span>
+        <i class="fas fa-times" id="courses-close" style="cursor:pointer;"></i>
+      </div>
+      <div id="courses-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
+      <form id="courses-add-form" style="padding:15px;background:var(--bg-primary);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;">
+        <input id="course-title" type="text" placeholder="Course Title" class="form-input" required />
+        <input id="course-link" type="url" placeholder="Course Link (URL)" class="form-input" required />
+        <button type="submit" class="btn-primary">Add Course</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/users.js" defer></script>
+  <script src="js/dbadmin.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        auth.requireAuth();
+        auth.requireRole('admin');
+        const user = auth.getUser();
+        if (!user) return;
+        auth.initNavbar();
+        initThreeBg();
+        initSidebar();
+        if (window.initUsers) initUsers();
+        initModuleUI();
+    });
+
+    function initModuleUI() {
+        const setupModal = (linkId, modalId, closeId) => {
+            const link = document.getElementById(linkId);
+            const modal = document.getElementById(modalId);
+            const close = document.getElementById(closeId);
+            if (link && modal && close) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    modal.style.display = 'flex';
+                });
+                close.addEventListener('click', () => modal.style.display = 'none');
+                modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+            }
+        };
+        setupModal('tickets-link', 'tickets-modal', 'tickets-close');
+        setupModal('payments-link', 'payments-modal', 'payments-close');
+        setupModal('courses-link', 'courses-modal', 'courses-close');
+    }
+  </script>
+</body>
+</html>
+

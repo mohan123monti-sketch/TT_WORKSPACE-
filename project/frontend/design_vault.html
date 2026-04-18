@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Design Vault</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    .vault-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 0 24px 24px;
+    }
+
+    .asset-card {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .asset-preview {
+      height: 160px;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .asset-preview i {
+      font-size: 3rem;
+      color: var(--accent-primary);
+      opacity: 0.5;
+    }
+
+    .asset-details {
+      padding: 16px;
+    }
+
+    .asset-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .asset-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .validator-box {
+      background: rgba(108, 99, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin: 0 24px 24px;
+    }
+
+    .color-swatch-input {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* Refactored Utility Classes */
+    .vault-navbar-title {
+      font-size: 1.2rem;
+      margin-left: 15px;
+    }
+
+    .validator-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .validator-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .validator-icon {
+      color: var(--accent-green);
+    }
+
+    .validator-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-check {
+      font-size: 0.7rem;
+    }
+
+    .validation-status {
+      margin-left: 15px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle Sidebar" aria-label="Toggle Sidebar"><i
+              class="fas fa-bars"></i></button>
+          <div class="page-title vault-navbar-title">DESIGN VAULT</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Visual / Branding / Assets</div>
+          <div class="page-title">ASSET GALAXY</div>
+        </div>
+        <div class="designer-only">
+          <button class="btn-primary" onclick="openModal('add-asset-modal')">
+            <i class="fas fa-plus"></i> Upload Asset
+          </button>
+        </div>
+      </div>
+
+      <div class="validator-box anim-fade-up">
+        <div class="validator-header">
+          <div class="validator-title">NEXUS BRAND VALIDATOR</div>
+          <i class="fas fa-check-double validator-icon"></i>
+        </div>
+        <div class="validator-controls">
+          <input type="color" class="color-swatch-input" id="val-color-1" value="#6c63ff" title="Brand Primary Color">
+          <input type="color" class="color-swatch-input" id="val-color-2" value="#ff6584" title="Brand Secondary Color">
+          <input type="color" class="color-swatch-input" id="val-color-3" value="#43e97b" title="Brand Accent Color">
+          <button class="btn-secondary btn-check" onclick="validateBranding()">CHECK PALETTE CONSISTENCY</button>
+          <div id="validation-result" class="validation-status">Ready for scan...</div>
+        </div>
+      </div>
+
+      <div class="vault-grid" id="asset-list"></div>
+    </main>
+  </div>
+
+  <div class="modal" id="add-asset-modal">
+    <div class="glass-card modal-content">
+      <div class="modal-header">
+        <div class="modal-title">ADD ASSET</div>
+        <i class="fas fa-times close-modal" onclick="closeModal('add-asset-modal')"></i>
+      </div>
+      <form id="add-asset-form">
+        <div class="form-group"><label for="asset-title-input">Title</label><input type="text" class="form-control"
+            id="asset-title-input" required title="Asset Title"></div>
+        <div class="form-group"><label for="asset-file-path">File URL / Path</label><input type="text"
+            class="form-control" id="asset-file-path" placeholder="/uploads/example.png or https://..." required
+            title="File Path"></div>
+        <div class="form-group"><label for="asset-file-type">File Type</label><input type="text" class="form-control"
+            id="asset-file-type" placeholder="image/png, application/pdf, zip" title="File Type"></div>
+        <div class="form-group"><label for="asset-tags">Tags</label><input type="text" class="form-control"
+            id="asset-tags" placeholder="brand, poster, launch" title="Tags"></div>
+        <button type="submit" class="btn-primary btn-full">Save Asset</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/design-vault.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initDesignVault) initDesignVault();
+    });
+  </script>
+</body>
+
+</html>
