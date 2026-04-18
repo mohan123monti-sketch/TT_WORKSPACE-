@@ -23,9 +23,29 @@ function bindProfileEditForm() {
       const reader = new FileReader();
       reader.onload = () => {
         avatarPreview.src = reader.result;
+        avatarPreview.alt = '';
       };
       reader.readAsDataURL(file);
     });
+    // Add onerror fallback for broken images
+    avatarPreview.onerror = function() {
+      this.src = '';
+      this.alt = 'Preview unavailable';
+      this.style.background = '#222';
+      this.style.color = '#fff';
+      this.style.display = 'flex';
+      this.style.alignItems = 'center';
+      this.style.justifyContent = 'center';
+      this.style.fontSize = '0.8rem';
+    };
+    avatarPreview.onload = function() {
+      this.style.background = '';
+      this.style.color = '';
+      this.style.display = '';
+      this.style.alignItems = '';
+      this.style.justifyContent = '';
+      this.style.fontSize = '';
+    };
   }
 
   form.onsubmit = async (e) => {
