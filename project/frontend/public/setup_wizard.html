@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Setup Wizard</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .wizard-grid {
+      padding: 0 24px 24px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .wizard-card {
+      padding: 20px;
+    }
+
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .step-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--bg-glass);
+      gap: 12px;
+    }
+
+    .status-ok {
+      color: var(--accent-green);
+      font-weight: 700;
+      font-size: 0.74rem;
+    }
+
+    .status-warn {
+      color: var(--accent-orange);
+      font-weight: 700;
+      font-size: 0.74rem;
+    }
+
+    .wizard-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .wizard-note {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .ops-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 1024px) {
+      .wizard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wizard-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Expand/Collapse Sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle sidebar"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.1rem;">SETUP WIZARD</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Admin / Enterprise</div>
+          <div class="page-title">SETUP WIZARD</div>
+        </div>
+        <button class="btn-primary" id="apply-wizard-btn"><i class="fas fa-bolt"></i><span>Apply Baseline</span></button>
+      </div>
+
+      <div class="wizard-grid">
+        <div class="glass-card wizard-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:1rem;">ENTERPRISE READINESS</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Live checks before rolling out policies.</div>
+            </div>
+            <button class="btn-secondary" id="refresh-readiness-btn"><i class="fas fa-rotate"></i><span>Refresh</span></button>
+          </div>
+          <div class="step-list" id="readiness-list"></div>
+
+          <div class="wizard-note" id="monitoring-summary">Monitoring summary will load here.</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="glass-card wizard-card">
+            <div style="font-family:var(--font-display); margin-bottom:12px;">ORGANIZATION DEFAULTS</div>
+            <div class="wizard-form-grid">
+              <div class="form-group">
+                <label>Organization Name</label>
+                <input id="org-name" class="form-control" placeholder="Tech Turf">
+              </div>
+              <div class="form-group">
+                <label>Default Language</label>
+                <input id="org-language" class="form-control" placeholder="en">
+              </div>
+              <div class="form-group">
+                <label>Timezone</label>
+                <input id="org-timezone" class="form-control" placeholder="Asia/Kolkata">
+              </div>
+              <div class="form-group">
+                <label>Work Day Start</label>
+                <input id="org-workday" class="form-control" placeholder="09:00">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card wizard-card">
+            <div style="font-family:var(--font-display); margin-bottom:12px;">SECURITY BASELINE</div>
+            <div class="step-list">
+              <label class="step-item"><span>Require admin OTP for critical actions</span><input type="checkbox" id="security-admin-otp" checked></label>
+              <label class="step-item"><span>Enforce strong password policy</span><input type="checkbox" id="security-strong-password" checked></label>
+              <label class="step-item"><span>Enable walkthrough for new users</span><input type="checkbox" id="onboarding-enabled" checked></label>
+            </div>
+            <div class="form-group">
+              <label>Walkthrough Version</label>
+              <input id="onboarding-version" class="form-control" placeholder="v2-enterprise">
+            </div>
+          </div>
+
+          <div class="glass-card wizard-card">
+            <div style="font-family:var(--font-display); margin-bottom:8px;">OPERATIONS TOOLS</div>
+            <div class="ops-list">
+              <button class="btn-secondary" id="run-sla-btn"><i class="fas fa-stopwatch"></i><span>Run SLA Check Now</span></button>
+              <button class="btn-secondary" id="open-policy-center-btn"><i class="fas fa-scale-balanced"></i><span>Open Policy Center</span></button>
+              <button class="btn-secondary" id="open-help-center-btn"><i class="fas fa-circle-question"></i><span>Open Help Center Ops</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/setup-wizard.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.requireRole('admin');
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initSetupWizard) await initSetupWizard();
+    });
+  </script>
+</body>
+
+</html>

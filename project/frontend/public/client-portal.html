@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Turf | Client Portal</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .portal-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .portal-card {
+            width: 100%;
+            max-width: 800px;
+            padding: 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .portal-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--accent-primary);
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .portal-title {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #fff, var(--accent-primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .icon-margin {
+            margin-right: 8px;
+        }
+
+        .portal-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 48px;
+        }
+
+        .auth-section {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .pass-input-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .pass-input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .pass-input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 16px 16px 16px 48px;
+            font-family: var(--font-mono);
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .pass-input-group input:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+            box-shadow: 0 0 20px rgba(108, 99, 255, 0.1);
+        }
+
+        .back-link {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        /* Loading state */
+        .portal-loading {
+            display: none;
+        }
+
+        #error-msg {
+            color: var(--accent-secondary);
+            font-size: 0.75rem;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="three-bg"></canvas>
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="portal-container">
+        <div class="glass-card portal-card anim-fade-up">
+            <div class="portal-badge">SECURE GATEWAY v4.0</div>
+            <h1 class="portal-title">CLIENT CONNECT</h1>
+            <p class="portal-subtitle">Access your project workspace, assets, and strategic updates.</p>
+
+            <div class="auth-section">
+                <form id="portal-auth-form">
+                    <div class="pass-input-group">
+                        <i class="fas fa-key"></i>
+                        <input type="text" id="portal-pass" placeholder="ENTER PORTAL PASS KEY" required>
+                    </div>
+                    <button type="submit" class="btn-primary w-100" id="access-btn">
+                        <span>INITIATE CONNECTION</span>
+                        <i class="fas fa-satellite-dish"></i>
+                    </button>
+                    <div id="error-msg"></div>
+                </form>
+
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left icon-margin"></i>
+                    Internal Personnel Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/three-bg.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initThreeBg();
+
+            // Auto-detect pass from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pass = urlParams.get('pass');
+            if (pass) {
+                document.getElementById('portal-pass').value = pass;
+                // Optionally auto-submit
+            }
+
+            document.getElementById('portal-auth-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const passKey = document.getElementById('portal-pass').value;
+                const btn = document.getElementById('access-btn');
+                const errorEl = document.getElementById('error-msg');
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SYNCING...';
+                errorEl.textContent = '';
+
+                try {
+                    const res = await api.post('/client-connect/verify-pass', { token: passKey });
+                    showToast('Authorized! Fetching secure stream...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `client-dashboard.html?pass=${passKey}`;
+                    }, 800);
+                } catch (err) {
+                    errorEl.textContent = 'INVALID OR EXPIRED PORTAL PASS';
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>INITIATE CONNECTION</span> <i class="fas fa-satellite-dish"></i>';
+                }
+            };
+        });
+    </script>
+</body>
+
+</html>

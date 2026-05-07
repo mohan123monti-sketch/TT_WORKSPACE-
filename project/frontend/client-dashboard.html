@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Turf | Client Dashboard</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        .dashboard-layout {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Client Header */
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .client-info h1 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            margin: 0;
+            color: var(--accent-primary);
+        }
+
+        .client-info p {
+            color: var(--text-muted);
+            margin: 5px 0 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid var(--accent-primary);
+            border-radius: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+        }
+
+        /* Stats HUD */
+        .stats-hub {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 2.5rem;
+            opacity: 0.05;
+            color: var(--accent-primary);
+        }
+
+        /* Main Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        /* Timeline */
+        .timeline-container {
+            padding: 20px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 30px;
+            border-left: 2px solid var(--border);
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+
+        .timeline-item.active::after {
+            background: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .timeline-item.completed::after {
+            background: var(--accent-success);
+        }
+
+        .timeline-date {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .timeline-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        /* Deliverables */
+        .deliverable-item {
+            margin-bottom: 12px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .deliverable-item:hover {
+            transform: translateX(5px);
+        }
+
+        .deliverable-info h4 {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .deliverable-info p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin: 4px 0 0;
+        }
+
+        /* Pulse Indicator */
+        .pulse-ring {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            position: relative;
+        }
+
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            border-radius: inherit;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        #logout-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            transition: 0.3s;
+        }
+
+        #logout-btn:hover {
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-layout {
+                padding: 20px;
+            }
+        }
+
+        /* Utility Classes */
+        .client-branding {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .flex-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .mt-40 {
+            margin-top: 40px;
+        }
+
+        .p-20 {
+            padding: 20px;
+        }
+
+        .update-status {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .update-meta {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .update-content {
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="three-bg"></canvas>
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="dashboard-layout">
+        <header class="client-header">
+            <div class="client-info">
+                <p>PROJECT SECURE STREAM</p>
+                <h1 id="client-name-display">LOADING PORTAL...</h1>
+                <div id="client-company-display" class="client-branding"></div>
+            </div>
+            <div class="flex-actions">
+                <div class="status-pill">
+                    <div class="pulse-ring"></div>
+                    <span>LIVE CONNECTION</span>
+                </div>
+                <button id="logout-btn" onclick="terminateSession()">CLOSE STREAM</button>
+            </div>
+        </header>
+
+        <div class="stats-hub" id="stats-container">
+            <div class="glass-card stat-card">
+                <div class="stat-label">Project Status</div>
+                <div class="stat-value" id="proj-status-val">SYNCING</div>
+                <i class="fas fa-microchip stat-icon"></i>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Nexus Pulse</div>
+                <div class="stat-value" id="pulse-val">--%</div>
+                <i class="fas fa-heartbeat stat-icon"></i>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Open Deliverables</div>
+                <div class="stat-value" id="deliverables-val">0</div>
+                <i class="fas fa-box-open stat-icon"></i>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="main-column">
+                <h3 class="section-title"><i class="fas fa-stream"></i> PROJECT TIMELINE</h3>
+                <div class="glass-card timeline-container" id="timeline-list">
+                    <!-- Injected -->
+                </div>
+            </div>
+
+            <div class="side-column">
+                <h3 class="section-title"><i class="fas fa-cloud-download-alt"></i> RECENT ASSETS</h3>
+                <div id="assets-list">
+                    <!-- Injected -->
+                </div>
+
+                <h3 class="section-title mt-40"><i class="fas fa-comment-dots"></i> LATEST UPDATE</h3>
+                <div class="glass-card p-20" id="latest-update">
+                    <div class="update-status">No recent updates found in the ledger.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/three-bg.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            initThreeBg();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('pass');
+
+            if (!token) {
+                window.location.href = 'client-portal.html';
+                return;
+            }
+
+            try {
+                const data = await api.get(`/client-connect/portal-data?token=${token}`);
+                renderDashboard(data);
+            } catch (err) {
+                showToast('SESSION EXPIRED OR INVALID', 'error');
+                setTimeout(() => window.location.href = 'client-portal.html', 2000);
+            }
+        });
+
+        function renderDashboard(data) {
+            const { client, projects, tasks, submissions, last_interaction } = data;
+
+            document.getElementById('client-name-display').textContent = client.name;
+            document.getElementById('client-company-display').textContent = client.company;
+
+            // Stats
+            const mainProject = projects[0] || { status: 'NO ACTIVE PROJECT' };
+            document.getElementById('proj-status-val').textContent = mainProject.status.toUpperCase();
+            document.getElementById('pulse-val').textContent = (client.satisfaction_score || 85) + '%';
+            document.getElementById('deliverables-val').textContent = submissions.length;
+
+            // Timeline (using projects and tasks)
+            const timelineEl = document.getElementById('timeline-list');
+            if (projects.length === 0) {
+                timelineEl.innerHTML = '<div style="color:var(--text-muted); padding:20px;">Establishing project framework...</div>';
+            } else {
+                let html = '';
+                projects.forEach((p, idx) => {
+                    html += `
+                    <div class="timeline-item ${idx === 0 ? 'active' : 'completed'}">
+                        <div class="timeline-date">${formatDate(p.created_at)}</div>
+                        <div class="timeline-title">${p.title} - ${p.status.toUpperCase()}</div>
+                        <div class="timeline-desc">${p.description || 'Project objective initialized.'}</div>
+                    </div>
+                `;
+                });
+                timelineEl.innerHTML = html;
+            }
+
+            // Assets / Deliverables
+            const assetsEl = document.getElementById('assets-list');
+            if (submissions.length === 0) {
+                assetsEl.innerHTML = '<div class="glass-card" style="padding:20px; color:var(--text-muted); font-size:0.8rem;">No assets released for preview yet.</div>';
+            } else {
+                assetsEl.innerHTML = submissions.map(s => `
+                <div class="glass-card deliverable-item">
+                    <div class="deliverable-info">
+                        <h4>v${s.version} Release</h4>
+                        <p>${s.project_title || 'Project Deliverable'}</p>
+                    </div>
+                    <div class="badge badge-${s.status}">${s.status}</div>
+                </div>
+            `).join('');
+            }
+
+            // Latest Update
+            if (last_interaction) {
+                document.getElementById('latest-update').innerHTML = `
+                <div class="update-meta">
+                    ${formatDate(last_interaction.created_at)} - ${last_interaction.type.toUpperCase()}
+                </div>
+                <div class="update-content">${last_interaction.notes}</div>
+            `;
+            }
+        }
+
+        function terminateSession() {
+            if (confirm('Terminate secure project stream?')) {
+                window.location.href = 'client-portal.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

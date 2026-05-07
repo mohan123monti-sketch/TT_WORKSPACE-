@@ -1,49 +1,36 @@
 @echo off
-REM Tech Turf - Quick Start Script (Fixed Encoding)
-@chcp 65001 >nul
+setlocal
 
-echo ==================================
-echo Tech Turf - India Edition
-echo Quick Start Script
-echo ==================================
-echo.
 
-REM Check if backend exists
-if not exist "backend" (
-    echo [ERROR] backend directory not found.
-    pause
-    exit /b 1
+REM Start the Tech Turf server (development mode)
+cd project\backend
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":4000 .*LISTENING"') do (
+    echo Stopping process %%a using port 4000...
+    taskkill /F /PID %%a >nul 2>nul
 )
 
-REM Check for .env file
-if not exist "backend\.env" (
-    echo [ERROR] .env file not found in backend folder.
-    pause
-    exit /b 1
-)
+call npm run dev
 
-REM Install dependencies if needed
-if not exist "backend\node_modules" (
-    echo Installing backend dependencies...
-    pushd backend
-    call npm install
-    popd
-)
-
-echo ==================================
-echo Starting Tech Turf Platform...
-echo ==================================
-echo.
-
-pushd backend
-echo Starting Backend on port 8080...
-call npm start
-
-if %errorlevel% neq 0 (
+REM If startup fails (for example after a Node version change),
+REM rebuild native modules and retry once.
+if errorlevel 1 (
     echo.
-    echo [ERROR] The server stopped unexpectedly with error code %errorlevel%.
-    pause
-)
-popd
+    echo Startup failed. Attempting automatic native module repair...
+    call npm rebuild better-sqlite3
 
+    if errorlevel 1 (
+        echo.
+        echo Automatic repair failed. Run "npm install" and try again.
+        goto :done
+    )
+
+    echo.
+    echo Repair complete. Retrying startup...
+    call npm run dev
+)
+
+cd ../..
+
+:done
 pause
+endlocal

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Content Forge</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .forge-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      padding: 0 24px 24px;
+    }
+    .forge-card {
+      padding: 24px;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+    .forge-tool {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .ai-result {
+      background: rgba(108, 99, 255, 0.05);
+      border-radius: 8px;
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      border-left: 4px solid var(--accent-primary);
+      margin-top: 15px;
+      line-height: 1.6;
+      display: none;
+    }
+    .tone-badge {
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--accent-green);
+      color: white;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    @media (max-width: 1024px) {
+      .forge-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav">
+        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+          <i class="fas fa-th-large"></i>
+          <span class="menu-text">Command Center</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='projects.html'">
+          <i class="fas fa-project-diagram"></i>
+          <span class="menu-text">Operations</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='tasks.html'">
+          <i class="fas fa-tasks"></i>
+          <span class="menu-text">Task Stream</span>
+        </div>
+        <div class="menu-item tl-only" onclick="window.location.href='submissions.html'">
+          <i class="fas fa-check-double"></i>
+          <span class="menu-text">Directives</span>
+        </div>
+        <div class="menu-item" onclick="window.location.href='drive.html'">
+          <i class="fas fa-hdd"></i>
+          <span class="menu-text">Secure Drive</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        
+        <!-- Role Hubs -->
+        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+          <i class="fas fa-users-cog"></i>
+          <span class="menu-text">User Management</span>
+        </div>
+        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+          <i class="fas fa-shield-alt"></i>
+          <span class="menu-text">Admin Warp</span>
+        </div>
+        
+        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+          <i class="fas fa-flask"></i>
+          <span class="menu-text">Nexus Lab</span>
+        </div>
+        
+        
+        
+        
+        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+          <i class="fas fa-handshake"></i>
+          <span class="menu-text">Client Connect</span>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.2rem; margin-left:15px;">CONTENT FORGE</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Writer / Narrative / Drafting</div>
+          <div class="page-title">THE ARCHITECT'S FORGE</div>
+        </div>
+      </div>
+
+      <div class="forge-grid">
+        <div class="glass-card forge-card anim-fade-up">
+          <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div style="font-family:var(--font-display); font-weight:700;">NEXUS DRAFT: AI OUTLINER</div>
+            <i class="fas fa-magic" style="color:var(--accent-primary);"></i>
+          </div>
+          
+          <form id="draft-form" style="display:flex; flex-direction:column; gap:15px;">
+            <div class="form-group">
+              <label>Project Title / Brief</label>
+              <input type="text" class="form-control" id="draft-title" placeholder="Protocol Omega Narrative..." required>
+            </div>
+            <div class="form-group">
+              <label>Additional Context</label>
+              <textarea class="form-control" id="draft-context" rows="3" placeholder="Target audience: Space-Tech specialists. Tone: Professional & Analytical..."></textarea>
+            </div>
+            <button type="submit" class="btn-primary" id="draft-submit-btn">GENERATE STRUCTURAL OUTLINE</button>
+          </form>
+
+          <div id="draft-result" class="ai-result anim-slide-up"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:24px;">
+          <div class="glass-card dash-card anim-fade-up">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+              <div style="font-family:var(--font-display); font-weight:700;">TONE ANALYZER</div>
+              <i class="fas fa-chart-bar" style="color:var(--accent-green);"></i>
+            </div>
+            <div class="forge-tool">
+              <textarea class="form-control" id="tone-content" rows="4" style="font-size:0.8rem;" placeholder="Paste text here to analyze project-vibe alignment..."></textarea>
+              <button class="btn-secondary" style="width:100%; margin-top:15px; font-size:0.7rem;" onclick="analyzeTone()">ANALYZE VIBE</button>
+            </div>
+            <div id="tone-result" class="ai-result" style="padding:15px;"></div>
+          </div>
+
+          <div class="glass-card dash-card anim-fade-up">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+              <div style="font-family:var(--font-display); font-weight:700;">PLAGIARISM GUARD</div>
+              <i class="fas fa-shield-alt" style="color:var(--accent-secondary);"></i>
+            </div>
+             <div class="forge-tool">
+              <div style="font-size:0.7rem; color:var(--text-muted); margin-bottom:12px;">Automatic verification of content integrity across the internal repository and global space-tech papers.</div>
+              <button class="btn-secondary" style="width:100%; font-size:0.7rem;" onclick="checkPlagiarism()">SCAN FOR REPLICANTS</button>
+            </div>
+            <div id="plagiarism-result" class="ai-result" style="padding:15px;"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.get.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/content-forge.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if(window.initContentForge) initContentForge();
+    });
+  </script>
+</body>
+</html>
+

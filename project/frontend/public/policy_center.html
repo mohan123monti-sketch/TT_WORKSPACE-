@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Policy Center</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .policy-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+      padding: 0 24px 24px;
+      align-items: start;
+    }
+
+    .policy-card {
+      padding: 20px;
+    }
+
+    .policy-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 560px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .policy-row {
+      border: 1px solid var(--border);
+      background: var(--bg-glass);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .policy-row-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .policy-key {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent-primary);
+      word-break: break-all;
+    }
+
+    .policy-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .policy-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .policy-actions input {
+      flex: 1;
+    }
+
+    .toggle-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .toggle-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: var(--bg-glass);
+    }
+
+    .toggle-item small {
+      display: block;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-size: 0.68rem;
+    }
+
+    @media (max-width: 1024px) {
+      .policy-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+      <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span class="menu-text">Logout</span>
+        </div>
+      </div>
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Expand/Collapse Sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle sidebar"><i class="fas fa-bars"></i></button>
+          <div class="page-title" style="font-size:1.1rem;">POLICY CENTER</div>
+        </div>
+        <div class="nav-actions" id="nav-actions-container"></div>
+      </header>
+
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Admin / Enterprise</div>
+          <div class="page-title">POLICY CENTER</div>
+        </div>
+      </div>
+
+      <div class="policy-layout">
+        <div class="glass-card policy-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px;">
+            <div>
+              <div style="font-family:var(--font-display); font-size:1rem;">POLICY REGISTRY</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">Edit existing policy values and save instantly.</div>
+            </div>
+            <button class="btn-secondary" id="refresh-policies-btn"><i class="fas fa-rotate"></i><span>Refresh</span></button>
+          </div>
+          <div class="policy-list" id="policy-list"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="glass-card policy-card">
+            <div style="font-family:var(--font-display); margin-bottom:14px;">ADD OR UPDATE POLICY</div>
+            <form id="policy-form">
+              <div class="form-group">
+                <label>Policy Key</label>
+                <input id="policy-key" class="form-control" placeholder="walkthrough.enabled" required>
+              </div>
+              <div class="form-group">
+                <label>Policy Value</label>
+                <input id="policy-value" class="form-control" placeholder="true / false / value" required>
+              </div>
+              <button class="btn-primary" type="submit" style="width:100%;"><i class="fas fa-floppy-disk"></i><span>Save Policy</span></button>
+            </form>
+          </div>
+
+          <div class="glass-card policy-card">
+            <div style="font-family:var(--font-display); margin-bottom:10px;">WALKTHROUGH GLOBAL TOGGLES</div>
+            <div class="toggle-grid" id="walkthrough-toggle-grid"></div>
+            <button class="btn-secondary" id="save-walkthrough-toggles" style="width:100%; margin-top:14px;">
+              <i class="fas fa-toggle-on"></i>
+              <span>Save Walkthrough Toggles</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/policy-center.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.requireRole('admin');
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      if (window.initPolicyCenter) await initPolicyCenter();
+    });
+  </script>
+</body>
+
+</html>
