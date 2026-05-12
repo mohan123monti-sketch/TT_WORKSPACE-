@@ -32,7 +32,7 @@ function bindProfileEditForm() {
       this.src = '';
       this.alt = 'Preview unavailable';
       this.style.background = '#222';
-      this.style.color = '#fff';
+      this.style.color = '#102a96';
       this.style.display = 'flex';
       this.style.alignItems = 'center';
       this.style.justifyContent = 'center';
@@ -93,7 +93,7 @@ async function loadProfileData() {
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-email').textContent = user.email;
     document.getElementById('profile-points').textContent = user.points;
-    document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(108,99,255,0.1); color:var(--accent-primary); border:1px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
+    document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(16,42,150,0.1); color:var(--accent-primary); border:2px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
 
     const navAvatar = document.getElementById('nav-avatar');
     if (navAvatar) navAvatar.src = getAvatarUrl(user, 40);
@@ -132,7 +132,7 @@ async function loadProfileData() {
       activityList.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">No recent activity</div>';
     } else {
       activityList.innerHTML = perf.logs.map(l => `
-        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:12px; border-bottom:2px solid var(--border);">
           <div style="font-size:0.85rem;">
             <span style="color:var(--text-primary); font-weight:700;">${l.action}</span>
             ${l.score ? `<span style="color:var(--accent-green); margin-left:8px;">+${l.score} pts</span>` : ''}
@@ -155,8 +155,8 @@ async function loadProfileData() {
           datasets: [{
             label: 'Score',
             data,
-            borderColor: 'rgba(108,99,255,1)',
-            backgroundColor: 'rgba(108,99,255,0.1)',
+            borderColor: 'rgba(16,42,150,1)',
+            backgroundColor: 'rgba(16,42,150,0.1)',
             tension: 0.3,
             pointRadius: 4,
             pointBackgroundColor: 'var(--accent-primary)',

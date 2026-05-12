@@ -26,18 +26,18 @@
     }
     .forge-tool {
       background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
+      border:  2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 20px;
       margin-bottom: 20px;
     }
     .ai-result {
-      background: rgba(108, 99, 255, 0.05);
+      background: rgba(16, 42, 150, 0.05);
       border-radius: 8px;
       padding: 20px;
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      border-left: 4px solid var(--accent-primary);
+      border-left:  2px solid var(--accent-primary);
       margin-top: 15px;
       line-height: 1.6;
       display: none;
@@ -66,40 +66,40 @@
         <div class="sidebar-logo">TECH TURF</div>
       </div>
       <nav class="sidebar-menu" id="main-sidebar-nav">
-        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+        <div class="menu-item" data-nav="dashboard.html">
           <i class="fas fa-th-large"></i>
           <span class="menu-text">Command Center</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='projects.html'">
+        <div class="menu-item" data-nav="projects.html">
           <i class="fas fa-project-diagram"></i>
           <span class="menu-text">Operations</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='tasks.html'">
+        <div class="menu-item" data-nav="tasks.html">
           <i class="fas fa-tasks"></i>
           <span class="menu-text">Task Stream</span>
         </div>
-        <div class="menu-item tl-only" onclick="window.location.href='submissions.html'">
+        <div class="menu-item tl-only" data-nav="submissions.html">
           <i class="fas fa-check-double"></i>
           <span class="menu-text">Directives</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='drive.html'">
+        <div class="menu-item" data-nav="drive.html">
           <i class="fas fa-hdd"></i>
           <span class="menu-text">Secure Drive</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
         
         <!-- Role Hubs -->
-        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+        <div class="menu-item admin-only" data-nav="users.html">
           <i class="fas fa-users-cog"></i>
           <span class="menu-text">User Management</span>
         </div>
-        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+        <div class="menu-item admin-only" data-nav="admin_control.html">
           <i class="fas fa-shield-alt"></i>
           <span class="menu-text">Admin Warp</span>
         </div>
         
-        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+        <div class="menu-item rnd-only" data-nav="nexus_lab.html">
           <i class="fas fa-flask"></i>
           <span class="menu-text">Nexus Lab</span>
         </div>
@@ -107,7 +107,7 @@
         
         
         
-        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+        <div class="menu-item handler-only" data-nav="client_connect.html">
           <i class="fas fa-handshake"></i>
           <span class="menu-text">Client Connect</span>
         </div>

@@ -17,7 +17,7 @@ async function initContentForge() {
         resultDiv.innerHTML = `
           <div style="font-family:var(--font-display); font-size:1rem; margin-bottom:15px; color:var(--accent-primary);">ARCHITECTURAL FRAMEWORK: ${res.title}</div>
           <div style="display:flex; flex-direction:column; gap:8px;">
-            ${res.sections.map(s => `<div style="border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;">${s}</div>`).join('')}
+            ${res.sections.map(s => `<div style="border-bottom:2px solid rgba(255,255,255,0.05); padding-bottom:5px;">${s}</div>`).join('')}
           </div>
           <div style="margin-top:20px; font-size:0.75rem; color:var(--text-muted); italic; font-family:var(--font-body);">${res.summary}</div>
         `;

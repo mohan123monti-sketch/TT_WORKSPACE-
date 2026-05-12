@@ -40,7 +40,7 @@
       font-weight: 900;
       font-size: 2.5rem;
       color: var(--accent-primary);
-      text-shadow: 0 0 20px rgba(108, 99, 255, 0.5);
+      text-shadow: 0 0 20px rgba(16, 42, 150, 0.5);
       margin-bottom: 8px;
       letter-spacing: 3px;
     }
@@ -86,8 +86,8 @@
 
     .input-wrap input {
       width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      background: #ffffff;
+      border:  2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 16px 12px 44px;
       color: var(--text-primary);
@@ -96,8 +96,8 @@
 
     .input-wrap select {
       width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      background: #ffffff;
+      border:  2px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 16px 12px 44px;
       color: var(--text-primary);
@@ -107,12 +107,12 @@
 
     .input-wrap input:focus {
       border-color: var(--accent-primary);
-      box-shadow: 0 0 15px rgba(108, 99, 255, 0.2);
+      box-shadow: 0 0 15px rgba(16, 42, 150, 0.2);
     }
 
     .input-wrap select:focus {
       border-color: var(--accent-primary);
-      box-shadow: 0 0 15px rgba(108, 99, 255, 0.2);
+      box-shadow: 0 0 15px rgba(16, 42, 150, 0.2);
     }
 
     .forgot-pw {
@@ -153,7 +153,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <div class="top-right-nav">
-    <button class="btn-secondary" onclick="window.location.href='client-portal.html'">
+    <button class="btn-secondary" data-nav="client-portal.html">
       <i class="fas fa-handshake"></i>
       <span>CLIENT CONNECT</span>
     </button>

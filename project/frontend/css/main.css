@@ -7,25 +7,27 @@
   --bg-hover: rgba(255, 255, 255, 0.05);
 
   /* Accents */
-  --accent-primary: #6c63ff;
-  --accent-secondary: #ff6584;
-  --accent-green: #43e97b;
-  --accent-orange: #f9a825;
-  --accent-blue: #38b2f5;
-  --accent-pink: #e05cff;
+  --accent-primary: #102a96;
+  /* Tech Turf Deep Blue */
+  --accent-secondary: #ff6b00;
+  /* Tech Turf Vibrant Orange */
+  --accent-green: #2ecc71;
+  --accent-orange: #ff9f43;
+  --accent-blue: #3498db;
+  --accent-pink: #e84393;
 
   /* Text */
-  --text-primary: #eeeef5;
-  --text-secondary: #8888aa;
-  --text-muted: #444466;
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-muted: #4a5568;
 
   /* Borders */
-  --border: rgba(108, 99, 255, 0.18);
-  --border-hover: rgba(108, 99, 255, 0.45);
+  --border: rgba(16, 42, 150, 0.25);
+  --border-hover: rgba(255, 107, 0, 0.5);
 
   /* Effects */
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.15);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(16, 42, 150, 0.2);
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 20px;
@@ -78,7 +80,7 @@ select {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #6c63ff, #8e84ff);
+  background: linear-gradient(135deg, var(--accent-secondary), #e65c00);
   color: white;
   padding: 12px 28px;
   border-radius: var(--radius-sm);
@@ -100,7 +102,7 @@ select {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 99, 255, 0.5);
+  box-shadow: 0 8px 25px rgba(255, 107, 0, 0.4);
 }
 
 .btn-primary:active {
@@ -128,8 +130,8 @@ select {
 
 .btn-secondary:hover {
   background: var(--bg-card);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  border-color: var(--accent-secondary);
+  color: var(--accent-secondary);
 }
 
 .btn-danger {
@@ -153,8 +155,8 @@ select {
 
 .btn-danger:hover {
   background: rgba(255, 101, 132, 0.1);
-  border-color: var(--accent-secondary);
-  color: var(--accent-secondary);
+  border-color: #ff3e60;
+  color: #ff3e60;
 }
 
 .badge {
@@ -176,15 +178,15 @@ select {
 }
 
 .badge-in_progress {
-  background: rgba(108, 99, 255, 0.2);
-  color: #a09aff;
-  border: 1px solid rgba(108, 99, 255, 0.4);
+  background: rgba(16, 42, 150, 0.2);
+  color: #5c7cff;
+  border: 1px solid rgba(16, 42, 150, 0.4);
 }
 
 .badge-submitted {
-  background: rgba(249, 168, 37, 0.2);
-  color: #ffd166;
-  border: 1px solid rgba(249, 168, 37, 0.4);
+  background: rgba(255, 107, 0, 0.2);
+  color: #ff9f43;
+  border: 1px solid rgba(255, 107, 0, 0.4);
 }
 
 .badge-approved {
@@ -242,9 +244,9 @@ select {
 }
 
 .badge-designer {
-  background: rgba(108, 99, 255, 0.2);
+  background: rgba(16, 42, 150, 0.2);
   color: #a09aff;
-  border: 1px solid rgba(108, 99, 255, 0.4);
+  border: 1px solid rgba(16, 42, 150, 0.4);
 }
 
 #three-bg {

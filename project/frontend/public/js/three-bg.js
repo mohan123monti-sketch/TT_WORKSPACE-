@@ -15,7 +15,7 @@ function initThreeBg() {
 
   // Starfield
   const starGeometry = new THREE.BufferGeometry();
-  const starMaterial = new THREE.PointsMaterial({ color: 0x6c63ff, size: 0.7, transparent: true, opacity: 0.8 });
+  const starMaterial = new THREE.PointsMaterial({ color: 0x102a96, size: 0.5, transparent: true, opacity: 0.2 });
   const starVertices = [];
   for (let i = 0; i < 2500; i++) {
     const x = (Math.random() - 0.5) * 2000;
@@ -37,13 +37,14 @@ function initThreeBg() {
 
   for (let i = 0; i < 18; i++) {
     const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+    const brandColor = i % 2 === 0 ? 0x102a96 : 0xff6b00;
     const material = new THREE.MeshPhongMaterial({
-      color: 0x6c63ff,
+      color: brandColor,
       wireframe: true,
       transparent: true,
-      opacity: Math.random() * 0.2 + 0.1,
-      emissive: 0x6c63ff,
-      emissiveIntensity: 0.5
+      opacity: Math.random() * 0.05 + 0.02,
+      emissive: brandColor,
+      emissiveIntensity: 0.1
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(
@@ -63,7 +64,7 @@ function initThreeBg() {
   }
 
   // Grid
-  const grid = new THREE.GridHelper(1000, 50, 0x6c63ff, 0x6c63ff);
+  const grid = new THREE.GridHelper(1000, 50, 0x102a96, 0x102a96);
   grid.position.y = -120;
   grid.material.opacity = 0.15;
   grid.material.transparent = true;
@@ -72,7 +73,7 @@ function initThreeBg() {
   // Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
-  const pointLight = new THREE.PointLight(0x6c63ff, 1);
+  const pointLight = new THREE.PointLight(0x1a3dbb, 1);
   pointLight.position.set(50, 50, 50);
   scene.add(pointLight);
 

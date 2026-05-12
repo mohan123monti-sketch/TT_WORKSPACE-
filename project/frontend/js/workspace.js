@@ -461,7 +461,7 @@ function setupEventListeners() {
 
         switch (action) {
             case 'border':
-                const colors = [null, '#ffffff', '#6c63ff', '#00ff00', '#ff4d4d'];
+                const colors = [null, '#ffffff', '#102a96', '#00ff00', '#ff4d4d'];
                 let currentIdx = colors.indexOf(activeObj.stroke);
                 let nextIdx = (currentIdx + 1) % colors.length;
                 activeObj.set({
@@ -486,7 +486,7 @@ function setupEventListeners() {
                         top: activeObj.top + (activeObj.height * activeObj.scaleY) + 10,
                         fontSize: 14,
                         fill: '#ffffff',
-                        backgroundColor: '#6c63ff',
+                        backgroundColor: '#102a96',
                         padding: 6,
                         fontFamily: 'Rajdhani',
                         fontWeight: 'bold',
@@ -866,7 +866,7 @@ function sendMessage() {
     setTimeout(() => {
         const nexusMsg = document.createElement('div');
         nexusMsg.className = 'message nexus-message';
-        nexusMsg.innerHTML = `<div style="background: rgba(108,99,255,0.1); border-left: 3px solid var(--accent-primary); padding: 12px; border-radius: 4px 12px 12px 4px; font-size: 0.9rem; align-self: flex-start; max-width: 80%;"><i class="fas fa-brain" style="margin-right: 8px; color: var(--accent-primary);"></i> Nexus is ready. All whiteboard data is indexed. How can I assist?</div>`;
+        nexusMsg.innerHTML = `<div style="background: rgba(16,42,150,0.1); border-left: 3px solid var(--accent-primary); padding: 12px; border-radius: 4px 12px 12px 4px; font-size: 0.9rem; align-self: flex-start; max-width: 80%;"><i class="fas fa-brain" style="margin-right: 8px; color: var(--accent-primary);"></i> Nexus is ready. All whiteboard data is indexed. How can I assist?</div>`;
         messages.appendChild(nexusMsg);
         messages.scrollTop = messages.scrollHeight;
     }, 800);

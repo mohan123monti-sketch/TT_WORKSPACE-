@@ -1,9 +1,14 @@
 /* Safe responsive layer: additive overrides only.
    This file avoids changing core desktop layout rules globally. */
 
+.sidebar-collapse-btn {
+  display: none !important;
+}
+
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -39,7 +44,6 @@ svg {
 .table-responsive,
 .glass-table-wrap {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .users-table,
@@ -74,6 +78,7 @@ textarea {
 
 /* Tablet and below */
 @media (max-width: 1024px) {
+
   .dashboard-grid,
   .studio-grid {
     grid-template-columns: 1fr !important;
@@ -173,7 +178,7 @@ textarea {
   table {
     min-width: 560px;
   }
-}
+
   h1 {
     font-size: 2rem;
   }
@@ -201,7 +206,7 @@ textarea {
   }
 
   .main-content {
-    margin-left: 260px;
+    margin-left: 0;
   }
 
   .mobile-hamburger,
@@ -443,6 +448,7 @@ textarea {
 
 /* Touch-friendly adjustments */
 @media (hover: none) and (pointer: coarse) {
+
   /* Mobile devices */
   button {
     min-height: 48px;
@@ -470,6 +476,7 @@ textarea {
 
 /* Print Styles */
 @media print {
+
   .header,
   .sidebar,
   .navigation,
@@ -597,14 +604,14 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: #ffffff;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(108, 99, 255, 0.4);
+  background: rgba(16, 42, 150, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(108, 99, 255, 0.6);
+  background: rgba(0, 0, 0, 0.7);
 }

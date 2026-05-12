@@ -26,8 +26,8 @@ async function loadExperiments() {
         <div style="font-size:0.7rem; color:var(--text-muted);">Principal Investigator: ${e.owner_name}</div>
         
         ${e.results ? `
-          <div style="margin-top:15px; padding:10px; background:rgba(255,101,132,0.05); border-radius:8px; border:1px solid rgba(255,101,132,0.15);">
-            <div style="font-size:0.6rem; text-transform:uppercase; color:var(--accent-pink); margin-bottom:5px;">Findings:</div>
+          <div style="margin-top:15px; padding:10px; background:rgba(255,101,132,0.05); border-radius:8px; border:2px solid rgba(255,101,132,0.15);">
+            <div style="font-size:0.6rem; text-transform:uppercase; color:var(--accent-secondary); margin-bottom:5px;">Findings:</div>
             <div style="font-size:0.75rem; font-family:var(--font-mono);">${e.results}</div>
           </div>
         ` : ''}

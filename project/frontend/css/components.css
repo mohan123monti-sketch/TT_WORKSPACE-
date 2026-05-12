@@ -76,7 +76,7 @@
 .upload-zone:hover,
 .upload-zone.drag-over {
   border-color: var(--accent-primary);
-  background: rgba(108, 99, 255, 0.05);
+  background: rgba(16, 42, 150, 0.05);
 }
 
 .upload-zone i {
@@ -159,7 +159,7 @@
 
 .form-control:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 10px rgba(108, 99, 255, 0.2);
+  box-shadow: 0 0 10px rgba(16, 42, 150, 0.2);
 }
 
 select.form-control option {

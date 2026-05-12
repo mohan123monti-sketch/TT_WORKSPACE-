@@ -13,7 +13,7 @@ async function loadProfileData() {
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-email').textContent = user.email;
     document.getElementById('profile-points').textContent = user.points;
-    document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(108,99,255,0.1); color:var(--accent-primary); border:1px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
+    document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(16,42,150,0.1); color:var(--accent-primary); border:1px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
     
     if (user.badge) {
       document.getElementById('profile-badge-display').innerHTML = `
@@ -60,8 +60,8 @@ async function loadProfileData() {
           datasets: [{
             label: 'Score',
             data,
-            borderColor: 'rgba(108,99,255,1)',
-            backgroundColor: 'rgba(108,99,255,0.1)',
+            borderColor: 'rgba(16,42,150,1)',
+            backgroundColor: 'rgba(16,42,150,0.1)',
             tension: 0.3,
             pointRadius: 4,
             pointBackgroundColor: 'var(--accent-primary)',

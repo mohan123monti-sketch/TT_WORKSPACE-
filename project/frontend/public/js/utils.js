@@ -47,7 +47,7 @@ function showToast(message, type = 'info') {
 
 function getInitialsAvatar(name, size = 40) {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-  const colors = ['#6c63ff', '#ff6584', '#43e97b', '#f9a825', '#38b2f5', '#e05cff', '#ff9f43', '#00d2ff'];
+  const colors = ['#ffffff', '#ff6584', '#43e97b', '#f9a825', '#38b2f5', '#e05cff', '#ff9f43', '#00d2ff'];
   const color = colors[name.charCodeAt(0) % colors.length];
 
   const svg = `
@@ -90,7 +90,7 @@ function getRoleColor(role) {
     admin: '#e05cff',
     team_leader: '#f9a825',
     writer: '#38b2f5',
-    designer: '#6c63ff',
+    designer: '#ffffff',
     rnd: '#43e97b',
     creator: '#ff6584',
     media_manager: '#aaaacc',

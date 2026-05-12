@@ -173,7 +173,7 @@ async function openClientDetail(id) {
         </div>
       </div>
 
-      <div style="margin-bottom:24px; padding:12px; background:var(--bg-hover); border-radius:var(--radius-sm); border-left:3px solid var(--accent-primary);">
+      <div style="margin-bottom:24px; padding:12px; background:var(--bg-hover); border-radius:var(--radius-sm); border-left:2px solid var(--accent-primary);">
         <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Assigned Team</div>
         <div style="margin-bottom:12px;">
           <span style="font-weight:700; font-size:0.75rem; color:var(--accent-primary);">LEADER:</span> 
@@ -310,7 +310,7 @@ async function editClient(id) {
     if (tasksDiv) {
       tasksDiv.innerHTML = (!c.tasks || c.tasks.length === 0)
         ? 'No tasks found.'
-        : c.tasks.map(t => `<div style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+        : c.tasks.map(t => `<div style="padding:6px 0; border-bottom:2px solid rgba(255,255,255,0.05);">
             <div style="font-weight:700;">${t.title}</div>
             <div style="font-size:0.7rem; color:var(--text-muted);">${t.project_title} - ${t.status}</div>
           </div>`).join('');
@@ -320,7 +320,7 @@ async function editClient(id) {
     if (subsDiv) {
       subsDiv.innerHTML = (!c.submissions || c.submissions.length === 0)
         ? 'No submissions found.'
-        : c.submissions.map(s => `<div style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+        : c.submissions.map(s => `<div style="padding:6px 0; border-bottom:2px solid rgba(255,255,255,0.05);">
             <div style="font-weight:700;">v${s.version} Submission</div>
             <div style="font-size:0.7rem; color:var(--text-muted);">${s.project_title} - ${s.leader_status}</div>
           </div>`).join('');

@@ -71,7 +71,7 @@ function renderClients(clients) {
             <button class="btn-secondary" style="font-size:0.65rem;" onclick="openHistory(${c.id})">HISTORY</button>
           </div>
           
-          <div style="border-top: 1px solid var(--border); padding-top:15px;">
+          <div style="border-top:  2px solid var(--border); padding-top:15px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                 <span style="font-size:0.6rem; color:var(--text-muted); font-weight:700;">PORTAL PASS HUD</span>
             </div>

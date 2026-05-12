@@ -511,7 +511,7 @@ function showNexusResult(res) {
         <span style="color:var(--accent-orange); font-weight:700; display:block; margin-bottom:4px;">⚠️ IMPROVEMENTS:</span>
         <div style="color:var(--text-primary); font-size:0.85rem;">${feedback.improvements || 'No feedback provided'}</div>
       </div>
-      <div style="background:rgba(108,99,255,0.05); padding:12px; border-radius:8px; border:1px solid rgba(108,99,255,0.2);">
+      <div style="background:rgba(16,42,150,0.05); padding:12px; border-radius:8px; border:1px solid rgba(16,42,150,0.2);">
         <span style="color:var(--accent-primary); font-weight:700; display:block; margin-bottom:4px;">🔧 SUGGESTIONS:</span>
         <div style="color:var(--text-primary); font-size:0.85rem;">${feedback.suggestions || 'No feedback provided'}</div>
       </div>

@@ -122,7 +122,7 @@ async function loadSubmissions() {
           </div>
 
           <div class="submitter-info">
-            <img src="${getInitialsAvatar(s.submitter_name || '?', 32)}" style="width:32px; height:32px; border-radius:50%; border:1px solid var(--border);">
+            <img src="${getInitialsAvatar(s.submitter_name || '?', 32)}" style="width:32px; height:32px; border-radius:50%; border:2px solid var(--border);">
             <div>
               <div style="font-weight:700; font-size:0.85rem;">${s.submitter_name || 'Unknown'}</div>
               <div style="font-size:0.65rem; color:var(--text-muted);">${formatRole(s.submitter_role || 'member')} • ${timeAgo(s.submitted_at)}</div>
@@ -143,7 +143,7 @@ async function loadSubmissions() {
           </div>
 
           ${s.content_text ? `
-            <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; font-size:0.8rem; border:1px solid var(--border);">
+            <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; font-size:0.8rem; border:2px solid var(--border);">
               <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Submitted Content:</div>
               <div style="white-space:pre-wrap;">${s.content_text}</div>
             </div>
@@ -306,7 +306,7 @@ function updateManualQueueUI() {
   preview.style.padding = '12px';
   preview.style.borderRadius = '10px';
   preview.style.marginTop = '10px';
-  preview.style.border = '1px solid var(--border)';
+  preview.style.border = '2px solid var(--border)';
 
   preview.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -315,9 +315,9 @@ function updateManualQueueUI() {
         </div>
         <div style="max-height:120px; overflow-y:auto; overflow-x:hidden; padding-right:5px;">
             ${manualFilesQueue.map((f, i) => `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:5px; border:1px solid rgba(255,255,255,0.05);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:5px; border:2px solid rgba(255,255,255,0.05);">
                     <div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">📎 ${f.name}</div>
-                    <i class="fas fa-times" onclick="removeFromManualQueue(${i})" style="color:var(--accent-pink); font-size:0.7rem; cursor:pointer; opacity:0.7; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remove file"></i>
+                    <i class="fas fa-times" onclick="removeFromManualQueue(${i})" style="color:var(--accent-secondary); font-size:0.7rem; cursor:pointer; opacity:0.7; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remove file"></i>
                 </div>
             `).join('')}
         </div>

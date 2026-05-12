@@ -247,7 +247,7 @@ async function loadTopPerformers() {
                     datasets: [{
                         label: 'Points',
                         data: sorted.map(u => u.points),
-                        backgroundColor: ['#6c63ff', '#43e97b', '#f9a825', '#e05cff'],
+                        backgroundColor: ['#ffffff', '#43e97b', '#f9a825', '#e05cff'],
                         borderRadius: 8
                     }]
                 },
@@ -265,7 +265,7 @@ async function loadTopPerformers() {
             container.innerHTML = sorted.map((u, i) => `
                 <div class="performer-item">
                     <div class="performer-rank">0${i + 1}</div>
-                    <img src="${window.getInitialsAvatar ? getInitialsAvatar(u.name, 32) : ''}" class="performer-avatar" style="border:1px solid ${window.getRoleColor ? getRoleColor(u.role) : '#ccc'};">
+                    <img src="${window.getInitialsAvatar ? getInitialsAvatar(u.name, 32) : ''}" class="performer-avatar" style="border:2px solid ${window.getRoleColor ? getRoleColor(u.role) : '#ccc'};">
                     <div class="performer-info">
                         <div class="performer-name">${u.name}</div>
                         <div class="performer-role">${window.formatRole ? formatRole(u.role) : u.role}</div>
@@ -437,7 +437,7 @@ async function loadRoleHub() {
             title: 'NEXUS LAB',
             desc: 'Conduct sandboxed experiments and archive peer-reviewed research papers.',
             icon: 'fa-flask',
-            color: 'var(--accent-pink)',
+            color: 'var(--accent-secondary)',
             url: 'nexus_lab.html'
         },
         'writer': {
@@ -465,7 +465,7 @@ async function loadRoleHub() {
             title: 'CREATOR SLATE',
             desc: 'Manage production calendars, gear inventory, and generate AI-driven clips.',
             icon: 'fa-film',
-            color: 'var(--accent-pink)',
+            color: 'var(--accent-secondary)',
             url: 'creator_slate.html'
         },
         'client_handler': {
@@ -493,7 +493,7 @@ async function loadRoleHub() {
             title: 'WORKSPACE BRIDGE',
             desc: 'Run cross-stack execution across interface polish and service integration tasks.',
             icon: 'fa-layer-group',
-            color: 'var(--accent-pink)',
+            color: 'var(--accent-secondary)',
             url: 'workspace.html'
         },
         'production': {
@@ -509,14 +509,14 @@ async function loadRoleHub() {
     if (!hub) return;
 
     container.innerHTML = `
-        <div class="glass-card anim-fade-up" style="padding:24px; margin-bottom:24px; border-left:4px solid ${hub.color}; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:space-between; gap:20px;">
+        <div class="glass-card anim-fade-up" style="padding:24px; margin-bottom:24px; border-left:2px solid ${hub.color}; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:space-between; gap:20px;">
             <div style="display:flex; align-items:center; gap:20px;">
-                <div style="width:60px; height:60px; border-radius:12px; background:${hub.color}18; border:1px solid ${hub.color}33; display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:${hub.color};">
+                <div style="width:60px; height:60px; border-radius:12px; background:${hub.color}18; border:2px solid ${hub.color}33; display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:${hub.color};">
                     <i class="fas ${hub.icon}"></i>
                 </div>
                 <div>
-                    <div style="font-family:var(--font-display); font-weight:900; font-size:1.1rem; color:white; letter-spacing:1px; margin-bottom:4px;">${hub.title}</div>
-                    <div style="font-size:0.85rem; color:var(--text-muted); max-width:600px;">${hub.desc}</div>
+                    <div style="font-family:var(--font-display); font-weight:900; font-size:1.1rem; color:var(--text-primary); letter-spacing:1px; margin-bottom:4px;">${hub.title}</div>
+                    <div style="font-size:0.85rem; color:var(--text-secondary); max-width:600px;">${hub.desc}</div>
                 </div>
             </div>
             <button class="btn-primary" style="background:${hub.color}; box-shadow:0 8px 30px ${hub.color}44;" onclick="window.location.href='${hub.url}'">
@@ -546,7 +546,7 @@ window.loadNotifications = async function () {
             return;
         }
         list.innerHTML = notifs.map(n => `
-            <div class="notification-item ${n.is_read ? '' : 'unread'}" style="padding:10px; border-bottom:1px solid var(--border); font-size:0.85rem;">
+            <div class="notification-item ${n.is_read ? '' : 'unread'}" style="padding:10px; border-bottom:2px solid var(--border); font-size:0.85rem;">
                 <div style="margin-bottom:4px;">${n.message}</div>
                 <div style="font-size:0.7rem; color:var(--text-muted);">${window.timeAgo ? timeAgo(n.created_at) : ''}</div>
             </div>

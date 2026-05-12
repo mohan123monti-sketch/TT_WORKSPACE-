@@ -29,7 +29,7 @@ async function runForecasting() {
         <span>Current Velocity: ${Math.round(res.progressPercent)}%</span>
         <span>Confidence Index: ${res.confidenceIndex}</span>
       </div>
-      <div style="font-size:0.8rem; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border-left:3px solid var(--accent-orange);">
+      <div style="font-size:0.8rem; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; border-left:2px solid var(--accent-orange);">
         <i class="fas fa-lightbulb" style="color:var(--accent-orange); margin-right:8px;"></i>
         ${res.recommendation}
       </div>

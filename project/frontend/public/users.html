@@ -25,12 +25,12 @@
       background: var(--bg-glass);
       border-radius: var(--radius);
       overflow: hidden;
-      border: 1px solid var(--border);
+      border:  2px solid var(--border);
     }
     .users-table th {
       text-align: left;
       padding: 16px;
-      background: var(--bg-secondary);
+      background: #ffffff;
       font-family: var(--font-display);
       font-size: 0.75rem;
       font-weight: 700;
@@ -40,7 +40,7 @@
     }
     .users-table td {
       padding: 16px;
-      border-bottom: 1px solid var(--border);
+      border-bottom:  2px solid var(--border);
       font-size: 0.85rem;
     }
     .user-cell {
@@ -79,44 +79,44 @@
       </div>
       
       <nav class="sidebar-menu">
-        <div class="menu-item" onclick="window.location.href='dashboard.html'">
+        <div class="menu-item" data-nav="dashboard.html">
           <i class="fas fa-th-large"></i>
           <span class="menu-text">Command Center</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='projects.html'">
+        <div class="menu-item" data-nav="projects.html">
           <i class="fas fa-project-diagram"></i>
           <span class="menu-text">Operations</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='tasks.html'">
+        <div class="menu-item" data-nav="tasks.html">
           <i class="fas fa-tasks"></i>
           <span class="menu-text">Task Stream</span>
         </div>
-        <div class="menu-item tl-only" onclick="window.location.href='submissions.html'">
+        <div class="menu-item tl-only" data-nav="submissions.html">
           <i class="fas fa-check-double"></i>
           <span class="menu-text">Directives</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='drive.html'">
+        <div class="menu-item" data-nav="drive.html">
           <i class="fas fa-hdd"></i>
           <span class="menu-text">Secure Drive</span>
         </div>
-        <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
-          <i class="fas fa-robot" style="color:var(--accent-pink);"></i>
+        <div class="menu-item" data-nav="nexus_chat.html">
+          <i class="fas fa-robot" style="color:var(--accent-secondary);"></i>
           <span class="menu-text">Nexus AI Terminal</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
         
         <!-- Role-Based Control Centers -->
-        <div class="menu-item admin-only" onclick="window.location.href='users.html'">
+        <div class="menu-item admin-only" data-nav="users.html">
           <i class="fas fa-users-cog"></i>
           <span class="menu-text">User Management</span>
         </div>
-        <div class="menu-item admin-only" onclick="window.location.href='admin_control.html'">
+        <div class="menu-item admin-only" data-nav="admin_control.html">
           <i class="fas fa-shield-alt"></i>
           <span class="menu-text">Admin Warp</span>
         </div>
         
-        <div class="menu-item rnd-only" onclick="window.location.href='nexus_lab.html'">
+        <div class="menu-item rnd-only" data-nav="nexus_lab.html">
           <i class="fas fa-flask"></i>
           <span class="menu-text">Nexus Lab</span>
         </div>
@@ -124,13 +124,13 @@
         
         
         
-        <div class="menu-item handler-only" onclick="window.location.href='client_connect.html'">
+        <div class="menu-item handler-only" data-nav="client_connect.html">
           <i class="fas fa-handshake"></i>
           <span class="menu-text">Client Connect</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
-        <div class="menu-item" onclick="window.location.href='profile.html'">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
+        <div class="menu-item" data-nav="profile.html">
           <i class="fas fa-user-circle"></i>
           <span class="menu-text">My Profile</span>
         </div>
@@ -171,7 +171,7 @@
             </div>
           </div>
           
-          <div class="user-profile-nav" onclick="window.location.href='profile.html'">
+          <div class="user-profile-nav" data-nav="profile.html">
             <div style="text-align:right;">
               <div id="nav-user-name" style="font-weight:700; font-size:0.9rem;">User Name</div>
               <div id="nav-user-role" style="font-size:0.7rem; color:var(--text-muted);">Role</div>
@@ -267,7 +267,7 @@
   <!-- Unified Modals Section -->
   <div id="dbadmin-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
     <div class="glass-card" style="width:95vw;max-width:900px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+      <div style="background:var(--accent-primary);color:#102a96;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
         <span><i class="fas fa-database"></i> Database Viewer</span>
         <i class="fas fa-times" id="dbadmin-close" style="cursor:pointer;"></i>
       </div>
@@ -276,12 +276,12 @@
   </div>
   <div id="tickets-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
     <div class="glass-card" style="width:95vw;max-width:700px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+      <div style="background:var(--accent-primary);color:#102a96;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
         <span><i class="fas fa-ticket-alt"></i> Tickets</span>
         <i class="fas fa-times" id="tickets-close" style="cursor:pointer;"></i>
       </div>
       <div id="tickets-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
-      <form id="tickets-add-form" style="padding:12px;background:var(--bg-primary);border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+      <form id="tickets-add-form" style="padding:12px;background:var(--bg-primary);border-top:2px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
         <input id="ticket-title" type="text" placeholder="Title" class="form-input" style="flex:2;" required />
         <input id="ticket-desc" type="text" placeholder="Description" class="form-input" style="flex:3;" />
         <input id="ticket-priority" type="text" placeholder="Priority" class="form-input" style="flex:1;" />
@@ -291,12 +291,12 @@
   </div>
   <div id="payments-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
     <div class="glass-card" style="width:95vw;max-width:700px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+      <div style="background:var(--accent-primary);color:#102a96;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
         <span><i class="fas fa-money-check-alt"></i> Payments</span>
         <i class="fas fa-times" id="payments-close" style="cursor:pointer;"></i>
       </div>
       <div id="payments-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
-      <form id="payments-add-form" style="padding:20px;background:var(--bg-primary);border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <form id="payments-add-form" style="padding:20px;background:var(--bg-primary);border-top:2px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <input id="payment-user-id" type="number" placeholder="User ID" class="form-input" required />
         <input id="payment-amount" type="number" step="0.01" placeholder="Amount" class="form-input" required />
         <input id="payment-currency" type="text" placeholder="Currency (USD)" class="form-input" />
@@ -307,12 +307,12 @@
   </div>
   <div id="courses-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2200;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
     <div class="glass-card" style="width:95vw;max-width:600px;max-height:90vh;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
-      <div style="background:var(--accent-primary);color:#fff;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+      <div style="background:var(--accent-primary);color:#102a96;padding:14px 18px;font-family:var(--font-display);font-weight:700;display:flex;align-items:center;justify-content:space-between;">
         <span><i class="fas fa-graduation-cap"></i> Learning Hub</span>
         <i class="fas fa-times" id="courses-close" style="cursor:pointer;"></i>
       </div>
       <div id="courses-list" style="flex:1;overflow-y:auto;padding:18px;background:var(--bg-card);"></div>
-      <form id="courses-add-form" style="padding:15px;background:var(--bg-primary);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;">
+      <form id="courses-add-form" style="padding:15px;background:var(--bg-primary);border-top:2px solid var(--border);display:flex;flex-direction:column;gap:10px;">
         <input id="course-title" type="text" placeholder="Course Title" class="form-input" required />
         <input id="course-link" type="url" placeholder="Course Link (URL)" class="form-input" required />
         <button type="submit" class="btn-primary">Add Course</button>

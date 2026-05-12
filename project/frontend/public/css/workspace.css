@@ -27,7 +27,7 @@
     background: rgba(15, 15, 20, 0.6);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border:  2px solid rgba(255, 255, 255, 0.08);
     border-radius: 100px;
     padding: 8px 16px;
     display: flex;
@@ -69,7 +69,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.7rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
 }
 
 .workspace-title-area {
@@ -155,7 +155,7 @@
     background: rgba(15, 15, 20, 0.6);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border:  2px solid rgba(255, 255, 255, 0.08);
     border-radius: 100px;
     padding: 8px;
     display: flex;
@@ -213,7 +213,7 @@
 
 .chat-header {
     padding: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom:  2px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -254,7 +254,7 @@
 
 .chat-input-wrapper {
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
+    border:  2px solid var(--border);
     border-radius: var(--radius);
     padding: 12px;
     display: flex;
@@ -319,7 +319,7 @@
     backdrop-filter: blur(10px);
     padding: 8px 16px;
     border-radius: 100px;
-    border: 1px solid var(--border);
+    border:  2px solid var(--border);
     color: var(--text-secondary);
     font-size: 0.8rem;
     font-weight: 600;
@@ -354,7 +354,7 @@
     backdrop-filter: blur(20px);
     width: 400px;
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
 }
 
@@ -405,7 +405,7 @@
     height: 32px;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid transparent;
+    border:  2px solid transparent;
     transition: transform 0.2s;
 }
 
@@ -469,7 +469,7 @@
 }
 
 .swatch-yellow {
-    background: #ffff4d;
+    background: #fffffff4d;
 }
 
 .swatch-magenta {
@@ -504,7 +504,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 12px 12px 0;
     padding: 24px;
@@ -552,8 +552,8 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    border:  2px solid rgba(255, 255, 255, 0.1);
+    border-bottom:  2px solid rgba(255, 255, 255, 0.2);
 }
 
 #shortcuts-tab {
@@ -566,7 +566,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 8px 8px 0;
     display: flex;
@@ -619,7 +619,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 12px 12px 0;
     padding: 24px;
@@ -676,7 +676,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 8px 8px 0;
     display: flex;
@@ -729,7 +729,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 12px 12px 0;
     padding: 24px;
@@ -806,7 +806,7 @@
     background: rgba(15, 15, 20, 0.85);
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border:  2px solid rgba(255, 255, 255, 0.1);
     border-left: none;
     border-radius: 0 8px 8px 0;
     display: flex;
@@ -892,7 +892,7 @@
 .shortcuts-content::-webkit-scrollbar-thumb:hover,
 .nav-content::-webkit-scrollbar-thumb:hover,
 .external-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(16, 42, 150, 0.1);
 }
 
 /* Floating Context Toolbar */

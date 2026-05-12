@@ -20,7 +20,7 @@
       margin: 0 auto;
       background: rgba(10, 10, 20, 0.4);
       backdrop-filter: blur(20px);
-      border: 1px solid var(--border);
+      border:  2px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
     }
@@ -43,32 +43,32 @@
     .msg-nexus {
       align-self: flex-start;
       background: var(--bg-card);
-      border-left: 3px solid var(--accent-pink);
-      color: #fff;
+      border-left:  2px solid var(--accent-secondary);
+      color: var(--text-primary);
     }
     .msg-user {
       align-self: flex-end;
       background: var(--accent-primary);
-      color: #fff;
+      color: var(--text-primary);
     }
     .chat-input-area {
       padding: 20px;
-      border-top: 1px solid var(--border);
+      border-top:  2px solid var(--border);
       display: flex;
       gap: 12px;
     }
     .chat-input {
       flex: 1;
       background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
+      border:  2px solid var(--border);
       border-radius: 8px;
       padding: 12px 16px;
-      color: #fff;
+      color: var(--text-primary);
       font-family: inherit;
     }
     .typing-indicator {
       font-style: italic;
-      color: var(--accent-pink);
+      color: var(--accent-secondary);
       font-size: 0.8rem;
       margin-top: 5px;
       display: none;
@@ -82,7 +82,7 @@
     .nexus-avatar {
       width: 32px;
       height: 32px;
-      background: radial-gradient(circle, var(--accent-pink), var(--accent-primary));
+      background: radial-gradient(circle, var(--accent-secondary), var(--accent-primary));
       border-radius: 50%;
       margin-bottom: 8px;
       animation: nexus-pulse 2s infinite ease-in-out;
@@ -121,7 +121,7 @@
           <div class="breadcrumb">Intelligence / AI Chat</div>
           <div class="page-title">CONVERSE WITH NEXUS</div>
         </div>
-        <div style="font-size:0.75rem; text-align:right; color:var(--accent-pink);">
+        <div style="font-size:0.75rem; text-align:right; color:var(--accent-secondary);">
           <i class="fas fa-circle" style="font-size:0.5rem; margin-right:5px;"></i> SYSTEM ONLINE
         </div>
       </div>

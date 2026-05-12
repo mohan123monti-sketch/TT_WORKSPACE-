@@ -7,8 +7,10 @@ function initSidebar() {
   const isCollapsed = localStorage.getItem('tt_sidebar_collapsed') === 'true';
   if (isCollapsed && sidebar) sidebar.classList.add('collapsed');
 
-  if (collapseBtn && sidebar) {
-    collapseBtn.onclick = () => {
+  const sidebarHeader = document.querySelector('.sidebar-header');
+  if (sidebarHeader && sidebar) {
+    sidebarHeader.style.cursor = 'pointer';
+    sidebarHeader.onclick = () => {
       sidebar.classList.toggle('collapsed');
       localStorage.setItem('tt_sidebar_collapsed', sidebar.classList.contains('collapsed'));
     };
@@ -73,11 +75,11 @@ function initSidebar() {
         </div>
 
         <div class="menu-item" onclick="window.location.href='nexus_chat.html'">
-          <i class="fas fa-robot" style="color:var(--accent-pink);"></i>
+          <i class="fas fa-robot" style="color:var(--accent-secondary);"></i>
           <span class="menu-text">Nexus AI Terminal</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
         
         <!-- Role-Based Control Centers -->
         <div class="menu-item admin-only" onclick="window.location.href='users.html'">
@@ -109,7 +111,7 @@ function initSidebar() {
           <span class="menu-text">Client Connect</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
         
         <div class="menu-item" onclick="window.location.href='workspace.html'">
             <i class="fas fa-paint-brush"></i>
@@ -133,7 +135,7 @@ function initSidebar() {
             <span class="menu-text">Learning Hub</span>
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--border); margin:10px 0; opacity:0.3;">
+        <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
         <div class="menu-item" onclick="window.location.href='profile.html'">
           <i class="fas fa-user-circle"></i>
           <span class="menu-text">My Profile</span>
@@ -168,6 +170,42 @@ function initSidebar() {
     document.addEventListener('click', () => notifDropdown.style.display = 'none');
     notifDropdown.onclick = (e) => e.stopPropagation();
   }
+
+  // Advanced SPA-Style Transition Logic
+  const overlay = document.createElement('div');
+  overlay.className = 'page-transition-overlay';
+  document.body.appendChild(overlay);
+
+  function loadPage(url) {
+    overlay.classList.add('active');
+    setTimeout(() => {
+      window.location.href = url;
+    }, 400);
+  }
+
+  // Intercept all internal navigation (Forcing Zero-Refresh)
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a') || e.target.closest('[data-nav]') || e.target.closest('.menu-item');
+    if (link) {
+      let href = link.getAttribute('data-nav') || link.getAttribute('href');
+
+      if (!href && link.classList.contains('menu-item')) {
+        const onclick = link.getAttribute('onclick');
+        if (onclick && onclick.includes('window.location.href')) {
+          href = onclick.match(/'(.*?)'/)?.[1];
+        }
+      }
+
+      if (href && !href.startsWith('#') && !href.includes('://') && !link.target && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        loadPage(href);
+      }
+    }
+  }, true);
+
+  // Handle browser back/forward
+  window.onpopstate = () => loadPage(window.location.pathname);
 
   loadNotifications();
   setInterval(loadNotifications, 30000);

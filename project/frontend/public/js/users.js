@@ -99,7 +99,7 @@ async function loadUsers() {
         const secRoles = (u.secondary_roles || '').split(',').filter(r => r.trim());
         const secBadges = secRoles.map(r => {
           const found = allRoles.find(ar => ar.val === r);
-          return found ? `<span style="font-size:0.55rem;padding:2px 6px;border-radius:8px;background:var(--bg-hover);color:var(--text-muted);border:1px solid var(--border-color);">${found.label}</span>` : '';
+          return found ? `<span style="font-size:0.55rem;padding:2px 6px;border-radius:8px;background:var(--bg-hover);color:var(--text-muted);border:2px solid var(--border-color);">${found.label}</span>` : '';
         }).join(' ');
         return `
         <tr onclick="openUserPerformance(${u.id})" style="cursor:pointer;">
@@ -281,7 +281,7 @@ async function openUserPerformance(id) {
       <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:32px;">
         <div class="glass-card" style="padding:12px; text-align:center;">
           <div style="font-size:0.6rem; color:var(--text-muted); margin-bottom:4px;">AVG SCORE</div>
-          <div style="font-family:var(--font-mono); font-weight:700; color:var(--accent-pink);">${Math.round(perf.stats.avg_score || 0)}</div>
+          <div style="font-family:var(--font-mono); font-weight:700; color:var(--accent-secondary);">${Math.round(perf.stats.avg_score || 0)}</div>
         </div>
         <div class="glass-card" style="padding:12px; text-align:center;">
           <div style="font-size:0.6rem; color:var(--text-muted); margin-bottom:4px;">APPROVED</div>

@@ -72,7 +72,7 @@ async function generateNexusClips() {
   try {
     const res = await api.post('/creator-slate/nexus-clips', { submission_id: Number(submissionId) });
     resultDiv.innerHTML = `
-      <div style="font-size:0.7rem; text-transform:uppercase; color:var(--accent-pink); margin-bottom:10px;">GENERATED CLIPS:</div>
+      <div style="font-size:0.7rem; text-transform:uppercase; color:var(--accent-secondary); margin-bottom:10px;">GENERATED CLIPS:</div>
       ${res.clips.map(c => `
          <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
             <div>

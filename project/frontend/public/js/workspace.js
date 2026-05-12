@@ -5,7 +5,7 @@ let isSpaceDown = false;
 let lastPosX, lastPosY;
 let zoom = 1;
 // Global Settings State
-let brushColor = '#ffffff';
+let brushColor = '#102a96';
 let brushSize = 3;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -461,7 +461,7 @@ function setupEventListeners() {
 
         switch (action) {
             case 'border':
-                const colors = [null, '#ffffff', '#6c63ff', '#00ff00', '#ff4d4d'];
+                const colors = [null, '#102a96', '#ffffff', '#00ff00', '#ff4d4d'];
                 let currentIdx = colors.indexOf(activeObj.stroke);
                 let nextIdx = (currentIdx + 1) % colors.length;
                 activeObj.set({
@@ -485,8 +485,8 @@ function setupEventListeners() {
                         left: activeObj.left + (activeObj.width * activeObj.scaleX / 2),
                         top: activeObj.top + (activeObj.height * activeObj.scaleY) + 10,
                         fontSize: 14,
-                        fill: '#ffffff',
-                        backgroundColor: '#6c63ff',
+                        fill: '#102a96',
+                        backgroundColor: '#ffffff',
                         padding: 6,
                         fontFamily: 'Rajdhani',
                         fontWeight: 'bold',
@@ -722,9 +722,9 @@ function createShape(opt) {
                 backgroundColor: 'rgba(20, 20, 20, 0.85)',
                 stroke: 'transparent',
                 splitByGrapheme: false,
-                editingBorderColor: 'rgba(255, 255, 255, 0.4)',
+                editingBorderColor: 'rgba(16, 42, 150, 0.1)',
                 transparentCorners: false,
-                cornerColor: 'rgba(255, 255, 255, 0.8)',
+                cornerColor: 'rgba(16, 42, 150, 0.4)',
                 cornerSize: 8
             });
             break;
@@ -856,7 +856,7 @@ function sendMessage() {
     userMsg.className = 'message user-message';
     userMsg.style.display = 'flex';
     userMsg.style.justifyContent = 'flex-end';
-    userMsg.innerHTML = `<div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; font-size: 0.9rem; max-width: 80%; border: 1px solid rgba(255,255,255,0.1);">${text}</div>`;
+    userMsg.innerHTML = `<div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; font-size: 0.9rem; max-width: 80%; border:  2px solid rgba(255,255,255,0.1);">${text}</div>`;
     messages.appendChild(userMsg);
 
     input.value = '';
@@ -866,7 +866,7 @@ function sendMessage() {
     setTimeout(() => {
         const nexusMsg = document.createElement('div');
         nexusMsg.className = 'message nexus-message';
-        nexusMsg.innerHTML = `<div style="background: rgba(108,99,255,0.1); border-left: 3px solid var(--accent-primary); padding: 12px; border-radius: 4px 12px 12px 4px; font-size: 0.9rem; align-self: flex-start; max-width: 80%;"><i class="fas fa-brain" style="margin-right: 8px; color: var(--accent-primary);"></i> Nexus is ready. All whiteboard data is indexed. How can I assist?</div>`;
+        nexusMsg.innerHTML = `<div style="background: rgba(16,42,150,0.1); border-left:  2px solid var(--accent-primary); padding: 12px; border-radius: 4px 12px 12px 4px; font-size: 0.9rem; align-self: flex-start; max-width: 80%;"><i class="fas fa-brain" style="margin-right: 8px; color: var(--accent-primary);"></i> Nexus is ready. All whiteboard data is indexed. How can I assist?</div>`;
         messages.appendChild(nexusMsg);
         messages.scrollTop = messages.scrollHeight;
     }, 800);

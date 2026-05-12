@@ -355,7 +355,7 @@ function renderMessages(messages) {
   stream.innerHTML = messages.map(message => {
     const isSelf = Number(message.sender_id) === Number(auth.getUser()?.id);
     const attachmentHtml = Array.isArray(message.attachments) && message.attachments.length > 0
-      ? `<div style="margin-top:8px; display:flex; flex-direction:column; gap:4px;">${message.attachments.map(a => `<a href="${a.file_path}" target="_blank" style="font-size:0.72rem; color:${isSelf ? '#fff' : 'var(--accent-primary)'}; text-decoration:underline;">📎 ${escapeHtml(a.file_name || 'Attachment')}</a>`).join('')}</div>`
+      ? `<div style="margin-top:8px; display:flex; flex-direction:column; gap:4px;">${message.attachments.map(a => `<a href="${a.file_path}" target="_blank" style="font-size:0.72rem; color:${isSelf ? '#102a96' : 'var(--accent-primary)'}; text-decoration:underline;">📎 ${escapeHtml(a.file_name || 'Attachment')}</a>`).join('')}</div>`
       : '';
     const readCount = Array.isArray(message.read_receipts) ? message.read_receipts.length : 0;
     return `
