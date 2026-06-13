@@ -107,32 +107,78 @@
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9000;
 }
 
-.modal-content {
-  width: 100%;
-  max-width: 500px;
-  padding: 32px;
-}
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
+
+  /* Drag affordance */
+  cursor: grab;
+  user-select: none;
+  padding: 4px 4px 16px 4px;
+  border-radius: 8px 8px 0 0;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: rgba(16, 42, 150, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s, width 0.2s;
+}
+
+.modal-header:hover::before {
+  background: rgba(16, 42, 150, 0.35);
+  width: 56px;
+}
+
+.modal-header:active {
+  cursor: grabbing;
+}
+
+.modal-header:hover {
+  background: rgba(16, 42, 150, 0.03);
+}
+
+/* When modal is being dragged — elevated shadow */
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  padding: 32px;
+  transition: box-shadow 0.2s ease;
+  will-change: left, top;
+}
+
+.modal-content:active {
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(16, 42, 150, 0.15) !important;
 }
 
 .modal-title {
   font-family: var(--font-display);
   font-size: 1.4rem;
+  pointer-events: none; /* title text shouldn't interfere with drag */
 }
 
 .close-modal {
-  cursor: pointer;
+  cursor: pointer !important;
   font-size: 1.2rem;
   color: var(--text-muted);
+  pointer-events: all;
+  flex-shrink: 0;
 }
+
 
 .form-group {
   margin-bottom: 20px;
@@ -163,9 +209,10 @@
 }
 
 select.form-control option {
-  background-color: var(--text-primary);
+  background-color: var(--bg-card);
   color: var(--text-primary);
 }
+
 
 .detail-panel-overlay {
   position: fixed;
@@ -175,7 +222,7 @@ select.form-control option {
   height: 100%;
   background: rgba(255, 255, 255, 0.5);
   display: none;
-  z-index: 1001;
+  z-index: 8000;
 }
 
 .detail-panel {
@@ -187,7 +234,7 @@ select.form-control option {
   height: 100%;
   background: #ffffff;
   border-left:  2px solid var(--border);
-  z-index: 1002;
+  z-index: 8001;
   transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 32px;
   overflow-y: auto;

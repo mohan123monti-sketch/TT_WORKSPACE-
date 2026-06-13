@@ -185,6 +185,11 @@ function initSidebar() {
 
   // Intercept all internal navigation (Forcing Zero-Refresh)
   document.addEventListener('click', (e) => {
+    // Skip interception if click is inside a modal, action button, or close button
+    if (e.target.closest('.modal') || e.target.closest('.action-btn') || e.target.closest('.close-modal') || e.target.closest('.modal-content')) {
+      return;
+    }
+
     const link = e.target.closest('a') || e.target.closest('[data-nav]') || e.target.closest('.menu-item');
     if (link) {
       let href = link.getAttribute('data-nav') || link.getAttribute('href');

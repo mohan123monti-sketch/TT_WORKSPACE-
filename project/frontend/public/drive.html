@@ -276,8 +276,8 @@
     </div>
 
     <!-- Modals -->
-    <div class="modal" id="folder-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-        <div class="glass-card modal-content" style="max-width:400px; padding:32px;">
+    <div class="modal" id="folder-modal" onclick="if(event.target===this){this.style.display='none'}" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div class="glass-card modal-content" onclick="event.stopPropagation()" style="max-width:400px; padding:32px;">
             <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
                 <div class="modal-title" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">CREATE FOLDER</div>
                 <i class="fas fa-times close-modal" style="cursor:pointer;" onclick="document.getElementById('folder-modal').style.display='none'"></i>
@@ -292,8 +292,9 @@
         </div>
     </div>
 
-    <div class="modal" id="share-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-        <div class="glass-card modal-content" style="max-width:500px; padding:32px;">
+    <div class="modal" id="share-modal" onclick="if(event.target===this){this.style.display='none'}" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <div class="glass-card modal-content" onclick="event.stopPropagation()" style="max-width:500px; padding:32px;">
+
             <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
                 <div class="modal-title" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">SHARE ACCESS</div>
                 <i class="fas fa-times close-modal" style="cursor:pointer;" onclick="document.getElementById('share-modal').style.display='none'"></i>

@@ -4,8 +4,8 @@ setlocal
 
 REM Start the Tech Turf server (development mode)
 cd project\backend
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":4000 .*LISTENING"') do (
-    echo Stopping process %%a using port 4000...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":3000 .*LISTENING"') do (
+    echo Stopping process %%a using port 3000...
     taskkill /F /PID %%a >nul 2>nul
 )
 

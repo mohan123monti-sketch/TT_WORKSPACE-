@@ -146,8 +146,15 @@ const drive = {
 
     async openShareModal(itemId, itemName) {
         this.sharingItemId = itemId;
+        const modal = document.getElementById('share-modal');
         document.getElementById('share-item-info').textContent = `Sharing: ${itemName}`;
-        document.getElementById('share-modal').style.display = 'flex';
+        // Move modal to body root to escape any stacking context issues
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+        modal.style.display = 'flex';
+        // Apply draggable after display is set (so getBoundingClientRect works)
+        if (window.makeDraggableModal) setTimeout(() => makeDraggableModal(modal), 50);
         this.renderPermissions(itemId);
     },
 

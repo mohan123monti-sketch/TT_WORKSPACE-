@@ -1,20 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Brand Palette - Tech Turf Elite */
-  --accent-primary: #102a96;
-  --accent-secondary: #ff6b00;
-  --accent-gradient: linear-gradient(135deg, #102a96 0%, #3b82f6 100%);
+  /* Aerospace Theme - Mission Control */
+  --accent-primary: #102A96;
+  --accent-secondary: #FF6B00;
+  --accent-gradient: linear-gradient(135deg, #102A96 0%, #3B82F6 100%);
+  
+  /* Aerospace Colors */
+  --space-blue: #0B1E6D;
+  --tech-blue: #102A96;
+  --electric-blue: #3B82F6;
+  --orbit-orange: #FF6B00;
+  --space-black: #0F172A;
+  
+  --blue-primary: #102A96;
+  --blue-secondary: #3B82F6;
+  --orange-light: #FFB066;
 
-  /* Neutral Palette - Premium Softness */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-card: rgba(255, 255, 255, 0.92);
-  --bg-glass: rgba(255, 255, 255, 0.75);
+  /* Dashboard Feel */
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #0F172A;
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.95);
   --bg-hover: rgba(16, 42, 150, 0.04);
 
   --text-primary: #111827;
-  --text-secondary: #4b5563;
+  --text-secondary: #374151;
   --text-muted: #9ca3af;
 
   /* Borders - Refined & Crisp */
@@ -22,18 +33,31 @@
   --border-vivid: rgba(16, 42, 150, 0.65);
   --border-hover: rgba(16, 42, 150, 0.9);
 
+  /* Button Colors */
+  --btn-blue-hover: #0b1e6d;
+  --btn-orange-hover: #e85d00;
+
+  /* Status Colors */
+  --status-active: #22c55e;
+  --status-completed: #16a34a;
+  --status-in_progress: #2563eb;
+  --status-pending: #f59e0b;
+  --status-rework: #ff6b00;
+  --status-rejected: #dc2626;
+
   /* Effects - High Elevation */
   --shadow: 0 25px 60px -12px rgba(16, 42, 150, 0.08);
   --shadow-glow: 0 0 40px rgba(16, 42, 150, 0.12);
-  --radius: 24px;
+  --radius: 16px;
   --radius-sm: 12px;
-  --radius-lg: 40px;
+  --radius-lg: 24px;
 
   /* Fonts - Premium Pairing */
   --font-display: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
+
 
 * {
   margin: 0;
@@ -45,8 +69,8 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-body);
-  overflow-x: hidden;
-  animation: pageReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  height: 100vh;
 }
 
 @keyframes pageReveal {
@@ -132,7 +156,7 @@ select {
 }
 
 .btn-primary {
-  background: var(--accent-gradient);
+  background: var(--blue-primary);
   color: #ffffff;
   padding: 12px 28px;
   border-radius: var(--radius-sm);
@@ -143,14 +167,14 @@ select {
   letter-spacing: 1px;
   border: none;
   cursor: pointer;
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
   box-shadow: 0 10px 20px -5px rgba(16, 42, 150, 0.3);
 }
 
 .btn-primary:hover {
+  background: var(--space-blue);
   transform: translateY(-2px);
   box-shadow: 0 15px 30px -5px rgba(16, 42, 150, 0.4);
-  filter: brightness(1.1);
 }
 
 .btn-primary:active {
@@ -158,9 +182,9 @@ select {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--accent-primary);
-  border: 2px solid var(--border-vivid);
+  background: var(--accent-secondary);
+  color: #ffffff;
+  border: none;
   padding: 12px 28px;
   border-radius: var(--radius-sm);
   font-family: var(--font-display);
@@ -169,15 +193,15 @@ select {
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: 0.3s;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+  box-shadow: 0 8px 16px -4px rgba(255, 107, 0, 0.3);
 }
 
 .btn-secondary:hover {
-  background: var(--accent-primary);
+  background: var(--btn-orange-hover);
   color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(255, 107, 0, 0.4);
 }
 
 .btn-danger {
@@ -224,58 +248,59 @@ select {
 }
 
 .badge-pending {
-  background: rgba(100, 100, 120, 0.3);
-  color: #aaaacc;
-  border: 2px solid rgba(100, 100, 120, 0.4);
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--status-pending);
+  border: 2px solid rgba(245, 158, 11, 0.3);
 }
 
 .badge-in_progress {
-  background: rgba(16, 42, 150, 0.2);
-  color: #5c7cff;
-  border: 2px solid rgba(16, 42, 150, 0.1);
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--status-in_progress);
+  border: 2px solid rgba(37, 99, 235, 0.3);
 }
 
 .badge-submitted {
-  background: rgba(255, 107, 0, 0.2);
-  color: #ff9f43;
-  border: 2px solid rgba(255, 107, 0, 0.4);
+  background: rgba(255, 107, 0, 0.15);
+  color: var(--status-rework);
+  border: 2px solid rgba(255, 107, 0, 0.3);
 }
 
 .badge-approved {
-  background: rgba(67, 233, 123, 0.2);
-  color: #43e97b;
-  border: 2px solid rgba(67, 233, 123, 0.4);
+  background: rgba(22, 163, 74, 0.15);
+  color: var(--status-completed);
+  border: 2px solid rgba(22, 163, 74, 0.3);
 }
 
 .badge-rejected {
-  background: rgba(255, 101, 132, 0.2);
-  color: #ff6584;
-  border: 2px solid rgba(255, 101, 132, 0.4);
+  background: rgba(220, 38, 37, 0.15);
+  color: var(--status-rejected);
+  border: 2px solid rgba(220, 38, 37, 0.3);
 }
 
 .badge-rework {
-  background: rgba(255, 140, 0, 0.2);
-  color: #ff9f43;
-  border: 2px solid rgba(255, 140, 0, 0.4);
+  background: rgba(255, 107, 0, 0.15);
+  color: var(--status-rework);
+  border: 2px solid rgba(255, 107, 0, 0.3);
 }
 
 .badge-urgent {
-  background: rgba(255, 101, 132, 0.2);
-  color: #ff6584;
-  border: 2px solid rgba(255, 101, 132, 0.4);
+  background: rgba(220, 38, 37, 0.15);
+  color: var(--status-rejected);
+  border: 2px solid rgba(220, 38, 37, 0.3);
 }
 
 .badge-normal {
-  background: rgba(56, 178, 245, 0.2);
-  color: #38b2f5;
-  border: 2px solid rgba(56, 178, 245, 0.4);
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--status-in_progress);
+  border: 2px solid rgba(37, 99, 235, 0.3);
 }
 
 .badge-low {
-  background: rgba(67, 233, 123, 0.15);
-  color: #43e97b;
-  border: 2px solid rgba(67, 233, 123, 0.3);
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--status-active);
+  border: 2px solid rgba(34, 197, 94, 0.3);
 }
+
 
 .badge-admin {
   background: rgba(224, 92, 255, 0.2);

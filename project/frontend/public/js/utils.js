@@ -1,9 +1,165 @@
+// ============================================================
+// DRAGGABLE MODAL SYSTEM — Universal drag-to-reposition
+// ============================================================
+
+/**
+ * Makes a modal's inner content panel freely draggable by its header.
+ * Automatically called for every .modal on the page.
+ * @param {HTMLElement} modal - The outer .modal overlay element
+ */
+function makeDraggableModal(modal) {
+  const panel = modal.querySelector('.modal-content');
+  if (!panel || panel._draggable) return; // already applied
+  panel._draggable = true;
+
+  // Find or create a drag handle (the modal-header)
+  let handle = panel.querySelector('.modal-header');
+  if (!handle) {
+    // Fallback: make the whole top 48px the handle
+    handle = document.createElement('div');
+    handle.className = 'modal-drag-handle-fallback';
+    handle.style.cssText = 'height:48px; width:100%; position:absolute; top:0; left:0; cursor:grab;';
+    panel.style.position = 'relative';
+    panel.prepend(handle);
+  }
+
+  // Style the handle
+  handle.style.cursor = 'grab';
+  handle.title = 'Drag to move';
+
+  let isDragging = false;
+  let startX, startY, startLeft, startTop;
+
+  function onMouseDown(e) {
+    // Ignore clicks on close buttons or form elements
+    if (e.target.closest('.close-modal') || e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+    e.preventDefault();
+    isDragging = true;
+
+    // Switch modal to absolute-position mode (detach from flex centering)
+    if (!panel._positionInit) {
+      const rect = panel.getBoundingClientRect();
+      // Remove from flex flow, place absolutely at current position
+      modal.style.alignItems = 'flex-start';
+      modal.style.justifyContent = 'flex-start';
+      panel.style.position = 'fixed';
+      panel.style.left = rect.left + 'px';
+      panel.style.top = rect.top + 'px';
+      panel.style.margin = '0';
+      panel._positionInit = true;
+    }
+
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = parseInt(panel.style.left) || 0;
+    startTop = parseInt(panel.style.top) || 0;
+
+    handle.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    // Clamp to viewport so panel can't go off-screen
+    const newLeft = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, startLeft + dx));
+    const newTop = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, startTop + dy));
+
+    panel.style.left = newLeft + 'px';
+    panel.style.top = newTop + 'px';
+  }
+
+  function onMouseUp() {
+    isDragging = false;
+    handle.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  // Touch support
+  function onTouchStart(e) {
+    if (e.target.closest('.close-modal') || e.target.tagName === 'BUTTON') return;
+    const touch = e.touches[0];
+    if (!panel._positionInit) {
+      const rect = panel.getBoundingClientRect();
+      modal.style.alignItems = 'flex-start';
+      modal.style.justifyContent = 'flex-start';
+      panel.style.position = 'fixed';
+      panel.style.left = rect.left + 'px';
+      panel.style.top = rect.top + 'px';
+      panel.style.margin = '0';
+      panel._positionInit = true;
+    }
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startLeft = parseInt(panel.style.left) || 0;
+    startTop = parseInt(panel.style.top) || 0;
+    isDragging = true;
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+  }
+
+  function onTouchMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    const newLeft = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, startLeft + dx));
+    const newTop = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, startTop + dy));
+    panel.style.left = newLeft + 'px';
+    panel.style.top = newTop + 'px';
+  }
+
+  function onTouchEnd() {
+    isDragging = false;
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+  }
+
+  // Reset position when modal is closed and re-opened
+  const observer = new MutationObserver(() => {
+    if (modal.style.display === 'none' || modal.style.display === '') {
+      // Reset to center for next open
+      panel.style.position = '';
+      panel.style.left = '';
+      panel.style.top = '';
+      panel.style.margin = '';
+      panel._positionInit = false;
+      modal.style.alignItems = '';
+      modal.style.justifyContent = '';
+    }
+  });
+  observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+
+  handle.addEventListener('mousedown', onMouseDown);
+  handle.addEventListener('touchstart', onTouchStart, { passive: true });
+}
+
+/**
+ * Apply draggable to all .modal elements currently in the DOM
+ */
+function initAllDraggableModals() {
+  document.querySelectorAll('.modal').forEach(makeDraggableModal);
+}
+
 // Modal utility functions
 function openModal(id) {
   const modal = document.getElementById(id);
   if (modal) {
     modal.style.display = 'flex';
-    setTimeout(() => { modal.classList.add('show'); }, 10);
+    setTimeout(() => {
+      modal.classList.add('show');
+      makeDraggableModal(modal); // ensure drag is applied
+    }, 10);
     document.body.style.overflow = 'hidden';
   }
 }
@@ -103,19 +259,7 @@ function getRoleColor(role) {
   return map[role] || '#8888aa';
 }
 
-function openModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) {
-    modal.style.display = 'none';
-    const form = modal.querySelector('form');
-    if (form) form.reset();
-  }
-}
+// (openModal and closeModal defined above — these duplicate definitions are removed)
 
 function debounce(fn, delay = 300) {
   let timeout;
@@ -282,4 +426,15 @@ window.debounce = debounce;
 document.addEventListener('DOMContentLoaded', () => {
   initSharedToolForms();
   initSharedToolLinks();
+  // Apply draggable to all modals present at page load
+  initAllDraggableModals();
+
+  // Watch for dynamically injected modals (e.g. from JS render)
+  const bodyObserver = new MutationObserver(() => {
+    initAllDraggableModals();
+  });
+  bodyObserver.observe(document.body, { childList: true, subtree: true });
 });
+
+window.makeDraggableModal = makeDraggableModal;
+window.initAllDraggableModals = initAllDraggableModals;
