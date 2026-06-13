@@ -6,6 +6,29 @@
 let allSubmissions = [];
 let manualFilesQueue = [];
 
+function escapeHtml(value) {
+  const str = String(value ?? '');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeText(value, fallback = '') {
+  const v = value === null || value === undefined || value === '' ? fallback : value;
+  return escapeHtml(v);
+}
+
+function safeUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '#';
+  if (url.startsWith('/')) return escapeHtml(url);
+  if (url.startsWith('http://') || url.startsWith('https://')) return escapeHtml(url);
+  return '#';
+}
+
 async function initSubmissions() {
   loadSubmissions();
   initManualUpload();
@@ -18,8 +41,8 @@ async function loadSubmissions() {
 
   let url = '/submissions';
   let params = [];
-  if (status) params.push(`status=${status}`);
-  if (clientId) params.push(`client_id=${clientId}`);
+  if (status) params.push(`status=${encodeURIComponent(status)}`);
+  if (clientId) params.push(`client_id=${encodeURIComponent(clientId)}`);
 
   if (params.length > 0) url += `?${params.join('&')}`;
 
@@ -72,17 +95,17 @@ async function loadSubmissions() {
         <div class="glass-card submission-card anim-fade-up sub-card-clickable" onclick="viewSubmissionDetails(${s.id})">
           <div class="submission-header">
             <div>
-              <div class="submission-title">${s.task_title}</div>
-              <div class="submission-project">${s.project_title || 'General'} • Version ${s.version}</div>
+              <div class="submission-title">${safeText(s.task_title, 'Untitled Task')}</div>
+              <div class="submission-project">${safeText(s.project_title, 'General')} • Version ${safeText(s.version, '1')}</div>
             </div>
-            <div class="badge badge-${statusClass}">${s.leader_status.toUpperCase()}</div>
+            <div class="badge badge-${statusClass}">${safeText((s.leader_status || 'pending').toUpperCase())}</div>
           </div>
 
           <div class="submitter-info">
-            <img src="${getInitialsAvatar(s.submitter_name || '?', 32)}" style="width:32px; height:32px; border-radius:50%; border:1px solid var(--border);">
+            <img src="${safeText(getInitialsAvatar(s.submitter_name || '?', 32))}" style="width:32px; height:32px; border-radius:50%; border:1px solid var(--border);">
             <div>
-              <div style="font-weight:700; font-size:0.85rem;">${s.submitter_name || 'Unknown'}</div>
-              <div style="font-size:0.65rem; color:var(--text-muted);">${formatRole(s.submitter_role || 'member')} • ${timeAgo(s.submitted_at)}</div>
+              <div style="font-weight:700; font-size:0.85rem;">${safeText(s.submitter_name, 'Unknown')}</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">${safeText(formatRole(s.submitter_role || 'member'))} • ${safeText(timeAgo(s.submitted_at))}</div>
             </div>
           </div>
 
@@ -91,18 +114,18 @@ async function loadSubmissions() {
           <div class="feedback-box">
             <div class="feedback-item">
               <span class="feedback-label" style="color:var(--accent-green);">✅ NEXUS: WHAT WORKED</span>
-              <div style="font-size:0.8rem;">${feedback.what_worked || 'Processing evaluation...'}</div>
+              <div style="font-size:0.8rem;">${safeText(feedback.what_worked, 'Processing evaluation...')}</div>
             </div>
             <div class="feedback-item">
               <span class="feedback-label" style="color:var(--accent-orange);">⚠️ NEXUS: IMPROVEMENTS</span>
-              <div style="font-size:0.8rem;">${feedback.improvements || 'No critical issues found.'}</div>
+              <div style="font-size:0.8rem;">${safeText(feedback.improvements, 'No critical issues found.')}</div>
             </div>
           </div>
 
           ${s.content_text ? `
             <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; font-size:0.8rem; border:1px solid var(--border);">
               <div style="font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Submitted Content:</div>
-              <div style="white-space:pre-wrap;">${s.content_text}</div>
+              <div style="white-space:pre-wrap;">${safeText(s.content_text)}</div>
             </div>
           ` : ''}
 
@@ -157,7 +180,7 @@ async function initManualUpload() {
   try {
     const tasks = await api.get('/tasks?status=pending,in_progress,rework');
     taskSelect.innerHTML = '<option value="">Select a task...</option>' +
-      tasks.map(t => `<option value="${t.id}">${t.title} [${t.project_title || 'General'}]</option>`).join('');
+      tasks.map(t => `<option value="${Number(t.id)}">${safeText(t.title)} [${safeText(t.project_title, 'General')}]</option>`).join('');
   } catch (e) {
     taskSelect.innerHTML = '<option value="">Failed to load tasks</option>';
   }
@@ -167,7 +190,7 @@ async function initManualUpload() {
     try {
       const clients = await api.get('/clients');
       clientSelect.innerHTML = '<option value="">Select a client...</option>' +
-        clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        clients.map(c => `<option value="${Number(c.id)}">${safeText(c.name)}</option>`).join('');
     } catch (e) { }
   }
 
@@ -260,7 +283,7 @@ function updateManualQueueUI() {
         <div style="max-height:120px; overflow-y:auto; overflow-x:hidden; padding-right:5px;">
             ${manualFilesQueue.map((f, i) => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:5px; border:1px solid rgba(255,255,255,0.05);">
-                    <div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">📎 ${f.name}</div>
+                <div style="font-size:0.7rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">📎 ${safeText(f.name)}</div>
                     <i class="fas fa-times" onclick="removeFromManualQueue(${i})" style="color:var(--accent-pink); font-size:0.7rem; cursor:pointer; opacity:0.7; transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remove file"></i>
                 </div>
             `).join('')}
@@ -279,19 +302,19 @@ async function viewSubmissionDetails(id) {
     <div class="detail-grid">
       <div class="detail-meta-box">
         <div class="detail-meta-title">Submitted By</div>
-        <div class="detail-meta-value">${s.submitter_name}</div>
+        <div class="detail-meta-value">${safeText(s.submitter_name, 'Unknown')}</div>
       </div>
       <div class="detail-meta-box">
         <div class="detail-meta-title">Task / Project</div>
-        <div class="detail-meta-value">${s.task_title}</div>
+        <div class="detail-meta-value">${safeText(s.task_title, 'Untitled Task')}</div>
       </div>
       <div class="detail-meta-box">
         <div class="detail-meta-title">Status</div>
-        <div class="detail-meta-value">${s.leader_status.toUpperCase()}</div>
+        <div class="detail-meta-value">${safeText((s.leader_status || 'pending').toUpperCase())}</div>
       </div>
       <div class="detail-meta-box">
         <div class="detail-meta-title">Time Reference</div>
-        <div class="detail-meta-value">${timeAgo(s.submitted_at)}</div>
+        <div class="detail-meta-value">${safeText(timeAgo(s.submitted_at))}</div>
       </div>
     </div>
 
@@ -300,18 +323,18 @@ async function viewSubmissionDetails(id) {
       <div class="feedback-box" style="display:block; margin-bottom:15px;">
         <div class="feedback-item">
           <span class="feedback-label" style="color:var(--accent-green);">WHAT WORKED</span>
-          <div style="font-size:0.85rem;">${feedback.what_worked || 'Evaluation in progress...'}</div>
+          <div style="font-size:0.85rem;">${safeText(feedback.what_worked, 'Evaluation in progress...')}</div>
         </div>
         <div class="feedback-item" style="margin-top:10px;">
           <span class="feedback-label" style="color:var(--accent-orange);">AREAS FOR IMPROVEMENT</span>
-          <div style="font-size:0.85rem;">${feedback.improvements || 'No critical issues.'}</div>
+          <div style="font-size:0.85rem;">${safeText(feedback.improvements, 'No critical issues.')}</div>
         </div>
       </div>
     </div>
 
     <div class="detail-section">
       <span class="detail-label">Work Summary / Content</span>
-      <div class="detail-bubble" style="white-space:pre-wrap;">${s.content_text || 'No text content provided.'}</div>
+      <div class="detail-bubble" style="white-space:pre-wrap;">${safeText(s.content_text, 'No text content provided.')}</div>
     </div>
 
     <div class="detail-section">
@@ -386,23 +409,23 @@ async function viewWorkAssets(id) {
                 <div class="asset-item-main">
                   <i class="fas ${item.icon} asset-item-icon"></i>
                   <div class="asset-item-info">
-                    <div class="asset-item-name">${item.name}</div>
+                    <div class="asset-item-name">${safeText(item.name)}</div>
                     <div class="asset-item-meta">${type === 'links' ? 'Cloud Resource' : 'Local Archive'}</div>
                   </div>
                 </div>
-                <a href="${item.url}" target="_blank" class="btn-secondary" style="padding: 6px 12px; font-size: 0.7rem;">
+                <a href="${safeUrl(item.url)}" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 6px 12px; font-size: 0.7rem;">
                   <i class="fas ${type === 'links' ? 'fa-link' : 'fa-download'}"></i> ${type === 'links' ? 'OPEN' : 'GET'}
                 </a>
               </div>
               ${type === 'images' ? `
                 <div class="asset-preview-container">
-                  <img src="${item.url}" class="asset-preview" alt="Preview">
+                  <img src="${safeUrl(item.url)}" class="asset-preview" alt="Preview">
                 </div>
               ` : ''}
               ${type === 'videos' ? `
                 <div class="asset-preview-container">
                   <video controls class="asset-video-preview">
-                    <source src="${item.url}" type="video/mp4">
+                    <source src="${safeUrl(item.url)}" type="video/mp4">
                     Your browser does not support the video tag.
                   </video>
                 </div>

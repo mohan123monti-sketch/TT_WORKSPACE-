@@ -8,6 +8,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Initialize the database connection (this also creates tables if missing)
@@ -21,15 +22,36 @@ async function startServer() {
     app.use(compression());
 
     // --- MIDDLEWARES ---
-    // Enable CORS with credentials for local development
+    const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:5000')
+        .split(',')
+        .map(o => o.trim())
+        .filter(Boolean);
+
     app.use(cors({
-        origin: true, // Allow all origins for dev simplicity
+        origin: (origin, cb) => {
+            if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+            return cb(new Error('CORS origin denied'));
+        },
         credentials: true
     }));
 
+    const generalLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 400,
+        standardHeaders: true,
+        legacyHeaders: false
+    });
+    const authLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        skipSuccessfulRequests: true
+    });
+    app.use('/api', generalLimiter);
+    app.use('/api/auth/login', authLimiter);
+
     // Body parsing middlewares MUST be placed BEFORE any route definitions
-    app.use(express.json({ limit: '50mb' }));
-    app.use(express.urlencoded({ limit: '50mb', extended: true }));
+    app.use(express.json({ limit: '10mb' }));
+    app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
     // Request logging in development
     const logPath = path.join(__dirname, 'server.log');
@@ -86,7 +108,8 @@ async function startServer() {
             const logins = db.prepare("SELECT COUNT(*) as count FROM login_log WHERE login_at >= date('now', '-30 days')").get().count;
             res.json({ users, projects, tasks, submissions, logins });
         } catch (e) {
-            res.status(500).json({ error: e.message });
+            console.error('Analytics summary error:', e);
+            res.status(500).json({ error: 'Failed to load analytics summary' });
         }
     });
 
@@ -124,7 +147,10 @@ async function startServer() {
         try {
             const rows = db.prepare('SELECT * FROM settings').all();
             res.json(rows);
-        } catch (e) { res.status(500).json({ error: e.message }); }
+        } catch (e) {
+            console.error('Settings error:', e);
+            res.status(500).json({ error: 'Failed to load settings' });
+        }
     });
 
     // --- AUDIT LOG ---
@@ -132,7 +158,10 @@ async function startServer() {
         try {
             const rows = db.prepare('SELECT a.*, u.name as user_name FROM audit_log a LEFT JOIN users u ON a.user_id = u.id ORDER BY created_at DESC LIMIT 200').all();
             res.json(rows);
-        } catch (e) { res.status(500).json({ error: e.message }); }
+        } catch (e) {
+            console.error('Audit route error:', e);
+            res.status(500).json({ error: 'Failed to load audit entries' });
+        }
     });
 
     // --- STATIC FILES ---

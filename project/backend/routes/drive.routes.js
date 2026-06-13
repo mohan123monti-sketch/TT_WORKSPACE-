@@ -4,6 +4,7 @@ const fs = require('fs');
 const multer = require('multer');
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
+const { validateId, validateString, sanitizeFilename } = require('../validators');
 
 const DRIVE_ROOT = process.env.DRIVE_ROOT || path.join(__dirname, '../../storage/drive_storage');
 if (!fs.existsSync(DRIVE_ROOT)) fs.mkdirSync(DRIVE_ROOT, { recursive: true });
@@ -14,11 +15,12 @@ const storage = multer.diskStorage({
     cb(null, DRIVE_ROOT);
   },
   filename: (req, file, cb) => {
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const safeName = sanitizeFilename(path.basename(file.originalname || 'upload.bin'));
+    if (!safeName || safeName.includes('..')) return cb(new Error('Invalid filename'));
     cb(null, Date.now() + '_' + safeName);
   }
 });
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
 
 const isAdmin = (user) => {
   if (!user) return false;
@@ -72,8 +74,9 @@ router.get('/items', verifyToken, (req, res) => {
 router.post('/folder', verifyToken, (req, res) => {
   const { name, parentId: pId } = req.body;
   const parentId = (pId && pId !== 'null' && pId !== 'undefined') ? pId : null;
-  
-  if (!name) return res.status(400).json({ error: 'Folder name required' });
+
+  const nameVal = validateString(name, 'Folder name', { minLength: 1, maxLength: 120 });
+  if (!nameVal.valid) return res.status(400).json({ error: nameVal.error });
   
   // Check if user is admin or team_leader
   const isTeamLeader = req.user.role === 'team_leader';
@@ -82,11 +85,12 @@ router.post('/folder', verifyToken, (req, res) => {
 
   try {
     const result = db.prepare('INSERT INTO drive_items (name, type, parent_id, created_by) VALUES (?, ?, ?, ?)').run(
-      name, 'folder', parentId, req.user.id
+      nameVal.value, 'folder', parentId, req.user.id
     );
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Create folder error:', e);
+    res.status(500).json({ error: 'Failed to create folder' });
   }
 });
 
@@ -114,22 +118,26 @@ router.post('/upload', verifyToken, upload.single('file'), (req, res) => {
     );
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Upload error:', e);
+    res.status(500).json({ error: 'Failed to upload file' });
   }
 });
 
 // Share Item
 router.post('/share', verifyToken, checkRole('admin'), (req, res) => {
   const { itemId, userId, accessLevel } = req.body;
-  if (!itemId || !userId) return res.status(400).json({ error: 'Item ID and User ID required' });
+  const itemIdVal = validateId(itemId, 'Item ID');
+  const userIdVal = validateId(userId, 'User ID');
+  if (!itemIdVal.valid || !userIdVal.valid) return res.status(400).json({ error: 'Item ID and User ID required' });
   
   try {
     db.prepare('INSERT INTO drive_access (item_id, user_id, access_level) VALUES (?, ?, ?) ON CONFLICT(item_id, user_id) DO UPDATE SET access_level = excluded.access_level').run(
-      itemId, userId, accessLevel || 'viewer'
+      itemIdVal.value, userIdVal.value, accessLevel || 'viewer'
     );
     res.json({ success: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Share error:', e);
+    res.status(500).json({ error: 'Failed to update permissions' });
   }
 });
 
@@ -144,7 +152,8 @@ router.get('/permissions/:id', verifyToken, checkRole('admin'), (req, res) => {
     `).all(req.params.id);
     res.json(permissions);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Permissions read error:', e);
+    res.status(500).json({ error: 'Failed to load permissions' });
   }
 });
 
@@ -159,11 +168,14 @@ router.get('/download/:id', verifyToken, (req, res) => {
     }
     
     const filePath = path.join(DRIVE_ROOT, item.file_path);
-    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Physical file missing' });
+    const realPath = fs.existsSync(filePath) ? fs.realpathSync(filePath) : null;
+    const realRoot = fs.realpathSync(DRIVE_ROOT);
+    if (!realPath || !realPath.startsWith(realRoot)) return res.status(404).json({ error: 'File not found' });
     
     res.download(filePath, item.name);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Download error:', e);
+    res.status(500).json({ error: 'Failed to download file' });
   }
 });
 
@@ -182,7 +194,8 @@ router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
     db.prepare('DELETE FROM drive_items WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('Delete drive item error:', e);
+    res.status(500).json({ error: 'Failed to delete item' });
   }
 });
 

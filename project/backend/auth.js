@@ -3,8 +3,12 @@ const jwt    = require('jsonwebtoken');
 const db     = require('./db');
 require('dotenv').config();
 
-const JWT_SECRET  = process.env.JWT_SECRET || 'techturf_dev_secret_change_this';
-const JWT_EXPIRES = '7d';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES = process.env.JWT_EXPIRES || '8h';
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
 
 async function hashPassword(password) {
   return bcrypt.hash(password, 12);
@@ -21,21 +25,15 @@ function generateToken(user) {
 }
 function verifyToken(req, res, next) {
   const header = req.headers.authorization;
-  const queryToken = req.query.token;
-  
-  if (!header && !queryToken) {
+
+  if (!header) {
     return res.status(401).json({ message: 'No token provided' });
   }
-  
-  const token = (queryToken && queryToken !== 'null' && queryToken !== 'undefined') 
-                ? queryToken 
-                : (header && header.startsWith('Bearer ') ? header.split(' ')[1] : null);
+
+  const token = header.startsWith('Bearer ') ? header.split(' ')[1] : null;
 
   if (!token) {
-    return res.status(401).json({ 
-      message: 'No token provided', 
-      debug: 'Token was missing or invalid string value ("null"/"undefined")' 
-    });
+    return res.status(401).json({ message: 'Invalid authorization header' });
   }
 
   try {
@@ -57,17 +55,8 @@ function verifyToken(req, res, next) {
     };
     next();
   } catch(e) {
-    console.error('--- AUTH ERROR ---');
-    console.error('Source:', queryToken ? 'URL Query' : 'Auth Header');
-    console.error('Token Length:', token.length);
-    console.error('Token Snippet:', token.substring(0, 15) + '...' + token.substring(token.length - 15));
-    console.error('Error Details:', e.message);
-    
-    return res.status(401).json({ 
-      message: 'Invalid or expired token', 
-      debug: e.message,
-      receivedSnippet: token.substring(0, 10) + '...'
-    });
+    console.error('Token validation failed:', e.message);
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 }
 function checkRole(...roles) {
@@ -134,11 +123,11 @@ function checkPermission(...permissions) {
 
 function isStrongPassword(password) {
   const value = String(password || '');
-  const hasLength = value.length >= 10;
+  const hasLength = value.length >= 12;
   const hasUpper = /[A-Z]/.test(value);
   const hasLower = /[a-z]/.test(value);
   const hasNumber = /\d/.test(value);
-  const hasSymbol = /[^A-Za-z0-9]/.test(value);
+  const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(value);
   return hasLength && hasUpper && hasLower && hasNumber && hasSymbol;
 }
 

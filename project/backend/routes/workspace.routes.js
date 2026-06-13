@@ -1,57 +1,72 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { verifyToken } = require('../auth');
+const { validateId, validateString } = require('../validators');
 
 // Get all whiteboards
-router.get('/', (req, res) => {
+router.get('/', verifyToken, (req, res) => {
     try {
         const rows = db.prepare('SELECT id, title, created_at, updated_at, last_preview_base64 FROM whiteboards ORDER BY updated_at DESC').all();
         res.json(rows);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('Whiteboard list error:', e);
+        res.status(500).json({ error: 'Failed to list whiteboards' });
     }
 });
 
 // Get a single whiteboard
-router.get('/:id', (req, res) => {
+router.get('/:id', verifyToken, (req, res) => {
     try {
-        const row = db.prepare('SELECT * FROM whiteboards WHERE id = ?').get(req.params.id);
+        const idVal = validateId(req.params.id, 'Whiteboard ID');
+        if (!idVal.valid) return res.status(400).json({ error: idVal.error });
+        const row = db.prepare('SELECT * FROM whiteboards WHERE id = ?').get(idVal.value);
         if (!row) return res.status(404).json({ error: 'Whiteboard not found' });
         res.json(row);
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('Whiteboard fetch error:', e);
+        res.status(500).json({ error: 'Failed to fetch whiteboard' });
     }
 });
 
 // Save (Create or Update) whiteboard
-router.post('/save', (req, res) => {
+router.post('/save', verifyToken, (req, res) => {
     const { id, project_id, title, content_json, last_preview_base64 } = req.body;
-    const created_by = req.user ? req.user.id : 1; // Fallback to 1 for dev
+    const created_by = req.user.id;
 
     try {
+        const titleVal = validateString(title || 'UNTITLED', 'Title', { minLength: 1, maxLength: 200 });
+        if (!titleVal.valid) return res.status(400).json({ error: titleVal.error });
+
         if (id) {
+            const idVal = validateId(id, 'Whiteboard ID');
+            if (!idVal.valid) return res.status(400).json({ error: idVal.error });
             // Update
             db.prepare('UPDATE whiteboards SET project_id = ?, title = ?, content_json = ?, last_preview_base64 = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-                .run(project_id || null, title || 'UNTITLED', content_json, last_preview_base64, id);
-            res.json({ success: true, id });
+                .run(project_id || null, titleVal.value, content_json, last_preview_base64, idVal.value);
+            res.json({ success: true, id: idVal.value });
         } else {
             // Create
             const result = db.prepare('INSERT INTO whiteboards (project_id, created_by, title, content_json, last_preview_base64) VALUES (?, ?, ?, ?, ?)')
-                .run(project_id || null, created_by, title || 'UNTITLED', content_json, last_preview_base64);
+                .run(project_id || null, created_by, titleVal.value, content_json, last_preview_base64);
             res.json({ success: true, id: result.lastInsertRowid });
         }
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('Whiteboard save error:', e);
+        res.status(500).json({ error: 'Failed to save whiteboard' });
     }
 });
 
 // Delete whiteboard
-router.delete('/:id', (req, res) => {
+router.delete('/:id', verifyToken, (req, res) => {
     try {
-        db.prepare('DELETE FROM whiteboards WHERE id = ?').run(req.params.id);
+        const idVal = validateId(req.params.id, 'Whiteboard ID');
+        if (!idVal.valid) return res.status(400).json({ error: idVal.error });
+        db.prepare('DELETE FROM whiteboards WHERE id = ?').run(idVal.value);
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: e.message });
+        console.error('Whiteboard delete error:', e);
+        res.status(500).json({ error: 'Failed to delete whiteboard' });
     }
 });
 

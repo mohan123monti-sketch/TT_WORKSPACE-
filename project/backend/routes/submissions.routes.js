@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { verifyToken, checkRole } = require('../auth');
 const { notifyUsers, notifyByRole } = require('../services/notification.service');
+const { validateId, validateEnum, validateString, isValidUrl } = require('../validators');
 
 // Multer setup
 const uploadsDir = path.join(__dirname, '../../uploads');
@@ -23,7 +24,7 @@ const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
   allowedExts.includes(ext) ? cb(null, true) : cb(new Error(`Type ${ext} not allowed`));
 };
-const upload = multer({ storage, fileFilter, limits: { fileSize: 500 * 1024 * 1024 } });
+const upload = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 1024 } });
 
 // Badge assignment helper
 async function checkAndAssignBadges(userId) {
@@ -55,11 +56,34 @@ router.post('/', verifyToken, (req, res) => {
 
     try {
       const { task_id, content_text, client_id, project_name, external_link } = req.body;
-      console.log('Submission Body:', req.body);
-      console.log('Submission Files:', req.files);
 
       if (!task_id && (!client_id || !project_name)) {
         return res.status(400).json({ message: 'Must provide either a Target Task or a Client and Project name.' });
+      }
+
+      if (task_id) {
+        const taskIdVal = validateId(task_id, 'Task ID');
+        if (!taskIdVal.valid) return res.status(400).json({ message: taskIdVal.error });
+        const taskExists = db.prepare('SELECT id FROM tasks WHERE id=?').get(taskIdVal.value);
+        if (!taskExists) return res.status(400).json({ message: 'Task not found' });
+      }
+
+      if (client_id) {
+        const clientIdVal = validateId(client_id, 'Client ID');
+        if (!clientIdVal.valid) return res.status(400).json({ message: clientIdVal.error });
+      }
+
+      if (project_name) {
+        const projectNameVal = validateString(project_name, 'Project name', { minLength: 2, maxLength: 120 });
+        if (!projectNameVal.valid) return res.status(400).json({ message: projectNameVal.error });
+      }
+
+      if (content_text && String(content_text).length > 100000) {
+        return res.status(400).json({ message: 'Content too long (max 100000 chars)' });
+      }
+
+      if (external_link && !isValidUrl(external_link)) {
+        return res.status(400).json({ message: 'Invalid external link' });
       }
 
       const uploadedFiles = req.files || [];
@@ -99,7 +123,7 @@ router.post('/', verifyToken, (req, res) => {
       res.json({ message: 'Submitted successfully', id: result.lastInsertRowid, version });
     } catch (err) {
       console.error('Submission Error:', err);
-      res.status(500).json({ message: 'Server error during submission', error: err.message });
+      res.status(500).json({ message: 'Server error during submission' });
     }
   });
 });
@@ -107,6 +131,10 @@ router.post('/', verifyToken, (req, res) => {
 // GET /api/submissions
 router.get('/', verifyToken, (req, res) => {
   const { task_id, status } = req.query;
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+  const offset = (page - 1) * limit;
+  const allowedStatuses = ['pending', 'approved', 'rejected', 'rework', 'awaiting_admin'];
   let query = `
     SELECT s.*, 
       COALESCE(t.title, 'Manual Upload') as task_title, 
@@ -125,8 +153,14 @@ router.get('/', verifyToken, (req, res) => {
   if (!['admin', 'team_leader'].includes(req.user.role)) {
     query += ' AND s.submitted_by=?'; params.push(req.user.id);
   }
-  if (task_id) { query += ' AND s.task_id=?'; params.push(task_id); }
+  if (task_id) {
+    const taskIdVal = validateId(task_id, 'Task ID');
+    if (!taskIdVal.valid) return res.status(400).json({ message: taskIdVal.error });
+    query += ' AND s.task_id=?';
+    params.push(taskIdVal.value);
+  }
   if (status) {
+    if (!allowedStatuses.includes(String(status))) return res.status(400).json({ message: 'Invalid status filter' });
     if (status === 'awaiting_admin') {
       query += " AND s.leader_status='approved' AND COALESCE(s.admin_status, 'pending')='pending'";
     } else if (status === 'approved') {
@@ -136,7 +170,8 @@ router.get('/', verifyToken, (req, res) => {
       params.push(status);
     }
   }
-  query += ' ORDER BY s.created_at DESC';
+  query += ' ORDER BY s.created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
 
   const rows = db.prepare(query).all(...params).map((row) => {
     if (row.nexus_feedback && typeof row.nexus_feedback === 'string') {
@@ -145,6 +180,8 @@ router.get('/', verifyToken, (req, res) => {
     row.submitted_at = row.created_at;
     return row;
   });
+  res.setHeader('x-page', String(page));
+  res.setHeader('x-limit', String(limit));
   res.json(rows);
 });
 
@@ -170,19 +207,21 @@ router.get('/:id', verifyToken, (req, res) => {
 // PUT /api/submissions/:id/leader-review
 router.put('/:id/leader-review', verifyToken, checkRole('team_leader'), async (req, res) => {
   const { status, note } = req.body;
+  const statusVal = validateEnum(status, 'Status', ['approved', 'rejected', 'rework', 'pending']);
+  if (!statusVal.valid) return res.status(400).json({ message: statusVal.error });
   const sub = db.prepare('SELECT * FROM submissions WHERE id=?').get(req.params.id);
   if (!sub) return res.status(404).json({ message: 'Not found' });
 
-  db.prepare("UPDATE submissions SET leader_status=?, admin_status='pending' WHERE id=?").run(status, sub.id);
+  db.prepare("UPDATE submissions SET leader_status=?, admin_status='pending' WHERE id=?").run(statusVal.value, sub.id);
 
   const task = db.prepare('SELECT * FROM tasks WHERE id=?').get(sub.task_id);
 
-  if (status === 'approved') {
+  if (statusVal.value === 'approved') {
     if (sub.task_id) {
       db.prepare("UPDATE tasks SET status='submitted' WHERE id=?").run(sub.task_id);
     }
     notifyByRole('admin', `📣 Submission for "${task?.title || 'Manual Work'}" is ready for admin approval`, 'info', 'Tech Turf Admin Review Needed').catch(() => {});
-  } else if (status === 'rejected') {
+  } else if (statusVal.value === 'rejected') {
     if (sub.task_id) {
       db.prepare("UPDATE tasks SET status='rejected' WHERE id=?").run(sub.task_id);
     }
@@ -193,12 +232,14 @@ router.put('/:id/leader-review', verifyToken, checkRole('team_leader'), async (r
     }
     notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title}" needs rework. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
-  res.json({ message: `Submission ${status}` });
+  res.json({ message: `Submission ${statusVal.value}` });
 });
 
 // PUT /api/submissions/:id/admin-review
 router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res) => {
   const { status, note } = req.body;
+  const statusVal = validateEnum(status, 'Status', ['approved', 'rejected', 'rework']);
+  if (!statusVal.valid) return res.status(400).json({ message: statusVal.error });
   const sub = db.prepare('SELECT * FROM submissions WHERE id=?').get(req.params.id);
   if (!sub) return res.status(404).json({ message: 'Not found' });
 
@@ -206,11 +247,11 @@ router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res
     return res.status(409).json({ message: 'Submission must be approved by team leader before admin review' });
   }
 
-  db.prepare("UPDATE submissions SET admin_status=?, admin_override=? WHERE id=?").run(status, note || 'Admin review', req.params.id);
+  db.prepare("UPDATE submissions SET admin_status=?, admin_override=? WHERE id=?").run(statusVal.value, note || 'Admin review', req.params.id);
 
   const task = db.prepare('SELECT * FROM tasks WHERE id=?').get(sub.task_id);
 
-  if (status === 'approved') {
+  if (statusVal.value === 'approved') {
     if (sub.task_id) {
       db.prepare("UPDATE tasks SET status='approved' WHERE id=?").run(sub.task_id);
     }
@@ -222,7 +263,7 @@ router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res
     }
     notifyUsers(sub.submitted_by, `✅ Your submission for "${task?.title || sub.project_name || 'Project'}" was finally APPROVED by admin! +10 points`, 'success', 'Tech Turf Submission Approved').catch(() => {});
     await checkAndAssignBadges(sub.submitted_by);
-  } else if (status === 'rejected') {
+  } else if (statusVal.value === 'rejected') {
     if (sub.task_id) {
       db.prepare("UPDATE tasks SET status='rejected' WHERE id=?").run(sub.task_id);
     }
@@ -234,7 +275,7 @@ router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res
     notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title || sub.project_name || 'Project'}" needs more work from admin review. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
 
-  res.json({ message: `Admin review ${status}` });
+  res.json({ message: `Admin review ${statusVal.value}` });
 });
 
 // DELETE /api/submissions/:id

@@ -27,9 +27,16 @@ function showToast(message, type = 'info') {
     type === 'error' ? 'fa-exclamation-circle' :
       type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
 
+  const safeMessage = String(message ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
   toast.innerHTML = `
     <i class="fas ${icon}"></i>
-    <div class="toast-message">${message}</div>
+    <div class="toast-message">${safeMessage}</div>
     <i class="fas fa-times toast-close" style="margin-left:auto; cursor:pointer; opacity:0.5;"></i>
   `;
 
@@ -43,6 +50,23 @@ function showToast(message, type = 'info') {
 
   toast.querySelector('.toast-close').onclick = removeToast;
   setTimeout(removeToast, 3500);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '#';
+  if (url.startsWith('/')) return escapeHtml(url);
+  if (url.startsWith('http://') || url.startsWith('https://')) return escapeHtml(url);
+  return '#';
 }
 
 function getInitialsAvatar(name, size = 40) {
@@ -185,6 +209,9 @@ function initSharedToolForms() {
     });
   }
 }
+
+window.escapeHtml = escapeHtml;
+window.safeUrl = safeUrl;
 
 async function loadSharedTickets() {
   const list = document.getElementById('tickets-list');

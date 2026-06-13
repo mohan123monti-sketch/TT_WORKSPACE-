@@ -63,20 +63,20 @@ function renderClients(clients) {
           <div id="pulse-label-${c.id}" class="pulse-label">Connecting...</div>
         </div>
         <div class="client-info-strip">
-          <div class="client-name">${c.name}</div>
-          <div class="client-meta">${c.email || 'N/A'} • Active Projects: 0</div>
+          <div class="client-name">${window.escapeHtml(c.name || '')}</div>
+          <div class="client-meta">${window.escapeHtml(c.email || 'N/A')} • Active Projects: 0</div>
           
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-            <button class="btn-primary" style="font-size:0.65rem;" onclick="openLogInteraction(${c.id})">LOG CALL</button>
-            <button class="btn-secondary" style="font-size:0.65rem;" onclick="openHistory(${c.id})">HISTORY</button>
+            <button class="btn-primary" style="font-size:0.65rem;" onclick="openLogInteraction(${Number(c.id)})">LOG CALL</button>
+            <button class="btn-secondary" style="font-size:0.65rem;" onclick="openHistory(${Number(c.id)})">HISTORY</button>
           </div>
           
           <div style="border-top: 1px solid var(--border); padding-top:15px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                 <span style="font-size:0.6rem; color:var(--text-muted); font-weight:700;">PORTAL PASS HUD</span>
             </div>
-            <button class="btn-secondary w-100" style="font-size:0.65rem; border-color:var(--accent-secondary); color:var(--accent-secondary);" onclick="generatePortalPass(${c.id})">GENERATE SECURE LINK</button>
-            <div id="pass-history-${c.id}" class="pass-list"></div>
+            <button class="btn-secondary w-100" style="font-size:0.65rem; border-color:var(--accent-secondary); color:var(--accent-secondary);" onclick="generatePortalPass(${Number(c.id)})">GENERATE SECURE LINK</button>
+            <div id="pass-history-${Number(c.id)}" class="pass-list"></div>
           </div>
         </div>
       </div>
@@ -90,8 +90,8 @@ function renderClients(clients) {
 }
 
 function filterClients() {
-  const term = document.getElementById('client-search').value.toLowerCase();
-  const filtered = allClients.filter(c => c.name.toLowerCase().includes(term) || (c.email && c.email.toLowerCase().includes(term)));
+  const term = (document.getElementById('client-search').value || '').toLowerCase();
+  const filtered = allClients.filter(c => (c.name || '').toLowerCase().includes(term) || ((c.email || '').toLowerCase().includes(term)));
   renderClients(filtered);
 }
 
@@ -128,11 +128,11 @@ async function openHistory(id) {
     container.innerHTML = history.map(h => `
             <div class="log-item">
                 <div class="log-meta">
-                    <span style="font-weight:700; color:var(--accent-primary);">${h.type.toUpperCase()}</span>
-                    <span>By ${h.handler_name} • ${timeAgo(h.created_at)}</span>
+            <span style="font-weight:700; color:var(--accent-primary);">${window.escapeHtml((h.type || '').toUpperCase())}</span>
+            <span>By ${window.escapeHtml(h.handler_name || 'Unknown')} • ${window.escapeHtml(timeAgo(h.created_at))}</span>
                 </div>
-                <div style="font-size:0.8rem; line-height:1.4;">${h.notes || 'No detailed notes provided.'}</div>
-                <div style="font-size:0.6rem; color:var(--text-muted); margin-top:8px;">Sentiment Captured: <span style="color:var(--accent-primary);">${h.sentiment}</span></div>
+          <div style="font-size:0.8rem; line-height:1.4;">${window.escapeHtml(h.notes || 'No detailed notes provided.')}</div>
+          <div style="font-size:0.6rem; color:var(--text-muted); margin-top:8px;">Sentiment Captured: <span style="color:var(--accent-primary);">${window.escapeHtml(h.sentiment || '')}</span></div>
             </div>
         `).join('');
   } catch (e) {
@@ -160,7 +160,7 @@ async function loadPassHistory(id) {
         `<div style="margin-top:10px;">` +
         passes.slice(0, 1).map(p => `
             <div class="pass-item">
-                <span>Active Token: ${p.token.substring(0, 8)}...</span>
+            <span>Active Token: ${window.escapeHtml(String(p.token || '').substring(0, 8))}...</span>
                 <span style="color:var(--accent-primary);">VALID</span>
             </div>
          `).join('') +

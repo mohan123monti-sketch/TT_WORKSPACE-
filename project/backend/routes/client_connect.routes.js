@@ -2,6 +2,23 @@ const router = require('express').Router();
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
+
+const publicPortalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  message: { message: 'Too many attempts. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+function normalizePortalToken(raw) {
+  const token = String(raw || '').trim();
+  if (!token) return null;
+  if (token.length < 6 || token.length > 128) return null;
+  if (!/^[a-zA-Z0-9_-]+$/.test(token)) return null;
+  return token;
+}
 
 // --- SUMMARY ---
 router.get('/summary', verifyToken, (req, res) => {
@@ -28,9 +45,8 @@ router.post('/portal-pass', verifyToken, checkRole('admin', 'client_handler'), (
 });
 
 // --- PORTAL VERIFICATION (Public) ---
-router.post('/verify-pass', (req, res) => {
-  const { token } = req.body;
-  if (global.logToFile) logToFile(`[Portal Auth] Attempting token: ${token}`);
+router.post('/verify-pass', publicPortalLimiter, (req, res) => {
+  const token = normalizePortalToken(req.body?.token);
   if (!token) return res.status(400).json({ message: 'Token required' });
 
   let pass = db.prepare('SELECT * FROM portal_access WHERE token=? AND expires_at > ?')
@@ -38,29 +54,25 @@ router.post('/verify-pass', (req, res) => {
 
   let client;
   if (pass) {
-    if (global.logToFile) logToFile(`[Portal Auth] Found temporary pass for client: ${pass.client_id}`);
     client = db.prepare('SELECT id, name, company FROM clients WHERE id=?').get(pass.client_id);
   } else {
     // Check if it's a manual Project Key
-    if (global.logToFile) logToFile('[Portal Auth] Checking manual Project Key...');
     client = db.prepare('SELECT id, name, company FROM clients WHERE project_key=? COLLATE NOCASE').get(token.trim());
     if (client) {
-      if (global.logToFile) logToFile(`[Portal Auth] Found manual match for client: ${client.id}`);
       pass = { client_id: client.id, token: token, expires_at: 'PERMANENT' };
     }
   }
 
   if (!client) {
-    if (global.logToFile) logToFile(`[Portal Auth] Access denied for token: ${token}`);
     return res.status(401).json({ message: 'Invalid or expired portal pass' });
   }
 
   res.json({ valid: true, client, pass_info: pass });
 });
 
-router.get('/portal-data', (req, res) => {
+router.get('/portal-data', publicPortalLimiter, (req, res) => {
   try {
-    const { token } = req.query;
+    const token = normalizePortalToken(req.query?.token);
     if (!token) return res.status(400).json({ message: 'Token required' });
 
     let pass = db.prepare('SELECT * FROM portal_access WHERE token=? AND expires_at > ?')
@@ -71,7 +83,6 @@ router.get('/portal-data', (req, res) => {
     if (!pass) {
       client = db.prepare('SELECT id, name, company, satisfaction_score FROM clients WHERE project_key=? COLLATE NOCASE').get(token.trim());
       if (!client) {
-        if (global.logToFile) logToFile(`[Portal Data] Denied: ${token}`);
         return res.status(401).json({ message: 'Invalid or expired portal pass' });
       }
       clientId = client.id;
@@ -95,8 +106,8 @@ router.get('/portal-data', (req, res) => {
 
     res.json({ client, projects, tasks, submissions, last_interaction });
   } catch (err) {
-    if (global.logToFile) logToFile(`[Portal Data ERROR] ${err.message}`);
-    res.status(500).json({ error: err.message });
+    console.error('Portal data error:', err);
+    res.status(500).json({ error: 'Failed to load portal data' });
   }
 });
 
