@@ -2,6 +2,7 @@ const router = require('express').Router();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const mammoth = require('mammoth');
 const db = require('../db');
 const { verifyToken, checkRole } = require('../auth');
 const { validateId, validateString, sanitizeFilename } = require('../validators');
@@ -176,6 +177,85 @@ router.get('/download/:id', verifyToken, (req, res) => {
   } catch (e) {
     console.error('Download error:', e);
     res.status(500).json({ error: 'Failed to download file' });
+  }
+});
+
+// Preview metadata/content for supported file types
+router.get('/preview-data/:id', verifyToken, async (req, res) => {
+  try {
+    const item = db.prepare("SELECT * FROM drive_items WHERE id = ? AND type = 'file'").get(req.params.id);
+    if (!item) return res.status(404).json({ error: 'File not found' });
+
+    if (!isAdmin(req.user) && !userCanAccessItem(req.user.id, item.id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const filePath = path.join(DRIVE_ROOT, item.file_path);
+    const realPath = fs.existsSync(filePath) ? fs.realpathSync(filePath) : null;
+    const realRoot = fs.realpathSync(DRIVE_ROOT);
+    if (!realPath || !realPath.startsWith(realRoot)) return res.status(404).json({ error: 'File not found' });
+
+    const mimeType = String(item.mime_type || '').toLowerCase();
+    const name = String(item.name || '');
+    const ext = path.extname(name).toLowerCase();
+    const textExtensions = new Set([
+      '.txt', '.md', '.csv', '.json', '.log', '.xml', '.html', '.htm',
+      '.css', '.js', '.ts', '.yaml', '.yml', '.ini', '.env'
+    ]);
+
+    if (mimeType.startsWith('image/')) {
+      return res.json({ kind: 'image', previewUrl: `/api/drive/download/${item.id}` });
+    }
+
+    if (mimeType === 'application/pdf' || ext === '.pdf') {
+      return res.json({ kind: 'pdf', previewUrl: `/api/drive/download/${item.id}` });
+    }
+
+    if (mimeType.startsWith('video/') || ['.mp4', '.webm', '.ogg', '.mov', '.m4v'].includes(ext)) {
+      return res.json({ kind: 'video', previewUrl: `/api/drive/download/${item.id}` });
+    }
+
+    if (mimeType.includes('wordprocessingml.document') || ext === '.docx') {
+      const result = await mammoth.extractRawText({ path: filePath });
+      return res.json({
+        kind: 'text',
+        format: 'docx',
+        previewText: result.value || '',
+        note: 'Extracted from Word document'
+      });
+    }
+
+    if (
+      textExtensions.has(ext) ||
+      mimeType.startsWith('text/') ||
+      mimeType === 'application/json' ||
+      mimeType === 'application/xml' ||
+      mimeType === 'application/javascript' ||
+      mimeType === 'application/octet-stream'
+    ) {
+      const previewText = fs.readFileSync(filePath, 'utf8');
+      return res.json({
+        kind: 'text',
+        format: ext.replace('.', '') || 'text',
+        previewText,
+        note: 'Text file preview'
+      });
+    }
+
+    if (mimeType === 'application/msword' || ext === '.doc') {
+      return res.json({
+        kind: 'unsupported',
+        note: 'Legacy .doc files are not previewable in-browser. Download to view.'
+      });
+    }
+
+    return res.json({
+      kind: 'unsupported',
+      note: 'Preview is not available for this file type.'
+    });
+  } catch (e) {
+    console.error('Preview data error:', e);
+    res.status(500).json({ error: 'Failed to load preview' });
   }
 });
 

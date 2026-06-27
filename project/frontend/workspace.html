@@ -27,15 +27,25 @@
                 </div>
             </div>
 
-            <div class="workspace-title-area header-bubble">
+            <div class="header-bubble workspace-title-area">
                 <div class="workspace-title" id="wb-title">UNTITLED</div>
                 <i class="fas fa-edit workspace-title-edit-icon" title="Edit Title"></i>
+                <div class="saved-status">
+                    <div class="status-dot"></div>
+                    <span>Saved</span>
+                </div>
             </div>
 
-            <div class="workspace-actions header-bubble">
-                <i class="fas fa-cog settings-icon" title="Settings"></i>
-                <button class="btn-share" title="Share Workspace">Share</button>
-                <div class="user-avatar" title="Your Profile">JD</div>
+            <div class="workspace-actions">
+                <div class="header-bubble">
+                    <span class="selector-text">AI Model <i class="fas fa-chevron-down selector-icon"></i></span>
+                    <span class="selector-text">Expert <i class="fas fa-chevron-down selector-icon"></i></span>
+                </div>
+                <div class="header-bubble header-actions-gap">
+                    <i class="fas fa-cog settings-icon" title="Settings"></i>
+                    <button class="btn-share" title="Share Workspace">Share</button>
+                    <div class="user-avatar" title="Your Profile">JD</div>
+                </div>
             </div>
         </header>
 
@@ -62,9 +72,9 @@
                 <button class="tool-btn" id="tool-text" title="Text (T)">
                     <i class="fas fa-font"></i>
                 </button>
-
-                <div class="tool-divider"></div>
-
+                <button class="tool-btn" id="tool-arrow" title="Arrow (A)">
+                    <i class="fas fa-long-arrow-alt-right"></i>
+                </button>
                 <button class="tool-btn" id="tool-image" title="Upload Image (I)">
                     <i class="fas fa-image"></i>
                 </button>
@@ -77,56 +87,96 @@
             </div>
         </div>
 
-        <!-- Left Shortcuts Panel -->
-        <aside id="shortcuts-panel" class="glass-card">
-            <div class="shortcuts-content">
-                <h3><i class="fas fa-keyboard"></i> Shortcuts</h3>
-                <ul>
-                    <li><span>Select</span><kbd>V</kbd></li>
-                    <li><span>Pencil</span><kbd>P</kbd></li>
-                    <li><span>Rectangle</span><kbd>R</kbd></li>
-                    <li><span>Circle</span><kbd>O</kbd></li>
-                    <li><span>Text</span><kbd>T</kbd></li>
-                    <li><span>Image</span><kbd>I</kbd></li>
-                    <li><span>Eraser</span><kbd>E</kbd></li>
-                    <li><span>Delete Object</span><kbd>Backspace</kbd></li>
-                    <li><span>Clear All</span><kbd>Del</kbd></li>
-                    <li><span>Pan Canvas</span><kbd>MClick/Space</kbd></li>
-                </ul>
+        <!-- Unified Sidebar -->
+        <aside id="sidebar-main" class="glass-card sidebar-collapsed">
+            <div class="sidebar-tabs">
+                <div class="sidebar-tab active" data-tab="nav" title="Navigation">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div class="sidebar-tab" data-tab="shortcuts" title="Shortcuts">
+                    <i class="fas fa-keyboard"></i>
+                </div>
+                <div class="sidebar-tab" data-tab="links" title="Quick Links">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="sidebar-tab" data-tab="layers" title="Layers">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="sidebar-tab" data-tab="templates" title="Templates">
+                    <i class="fas fa-puzzle-piece"></i>
+                </div>
             </div>
-            <div id="shortcuts-tab" title="Drag or Click">
-                <i class="fas fa-chevron-right" id="shortcuts-icon"></i>
-            </div>
-        </aside>
 
-        <!-- Left Nav Panel -->
-        <aside id="nav-panel" class="glass-card">
-            <div class="nav-content">
-                <h3><i class="fas fa-route"></i> Navigation</h3>
-                <ul class="nav-links-list">
-                    <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li><a href="projects.html"><i class="fas fa-project-diagram"></i> Projects</a></li>
-                    <li><a href="tasks.html"><i class="fas fa-tasks"></i> Tasks</a></li>
-                    <li><a href="drive.html"><i class="fas fa-hdd"></i> Drive</a></li>
-                    <li><a href="clients.html"><i class="fas fa-users"></i> Clients</a></li>
-                </ul>
-            </div>
-            <div id="nav-tab" title="Drag or Click">
-                <i class="fas fa-chevron-right" id="nav-icon"></i>
-            </div>
-        </aside>
+            <div class="sidebar-content-wrapper">
+                <!-- Navigation Tab -->
+                <div class="sidebar-tab-content active" id="tab-nav">
+                    <h3>Navigation</h3>
+                    <ul class="nav-links-list">
+                        <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="projects.html"><i class="fas fa-project-diagram"></i> Projects</a></li>
+                        <li><a href="tasks.html"><i class="fas fa-tasks"></i> Tasks</a></li>
+                        <li><a href="drive.html"><i class="fas fa-hdd"></i> Drive</a></li>
+                        <li><a href="clients.html"><i class="fas fa-users"></i> Clients</a></li>
+                    </ul>
+                </div>
 
-        <!-- Left External Quick Links Panel -->
-        <aside id="external-panel" class="glass-card">
-            <div class="external-content">
-                <h3><i class="fas fa-globe"></i> Quick Links</h3>
-                <ul id="custom-links-container">
-                    <!-- Populated by JS -->
-                </ul>
-                <button id="add-custom-link-btn" class="btn-primary"><i class="fas fa-plus"></i> Add Link</button>
+                <!-- Templates Tab -->
+                <div class="sidebar-tab-content" id="tab-templates">
+                    <h3>Templates</h3>
+                    <div class="templates-grid">
+                        <div class="template-item" data-template="brainstorm">
+                            <i class="fas fa-brain"></i>
+                            <span>Brainstorm</span>
+                        </div>
+                        <div class="template-item" data-template="kanban">
+                            <i class="fas fa-columns"></i>
+                            <span>Kanban</span>
+                        </div>
+                        <div class="template-item" data-template="flowchart">
+                            <i class="fas fa-project-diagram"></i>
+                            <span>Flowchart</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layers Tab -->
+                <div class="sidebar-tab-content" id="tab-layers">
+                    <h3>Layers</h3>
+                    <div id="layers-list" class="layers-container">
+                        <!-- Populated by JS -->
+                        <div class="no-layers">No objects on canvas</div>
+                    </div>
+                </div>
+
+                <!-- Shortcuts Tab -->
+                <div class="sidebar-tab-content" id="tab-shortcuts">
+                    <h3>Shortcuts</h3>
+                    <ul class="shortcuts-list">
+                        <li><span>Select</span><kbd>V</kbd></li>
+                        <li><span>Pencil</span><kbd>P</kbd></li>
+                        <li><span>Rectangle</span><kbd>R</kbd></li>
+                        <li><span>Circle</span><kbd>O</kbd></li>
+                        <li><span>Text</span><kbd>T</kbd></li>
+                        <li><span>Image</span><kbd>I</kbd></li>
+                        <li><span>Eraser</span><kbd>E</kbd></li>
+                        <li><span>Delete</span><kbd>BS</kbd></li>
+                        <li><span>Clear</span><kbd>DEL</kbd></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links Tab -->
+                <div class="sidebar-tab-content" id="tab-links">
+                    <h3>Quick Links</h3>
+                    <ul id="custom-links-container">
+                        <!-- Populated by JS -->
+                    </ul>
+                    <button id="add-custom-link-btn" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add
+                        Link</button>
+                </div>
             </div>
-            <div id="external-tab" title="Drag or Click">
-                <i class="fas fa-chevron-right" id="external-icon"></i>
+
+            <div id="sidebar-toggle-handle">
+                <i class="fas fa-chevron-right"></i>
             </div>
         </aside>
 
@@ -139,18 +189,16 @@
 
             <div class="chat-messages" id="chat-messages">
                 <div class="no-messages">
-                    <div>No messages yet.<br>Ask Nexus to help you with your ideas.</div>
+                    <i class="fas fa-brain chat-empty-icon"></i>
+                    <p>Ask Nexus for creative ideas, copy suggestions, or layout help for your board.</p>
                 </div>
             </div>
 
             <div class="chat-input-area">
                 <div class="chat-input-wrapper">
-                    <textarea id="chat-textarea" placeholder="What do you want to do?"></textarea>
+                    <textarea id="chat-textarea" placeholder="Brainstorm with Nexus..."></textarea>
                     <div class="chat-input-footer">
-                        <div class="chat-input-actions">
-                            <i class="fas fa-microphone"></i>
-                            <i class="fas fa-paperclip"></i>
-                        </div>
+                        <div class="chat-input-hint">Enter to send</div>
                         <button class="chat-btn-send" id="chat-send" title="Send message">
                             <i class="fas fa-arrow-up"></i>
                         </button>
@@ -164,6 +212,8 @@
             <span class="zoom-btn" id="zoom-out"><i class="fas fa-minus"></i></span>
             <span id="zoom-level">100%</span>
             <span class="zoom-btn" id="zoom-in"><i class="fas fa-plus"></i></span>
+            <div class="tool-divider"></div>
+            <span class="zoom-btn" id="grid-toggle" title="Toggle Grid"><i class="fas fa-th"></i></span>
         </div>
     </div> <!-- End workspace-container -->
 
@@ -255,6 +305,7 @@
         <button class="context-btn" id="ctx-crop" title="Crop"><i class="fas fa-crop-alt"></i></button>
         <button class="context-btn" id="ctx-download" title="Download Image"><i class="fas fa-download"></i></button>
         <button class="context-btn" id="ctx-info" title="Image Info"><i class="fas fa-info-circle"></i></button>
+        <button class="context-btn" id="ctx-lock" title="Lock/Unlock"><i class="fas fa-lock"></i></button>
     </div>
 
     <!-- Feedback UI -->

@@ -287,6 +287,8 @@ CREATE TABLE IF NOT EXISTS courses (
   title TEXT NOT NULL,
   description TEXT,
   link TEXT NOT NULL,
+  video_url TEXT,
+  video_file TEXT,
   created_by INTEGER REFERENCES users(id),
   access_team TEXT,
   access_user TEXT,
@@ -388,6 +390,20 @@ CREATE TABLE IF NOT EXISTS asset_library (
 );
 CREATE INDEX IF NOT EXISTS idx_asset_library_project_id ON asset_library(project_id);
 CREATE INDEX IF NOT EXISTS idx_asset_library_uploaded_by ON asset_library(uploaded_by);
+
+-- CREATIVE WORKSPACE (WHITEBOARDS)
+CREATE TABLE IF NOT EXISTS whiteboards (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
+  created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL DEFAULT 'UNTITLED',
+  content_json TEXT,
+  last_preview_base64 TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_whiteboards_created_by ON whiteboards(created_by);
+CREATE INDEX IF NOT EXISTS idx_whiteboards_project_id ON whiteboards(project_id);
 
 -- R&D LAB
 CREATE TABLE IF NOT EXISTS knowledge_base (
@@ -493,6 +509,14 @@ if (!userColumns.includes('offboarding_note')) {
 const submissionColumns = db.prepare('PRAGMA table_info(submissions)').all().map(c => c.name);
 if (!submissionColumns.includes('admin_status')) {
   db.exec("ALTER TABLE submissions ADD COLUMN admin_status TEXT DEFAULT 'pending'");
+}
+
+const courseColumns = db.prepare('PRAGMA table_info(courses)').all().map(c => c.name);
+if (!courseColumns.includes('video_url')) {
+  db.exec('ALTER TABLE courses ADD COLUMN video_url TEXT');
+}
+if (!courseColumns.includes('video_file')) {
+  db.exec('ALTER TABLE courses ADD COLUMN video_file TEXT');
 }
 
 // Keep primary role CHECK constraint synced when role list expands.
@@ -813,6 +837,15 @@ CREATE TABLE IF NOT EXISTS job_queue (
   run_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   attempts INTEGER DEFAULT 0,
   last_error TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS policy_documents (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  references_json TEXT,
+  created_by INTEGER REFERENCES users(id),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

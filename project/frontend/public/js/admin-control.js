@@ -1,7 +1,6 @@
 async function initAdminControl() {
   loadAuditLogs();
   renderLinkNotes();
-  loadRoleArchitect();
   await initRoleManagement();
   await initTeamManagement();
 }
@@ -349,55 +348,7 @@ function deleteLinkNote(idx) {
   renderLinkNotes();
 }
 
-async function loadRoleArchitect() {
-  const container = document.getElementById('role-list');
-  if (!container) return;
-
-  try {
-    const data = await api.get('/admin/roles-users');
-    container.innerHTML = data.map((s, idx) => `
-      <div class="role-accordion" id="role-acc-${idx}">
-        <div class="role-acc-header" onclick="toggleRoleDropdown(${idx})">
-          <div class="role-acc-info">
-            <div class="role-acc-name">${s.role.replace(/_/g, ' ')}</div>
-            <div class="role-acc-count">${s.count} ACTIVE AGENT${s.count !== 1 ? 'S' : ''}</div>
-          </div>
-          <div class="role-acc-right">
-            <i class="fas fa-users role-acc-icon"></i>
-            <i class="fas fa-chevron-down role-acc-chevron" id="chevron-${idx}"></i>
-          </div>
-        </div>
-        <div class="role-acc-body" id="role-body-${idx}">
-          ${s.users.length === 0
-        ? `<div class="role-acc-empty"><i class="fas fa-ghost"></i> No agents assigned</div>`
-        : s.users.map(u => `
-              <div class="role-acc-user">
-                <div class="role-acc-avatar">${u.name.charAt(0).toUpperCase()}</div>
-                <div class="role-acc-details">
-                  <div class="role-acc-uname">${u.name}</div>
-                  <div class="role-acc-email">${u.email}</div>
-                </div>
-              </div>
-            `).join('')}
-        </div>
-      </div>
-    `).join('');
-  } catch (e) { console.error(e); }
-}
-
-function toggleRoleDropdown(idx) {
-  const body = document.getElementById(`role-body-${idx}`);
-  const chevron = document.getElementById(`chevron-${idx}`);
-  const acc = document.getElementById(`role-acc-${idx}`);
-  const isOpen = body.classList.contains('open');
-
-  body.classList.toggle('open', !isOpen);
-  chevron.classList.toggle('rotated', !isOpen);
-  acc.classList.toggle('active', !isOpen);
-}
-
 window.initAdminControl = initAdminControl;
 window.initiateWarpRollback = initiateWarpRollback;
 window.addLinkNote = addLinkNote;
 window.deleteLinkNote = deleteLinkNote;
-window.toggleRoleDropdown = toggleRoleDropdown;

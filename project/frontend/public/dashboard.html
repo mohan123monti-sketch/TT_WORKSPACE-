@@ -346,25 +346,26 @@
                 <hr class="sidebar-divider">
 
                 <!-- Role-Based Control Centers -->
-                <div class="menu-item admin-only" data-nav="users.html">
-                    <i class="fas fa-users-cog"></i>
-                    <span class="menu-text">User Management</span>
-                </div>
-                <div class="menu-item admin-only" data-nav="admin_control.html">
-                    <i class="fas fa-shield-alt"></i>
-                    <span class="menu-text">Admin Warp</span>
-                </div>
-                <div class="menu-item admin-only" data-nav="setup_wizard.html">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    <span class="menu-text">Setup Wizard</span>
-                </div>
-                <div class="menu-item admin-only" data-nav="policy_center.html">
-                    <i class="fas fa-scale-balanced"></i>
-                    <span class="menu-text">Policy Center</span>
-                </div>
-                <div class="menu-item admin-only" data-nav="help_center.html">
-                    <i class="fas fa-circle-question"></i>
-                    <span class="menu-text">Help Center Ops</span>
+                <div class="sidebar-section admin-only">
+                    <div class="sidebar-section-title">User Management</div>
+                    <div class="sidebar-submenu">
+                        <div class="menu-item admin-only" data-nav="users.html">
+                            <i class="fas fa-users-cog"></i>
+                            <span class="menu-text">User Management</span>
+                        </div>
+                        <div class="menu-item admin-only nav-pill-orange" data-nav="admin_control.html">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="menu-text">Admin Warp</span>
+                        </div>
+                        <div class="menu-item admin-only" data-nav="policy_center.html">
+                            <i class="fas fa-scale-balanced"></i>
+                            <span class="menu-text">Policy Center</span>
+                        </div>
+                        <div class="menu-item admin-only" data-nav="help_center.html">
+                            <i class="fas fa-circle-question"></i>
+                            <span class="menu-text">Help Center Ops</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="menu-item rnd-only" data-nav="nexus_lab.html">
                     <i class="fas fa-flask"></i>
@@ -374,6 +375,10 @@
                     <i class="fas fa-handshake"></i>
                     <span class="menu-text">Client Connect</span>
                 </div>
+                        <div class="menu-item" data-nav="learning_hub.html" id="courses-link">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span class="menu-text">Learning Hub</span>
+                        </div>
 
 
                 <hr class="sidebar-divider">
@@ -395,7 +400,7 @@
                     <i class="fas fa-money-check-alt"></i>
                     <span class="menu-text">Payments</span>
                 </div>
-                <div class="menu-item admin-only" id="courses-link">
+                <div class="menu-item" data-nav="learning_hub.html" id="courses-link">
                     <i class="fas fa-graduation-cap"></i>
                     <span class="menu-text">Learning Hub</span>
                 </div>
@@ -622,24 +627,6 @@
         </div>
     </div>
 
-    <!-- Courses Modal -->
-    <div id="courses-modal" class="modal-overlay">
-        <div class="glass-card modal-content-narrow">
-            <div class="modal-header-bar">
-                <span><i class="fas fa-graduation-cap"></i> Learning Hub</span>
-                <i class="fas fa-times close-icon" id="courses-close"></i>
-            </div>
-            <div id="courses-list" class="modal-body-scroll"></div>
-            <form id="courses-add-form" class="modal-footer-column">
-                <input id="course-title" type="text" placeholder="Course Title" class="form-input" required
-                    title="Course Title" />
-                <input id="course-link" type="url" placeholder="Course Link (URL)" class="form-input" required
-                    title="Course Link" />
-                <button type="submit" class="btn-primary">Add Course</button>
-            </form>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
     <script src="js/utils.js" defer></script>
@@ -690,7 +677,6 @@
 
             setupModal('tickets-link', 'tickets-modal', 'tickets-close');
             setupModal('payments-link', 'payments-modal', 'payments-close');
-            setupModal('courses-link', 'courses-modal', 'courses-close');
 
             // Handle tool-specific data loading (placeholders or function calls)
             if (document.getElementById('dbadmin-link')) {

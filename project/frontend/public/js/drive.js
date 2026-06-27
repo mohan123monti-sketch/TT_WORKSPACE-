@@ -65,7 +65,7 @@ const drive = {
                 this.history.push({ id: item.id, name: item.name });
                 this.loadItems(item.id);
             } else {
-                this.downloadFile(item.id);
+                this.openPreviewTab(item);
             }
         };
 
@@ -178,6 +178,14 @@ const drive = {
             `).join('');
         } catch {
             list.innerHTML = 'Error loading permissions.';
+        }
+    },
+
+    openPreviewTab(item) {
+        const url = `drive_preview.html?id=${encodeURIComponent(item.id)}`;
+        const popup = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!popup) {
+            showToast('Popup blocked. Please allow popups for preview tabs.', 'error');
         }
     },
 

@@ -7,7 +7,7 @@
   padding: 32px 16px;
   background: var(--bg-glass);
   border-radius: var(--radius);
-  border:  2px solid var(--border);
+  border: 2px solid var(--border);
   color: var(--text-muted);
   font-size: 1rem;
   margin: 16px 0;
@@ -64,7 +64,7 @@
 }
 
 .upload-zone {
-  border:  2px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius);
   padding: 40px;
   text-align: center;
@@ -101,13 +101,13 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(16, 42, 150, 0.4);
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 9000;
+  z-index: 10000;
 }
 
 
@@ -119,6 +119,7 @@
 
   /* Drag affordance */
   cursor: grab;
+  -webkit-user-select: none;
   user-select: none;
   padding: 4px 4px 16px 4px;
   border-radius: 8px 8px 0 0;
@@ -154,10 +155,13 @@
 
 /* When modal is being dragged — elevated shadow */
 .modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   width: 100%;
   max-width: 500px;
   padding: 32px;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   will-change: left, top;
 }
 
@@ -168,7 +172,8 @@
 .modal-title {
   font-family: var(--font-display);
   font-size: 1.4rem;
-  pointer-events: none; /* title text shouldn't interfere with drag */
+  pointer-events: none;
+  /* title text shouldn't interfere with drag */
 }
 
 .close-modal {
@@ -195,8 +200,8 @@
 
 .form-control {
   width: 100%;
-  background: #ffffff;
-  border:  2px solid var(--border);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 16px;
   color: var(--text-primary);
@@ -233,7 +238,7 @@ select.form-control option {
   max-width: 500px;
   height: 100%;
   background: #ffffff;
-  border-left:  2px solid var(--border);
+  border-left: 2px solid var(--border);
   z-index: 8001;
   transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 32px;

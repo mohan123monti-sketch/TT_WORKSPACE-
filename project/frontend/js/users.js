@@ -1,4 +1,6 @@
 async function initUsers() {
+  await loadCompanyRoles();
+  loadRoleArchitect();
   loadUsers();
   initSearch();
 
@@ -52,6 +54,7 @@ async function loadUsers() {
 
       tbody.innerHTML = users.map(u => {
         const secRoles = (u.secondary_roles || '').split(',').filter(r => r.trim());
+        const primaryRole = allRoles.find(role => role.val === u.role);
         const secBadges = secRoles.map(r => {
           const found = allRoles.find(ar => ar.val === r);
           return found ? `<span style="font-size:0.55rem;padding:2px 6px;border-radius:8px;background:var(--bg-hover);color:var(--text-muted);border:1px solid var(--border-color);">${found.label}</span>` : '';
@@ -83,7 +86,7 @@ async function loadUsers() {
             </div>
           </td>
           <td><div class="points-cell">${u.points}</div></td>
-          <td>${u.badge ? `<div class="badge badge-approved" style="font-size:0.6rem;">${u.badge}</div>` : '\u2014'}</td>
+          <td>${primaryRole ? `<div class="badge badge-approved" style="font-size:0.6rem;">${primaryRole.label}</div>` : '\u2014'}</td>
           <td>
             <label class="switch">
               <input type="checkbox" ${u.is_active ? 'checked' : ''} onchange="toggleUserActive(${u.id}, this.checked); event.stopPropagation();">
@@ -116,6 +119,56 @@ function initSearch() {
   const input = document.getElementById('user-search');
   if (!input) return;
   input.addEventListener('input', debounce(() => loadUsers(), 200));
+}
+
+async function loadRoleArchitect() {
+  const container = document.getElementById('role-list');
+  if (!container) return;
+
+  try {
+    const data = await api.get('/admin/roles-users');
+    container.innerHTML = data.map((group, idx) => `
+      <div class="role-accordion" id="role-acc-${idx}">
+        <div class="role-acc-header" onclick="toggleRoleDropdown(${idx})">
+          <div class="role-acc-info">
+            <div class="role-acc-name">${group.role.replace(/_/g, ' ')}</div>
+            <div class="role-acc-count">${group.count} ACTIVE AGENT${group.count !== 1 ? 'S' : ''}</div>
+          </div>
+          <div class="role-acc-right">
+            <i class="fas fa-users role-acc-icon"></i>
+            <i class="fas fa-chevron-down role-acc-chevron" id="chevron-${idx}"></i>
+          </div>
+        </div>
+        <div class="role-acc-body" id="role-body-${idx}">
+          ${group.users.length === 0
+        ? `<div class="role-acc-empty"><i class="fas fa-ghost"></i> No agents assigned</div>`
+        : group.users.map(user => `
+              <div class="role-acc-user">
+                <div class="role-acc-avatar">${user.name.charAt(0).toUpperCase()}</div>
+                <div class="role-acc-details">
+                  <div class="role-acc-uname">${user.name}</div>
+                  <div class="role-acc-email">${user.email}</div>
+                </div>
+              </div>
+            `).join('')}
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="role-acc-empty">Failed to load role architecture.</div>';
+  }
+}
+
+function toggleRoleDropdown(idx) {
+  const body = document.getElementById(`role-body-${idx}`);
+  const chevron = document.getElementById(`chevron-${idx}`);
+  const acc = document.getElementById(`role-acc-${idx}`);
+  if (!body || !chevron || !acc) return;
+  const isOpen = body.classList.contains('open');
+
+  body.classList.toggle('open', !isOpen);
+  chevron.classList.toggle('rotated', !isOpen);
+  acc.classList.toggle('active', !isOpen);
 }
 
 // Change user primary role
@@ -321,3 +374,4 @@ window.initUsers = initUsers;
 window.openUserPerformance = openUserPerformance;
 window.closeDetailPanel = closeDetailPanel;
 window.deactivateUser = deactivateUser;
+window.toggleRoleDropdown = toggleRoleDropdown;

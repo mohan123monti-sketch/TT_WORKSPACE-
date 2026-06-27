@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,9 @@
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <style>
         .drive-grid {
             display: grid;
@@ -18,35 +21,48 @@
             gap: 20px;
             padding: 24px 0;
         }
+
         .drive-item {
             padding: 24px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            border:  2px solid transparent;
+            border: 2px solid transparent;
             border-radius: var(--radius);
             background: var(--bg-glass);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
         }
+
         .drive-item:hover {
             transform: translateY(-5px);
             background: rgba(16, 42, 150, 0.08);
             border-color: var(--accent-primary);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 20px rgba(16, 42, 150, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 20px rgba(16, 42, 150, 0.1);
         }
+
         .drive-item-icon {
             font-size: 3.5rem;
             margin-bottom: 16px;
-            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.2));
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
-        .drive-item.folder .drive-item-icon { color: #f1c40f; }
-        .drive-item.file .drive-item-icon { color: var(--accent-primary); }
-        .drive-item.file.zip .drive-item-icon { color: var(--accent-secondary); }
-        
+
+        .drive-item.folder .drive-item-icon {
+            color: #f1c40f;
+        }
+
+        .drive-item.file .drive-item-icon {
+            color: var(--accent-primary);
+        }
+
+        .drive-item.file.zip .drive-item-icon {
+            color: var(--accent-secondary);
+        }
+
         .drive-item-name {
             font-size: 0.95rem;
             font-family: var(--font-body);
@@ -57,12 +73,14 @@
             color: var(--text-primary);
             margin-top: 10px;
         }
+
         .drive-item-meta {
             font-size: 0.75rem;
             color: var(--text-muted);
             margin-top: 6px;
             font-family: var(--font-mono);
         }
+
         .drive-item-actions {
             position: absolute;
             top: 12px;
@@ -73,9 +91,14 @@
             gap: 8px;
             z-index: 10;
         }
-        .drive-item:hover .drive-item-actions { opacity: 1; transform: scale(1.05); }
+
+        .drive-item:hover .drive-item-actions {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
         .action-btn {
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
             width: 32px;
             height: 32px;
             border-radius: 8px;
@@ -85,11 +108,19 @@
             font-size: 0.9rem;
             color: var(--text-primary);
             cursor: pointer;
-            border:  2px solid rgba(255,255,255,0.1);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             transition: 0.2s;
         }
-        .action-btn:hover { background: var(--accent-primary); border-color: var(--text-primary); scale: 1.1; }
-        .action-btn.delete:hover { background: var(--accent-secondary); }
+
+        .action-btn:hover {
+            background: var(--accent-primary);
+            border-color: var(--text-primary);
+            scale: 1.1;
+        }
+
+        .action-btn.delete:hover {
+            background: var(--accent-secondary);
+        }
 
         .drive-breadcrumb {
             display: flex;
@@ -102,11 +133,26 @@
             background: var(--bg-hover);
             padding: 12px 20px;
             border-radius: var(--radius-sm);
-            border:  2px solid var(--border);
+            border: 2px solid var(--border);
         }
-        .breadcrumb-part { cursor: pointer; color: var(--accent-primary); font-weight: 700; transition: 0.2s; }
-        .breadcrumb-part:hover { color: var(--text-primary); text-shadow: 0 0 10px var(--accent-primary); }
-        .breadcrumb-part.active { color: var(--text-primary); cursor: default; pointer-events: none; }
+
+        .breadcrumb-part {
+            cursor: pointer;
+            color: var(--accent-primary);
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .breadcrumb-part:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+
+        .breadcrumb-part.active {
+            color: var(--text-primary);
+            cursor: default;
+            pointer-events: none;
+        }
 
         .drive-empty-state {
             text-align: center;
@@ -114,12 +160,222 @@
             background: var(--bg-glass);
             border-radius: var(--radius);
             margin-top: 20px;
-            border:  2px solid var(--border);
+            border: 2px solid var(--border);
         }
-        .drive-empty-state i { opacity: 0.2; margin-bottom: 24px; }
-        .drive-empty-state div { color: var(--text-muted); font-size: 1.1rem; }
+
+        .drive-empty-state i {
+            opacity: 0.2;
+            margin-bottom: 24px;
+        }
+
+        .text-muted-opacity {
+            opacity: 0.2 !important;
+        }
+
+        .drive-empty-state div {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Utility Classes to eliminate inline styles */
+        .sidebar-hr-premium {
+            border: 0;
+            border-top: 2px solid var(--border);
+            margin: 10px 0;
+            opacity: 0.3;
+        }
+
+        .flex-between-mb12 {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .text-accent-pointer-sm {
+            font-size: 0.7rem;
+            color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .scroll-v-300 {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-bold-9 {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .text-muted-7 {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .flex-gap-12 {
+            display: flex;
+            gap: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .upload-progress-wrapper {
+            margin: 24px 0;
+        }
+
+        .upload-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .upload-bar-track {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 18px;
+        }
+
+        .upload-bar-fill {
+            height: 18px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-green));
+            transition: width 0.2s;
+        }
+
+        .upload-percent-text {
+            min-width: 60px;
+            color: var(--accent-primary);
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+        }
+
+        .cancel-btn-sm {
+            margin-left: 10px;
+            background: var(--accent-secondary);
+            color: #102a96;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .modal-header-premium {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title-premium {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .form-label-premium {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .form-btn-full {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .share-info-box {
+            margin-bottom: 20px;
+            font-weight: 700;
+            color: var(--accent-primary);
+            background: rgba(16, 42, 150, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .active-perms-header {
+            font-size: 0.75rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .active-perms-list {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .preview-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .preview-image-wrap {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 70vh;
+            border: 0;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .preview-text-wrap {
+            background: #ffffff;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            padding: 16px;
+            max-height: 70vh;
+            overflow: auto;
+        }
+
+        .preview-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #111827;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+        }
     </style>
 </head>
+
 <body>
     <canvas id="three-bg"></canvas>
     <div class="toast-container" id="toast-container"></div>
@@ -130,7 +386,7 @@
                 <div class="sidebar-logo">TECH TURF</div>
                 <div class="sidebar-logo-short">TT</div>
             </div>
-            
+
             <nav class="sidebar-menu">
                 <div class="menu-item" data-nav="dashboard.html">
                     <i class="fas fa-th-large"></i>
@@ -164,9 +420,9 @@
                     <i class="fas fa-hdd"></i>
                     <span class="menu-text">Secure Drive</span>
                 </div>
-                
-                <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
-                
+
+                <hr class="sidebar-hr-premium">
+
                 <div class="menu-item admin-only" id="dbadmin-link">
                     <i class="fas fa-database"></i>
                     <span class="menu-text">Database Viewer</span>
@@ -179,13 +435,13 @@
                     <i class="fas fa-money-check-alt"></i>
                     <span class="menu-text">Payments</span>
                 </div>
-                <div class="menu-item admin-only" id="courses-link">
+                <div class="menu-item" id="courses-link">
                     <i class="fas fa-graduation-cap"></i>
                     <span class="menu-text">Learning Hub</span>
                 </div>
-                
-                <hr style="border:0; border-top:2px solid var(--border); margin:10px 0; opacity:0.3;">
-                
+
+                <hr class="sidebar-hr-premium">
+
                 <div class="menu-item" data-nav="profile.html">
                     <i class="fas fa-user-circle"></i>
                     <span class="menu-text">My Profile</span>
@@ -198,8 +454,9 @@
                     <span class="menu-text">Logout</span>
                 </div>
             </div>
-            
-            <button class="sidebar-collapse-btn" id="sidebar-collapse-btn">
+
+            <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse Sidebar"
+                aria-label="Collapse Sidebar">
                 <i class="fas fa-chevron-left"></i>
             </button>
         </aside>
@@ -207,30 +464,33 @@
         <main class="main-content">
             <header class="navbar">
                 <div class="nav-left">
-                    <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+                    <button id="mobile-toggle" class="mobile-hamburger" title="Toggle Menu" aria-label="Toggle Menu"><i
+                            class="fas fa-bars"></i></button>
                     <div class="nav-search">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search files, folders...">
                     </div>
                 </div>
-                
+
                 <div class="nav-actions">
                     <div class="notification-bell" id="notification-bell">
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge" id="notification-badge">0</span>
-                        <div class="notification-dropdown glass-card" id="notification-dropdown" style="display:none; position:absolute; top:40px; right:0; width:320px; padding:16px; z-index:1000;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                                <span style="font-weight:700;">Notifications</span>
-                                <span style="font-size:0.7rem; color:var(--accent-primary); cursor:pointer;" onclick="api.put('/notifications/read-all').then(loadNotifications)">Mark all read</span>
+                        <div class="notification-dropdown glass-card hidden" id="notification-dropdown">
+                            <div class="flex-between-mb12">
+                                <span class="font-bold">Notifications</span>
+                                <span class="text-accent-pointer-sm"
+                                    onclick="api.put('/notifications/read-all').then(loadNotifications)">Mark all
+                                    read</span>
                             </div>
-                            <div id="notification-list" style="max-height:300px; overflow-y:auto;"></div>
+                            <div id="notification-list" class="scroll-v-300"></div>
                         </div>
                     </div>
-                    
+
                     <div class="user-profile-nav" data-nav="profile.html">
-                        <div style="text-align:right;">
-                            <div id="nav-user-name" style="font-weight:700; font-size:0.9rem;">User Name</div>
-                            <div id="nav-user-role" style="font-size:0.7rem; color:var(--text-muted);">Role</div>
+                        <div class="text-right">
+                            <div id="nav-user-name" class="font-bold-9">User Name</div>
+                            <div id="nav-user-role" class="text-muted-7">Role</div>
                         </div>
                         <img id="nav-avatar" class="user-avatar" src="" alt="Avatar">
                     </div>
@@ -242,14 +502,15 @@
                     <div class="breadcrumb">Resources / Secure Core</div>
                     <div class="page-title">DRIVE STORAGE</div>
                 </div>
-                <div class="admin-tl-create" style="display:flex; gap:12px;">
+                <div class="admin-tl-create flex-gap-12">
                     <button class="btn-primary" onclick="document.getElementById('file-upload-input').click()">
                         <i class="fas fa-cloud-upload-alt"></i><span>Upload File</span>
                     </button>
-                    <button class="btn-secondary" onclick="document.getElementById('folder-modal').style.display='flex'">
+                    <button class="btn-secondary"
+                        onclick="document.getElementById('folder-modal').style.display='flex'">
                         <i class="fas fa-folder-plus"></i><span>New Folder</span>
                     </button>
-                    <input type="file" id="file-upload-input" style="display:none" onchange="handleFileUpload(event)">
+                    <input type="file" id="file-upload-input" class="hidden" onchange="handleFileUpload(event)">
                 </div>
             </div>
 
@@ -257,18 +518,20 @@
                 <span class="breadcrumb-part root active" onclick="drive.navigateTo(null)">Root</span>
             </div>
 
-            <div id="drive-empty-state" class="drive-empty-state" style="display:none;">
+            <div id="drive-empty-state" class="drive-empty-state hidden">
                 <i class="fas fa-cloud fa-4x"></i>
                 <div>This folder is empty. Upload files or create folders to begin.</div>
             </div>
 
-            <div id="upload-progress-container" style="display:none; margin: 24px 0;">
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="flex:1; background:var(--bg-secondary); border-radius:8px; overflow:hidden; height:18px;">
-                        <div id="upload-progress-bar" style="height:18px; width:0%; background:linear-gradient(90deg, var(--accent-primary), var(--accent-green)); transition:width 0.2s;"></div>
+            <div id="upload-progress-container" class="upload-progress-wrapper hidden">
+                <div class="upload-bar-container">
+                    <div class="upload-bar-track">
+                        <div id="upload-progress-bar" class="upload-bar-fill">
+                        </div>
                     </div>
-                    <span id="upload-progress-text" style="min-width:60px; color:var(--accent-primary); font-family:var(--font-mono); font-size:0.95rem;">0%</span>
-                    <button id="upload-cancel-btn" type="button" style="margin-left:10px; background:var(--accent-secondary); color:#102a96; border:none; border-radius:6px; padding:4px 16px; font-size:0.9rem; cursor:pointer;">Cancel</button>
+                    <span id="upload-progress-text" class="upload-percent-text">0%</span>
+                    <button id="upload-cancel-btn" type="button" class="cancel-btn-sm" title="Cancel Upload"
+                        aria-label="Cancel Upload">Cancel</button>
                 </div>
             </div>
             <div class="drive-grid" id="drive-items-grid"></div>
@@ -276,47 +539,78 @@
     </div>
 
     <!-- Modals -->
-    <div class="modal" id="folder-modal" onclick="if(event.target===this){this.style.display='none'}" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-        <div class="glass-card modal-content" onclick="event.stopPropagation()" style="max-width:400px; padding:32px;">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                <div class="modal-title" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">CREATE FOLDER</div>
-                <i class="fas fa-times close-modal" style="cursor:pointer;" onclick="document.getElementById('folder-modal').style.display='none'"></i>
+    <div class="modal" id="folder-modal" onclick="if(event.target===this){this.style.display='none'}">
+        <div class="glass-card modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header modal-header-premium">
+                <div class="modal-title modal-title-premium">
+                    CREATE FOLDER</div>
+                <i class="fas fa-times close-modal" title="Close Modal" aria-label="Close Modal"
+                    onclick="document.getElementById('folder-modal').style.display='none'"></i>
             </div>
             <form id="create-folder-form">
                 <div class="form-group">
-                    <label style="display:block; margin-bottom:10px; font-size:0.8rem; color:var(--text-muted); font-weight:700;">FOLDER NAME</label>
-                    <input type="text" class="form-control" id="folder-name" required placeholder="Enter folder name..." style="width:100%;">
+                    <label class="form-label-premium">FOLDER NAME</label>
+                    <input type="text" class="form-control" id="folder-name" required placeholder="Enter folder name..."
+                        title="Folder Name" aria-label="Folder Name">
                 </div>
-                <button type="submit" class="btn-primary" style="width:100%; margin-top:20px;">CREATE FOLDER</button>
+                <button type="submit" class="btn-primary form-btn-full">CREATE FOLDER</button>
             </form>
         </div>
     </div>
 
-    <div class="modal" id="share-modal" onclick="if(event.target===this){this.style.display='none'}" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9000; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-        <div class="glass-card modal-content" onclick="event.stopPropagation()" style="max-width:500px; padding:32px;">
-
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                <div class="modal-title" style="font-family:var(--font-display); font-weight:700; font-size:1.2rem;">SHARE ACCESS</div>
-                <i class="fas fa-times close-modal" style="cursor:pointer;" onclick="document.getElementById('share-modal').style.display='none'"></i>
+    <div class="modal" id="share-modal" onclick="if(event.target===this){this.style.display='none'}">
+        <div class="glass-card modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header modal-header-premium">
+                <div class="modal-title modal-title-premium">
+                    SHARE ACCESS</div>
+                <i class="fas fa-times close-modal" title="Close Modal" aria-label="Close Modal"
+                    onclick="document.getElementById('share-modal').style.display='none'"></i>
             </div>
-            <div id="share-item-info" style="margin-bottom:20px; font-weight:700; color:var(--accent-primary); background:rgba(16, 42, 150, 0.1); padding:12px; border-radius:8px;"></div>
+            <div id="share-item-info" class="share-info-box">
+            </div>
             <form id="share-form">
-                <div class="form-group" style="margin-bottom:15px;">
-                    <label style="display:block; margin-bottom:10px; font-size:0.8rem; color:var(--text-muted); font-weight:700;">EMPLOYEE</label>
-                    <select class="form-control" id="share-user-id" required style="width:100%;"></select>
+                <div class="form-group">
+                    <label class="form-label-premium">EMPLOYEE</label>
+                    <select class="form-control" id="share-user-id" required title="Select Employee"
+                        aria-label="Select Employee"></select>
                 </div>
-                <div class="form-group" style="margin-bottom:20px;">
-                    <label style="display:block; margin-bottom:10px; font-size:0.8rem; color:var(--text-muted); font-weight:700;">ACCESS LEVEL</label>
-                    <select class="form-control" id="share-access-level" style="width:100%;">
+                <div class="form-group">
+                    <label class="form-label-premium">ACCESS LEVEL</label>
+                    <select class="form-control" id="share-access-level" title="Access Level" aria-label="Access Level">
                         <option value="viewer">VIEWER (READ ONLY)</option>
                         <option value="editor">EDITOR (FULL ACCESS)</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-primary" style="width:100%;">GRANT ACCESS</button>
+                <button type="submit" class="btn-primary form-btn-full">GRANT ACCESS</button>
             </form>
-            <hr style="margin:25px 0; opacity:0.1;">
-            <div style="font-size:0.75rem; font-weight:900; margin-bottom:15px; text-transform:uppercase; color:var(--text-muted); letter-spacing:1px;">ACTIVE PERMISSIONS</div>
-            <div id="current-permissions-list" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+            <hr class="share-hr">
+            <div class="active-perms-header">
+                ACTIVE PERMISSIONS</div>
+            <div id="current-permissions-list" class="active-perms-list"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="preview-modal"
+        onclick="if(event.target===this){this.style.display='none'; if(window.drive && drive.closePreviewModal){drive.closePreviewModal();}}">
+        <div class="glass-card modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header modal-header-premium">
+                <div>
+                    <div class="modal-title modal-title-premium" id="preview-modal-title">IMAGE PREVIEW</div>
+                    <div class="text-muted-7" id="preview-modal-meta"></div>
+                </div>
+                <i class="fas fa-times close-modal" title="Close Preview" aria-label="Close Preview"
+                    onclick="document.getElementById('preview-modal').style.display='none'; if(window.drive && drive.closePreviewModal){drive.closePreviewModal();}"></i>
+            </div>
+            <div class="preview-modal-body">
+                <div class="preview-image-wrap" id="preview-modal-image-wrap">
+                    <img id="preview-modal-image" class="preview-image" src="" alt="Secure Drive Preview">
+                </div>
+                <iframe id="preview-modal-frame" class="preview-frame hidden" title="Secure Drive Preview"></iframe>
+                <div class="preview-text-wrap hidden" id="preview-modal-text-wrap">
+                    <div class="preview-text" id="preview-modal-text"></div>
+                </div>
+                <div class="text-muted-7" id="preview-modal-note"></div>
+            </div>
         </div>
     </div>
 
@@ -331,14 +625,14 @@
         document.addEventListener('DOMContentLoaded', async () => {
             auth.requireAuth();
             if (!auth.getUser()) return;
-            
+
             auth.initNavbar();
             initThreeBg();
             initSidebar();
-            
+
             if (window.initDrive) drive.init();
         });
     </script>
 </body>
-</html>
 
+</html>

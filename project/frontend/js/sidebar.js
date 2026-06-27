@@ -111,7 +111,7 @@ function initSidebar() {
             <i class="fas fa-money-check-alt"></i>
             <span class="menu-text">Payments</span>
         </div>
-        <div class="menu-item admin-only" onclick="window.location.href='dashboard.html'" id="courses-link-global">
+        <div class="menu-item" onclick="window.location.href='learning_hub.html'" id="courses-link-global">
             <i class="fas fa-graduation-cap"></i>
             <span class="menu-text">Learning Hub</span>
         </div>

@@ -195,7 +195,7 @@ async function loadTopPerformers() {
                     datasets: [{
                         label: 'Points',
                         data: sorted.map(u => u.points),
-                        backgroundColor: ['#102a96', '#43e97b', '#f9a825', '#e05cff'],
+                        backgroundColor: '#102a96',
                         borderRadius: 8
                     }]
                 },

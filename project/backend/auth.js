@@ -25,12 +25,10 @@ function generateToken(user) {
 }
 function verifyToken(req, res, next) {
   const header = req.headers.authorization;
-
-  if (!header) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  const token = header.startsWith('Bearer ') ? header.split(' ')[1] : null;
+  const queryToken = req.query?.token;
+  const token = header && header.startsWith('Bearer ')
+    ? header.split(' ')[1]
+    : (typeof queryToken === 'string' && queryToken.trim() ? queryToken.trim() : null);
 
   if (!token) {
     return res.status(401).json({ message: 'Invalid authorization header' });

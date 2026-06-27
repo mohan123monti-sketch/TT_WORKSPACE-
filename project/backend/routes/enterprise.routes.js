@@ -398,6 +398,52 @@ router.put('/policies/:key', verifyToken, checkPermission('policies.manage'), (r
   res.json({ message: 'Policy updated' });
 });
 
+router.delete('/policies/:key', verifyToken, checkPermission('policies.manage'), (req, res) => {
+  db.prepare('DELETE FROM policies WHERE key=?').run(req.params.key);
+  res.json({ message: 'Policy key removed' });
+});
+
+
+// --- POLICY DOCUMENTS ---
+router.get('/policy-documents', verifyToken, (req, res) => {
+  const rows = db.prepare(`
+    SELECT pd.*, u.name as author_name 
+    FROM policy_documents pd 
+    LEFT JOIN users u ON u.id = pd.created_by 
+    ORDER BY pd.created_at DESC
+  `).all();
+  res.json(rows);
+});
+
+router.get('/policy-documents/:id', verifyToken, (req, res) => {
+  const row = db.prepare(`
+    SELECT pd.*, u.name as author_name 
+    FROM policy_documents pd 
+    LEFT JOIN users u ON u.id = pd.created_by 
+    WHERE pd.id=?
+  `).get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'Policy not found' });
+  res.json(row);
+});
+
+router.post('/policy-documents', verifyToken, checkPermission('policies.manage'), (req, res) => {
+  const { title, content, references } = req.body;
+  if (!title || !content) return res.status(400).json({ message: 'Title and content required' });
+
+  const result = db.prepare(`
+    INSERT INTO policy_documents(title, content, references_json, created_by)
+    VALUES(?,?,?,?)
+  `).run(title, content, JSON.stringify(references || []), req.user.id);
+
+  res.json({ message: 'Policy document created', id: result.lastInsertRowid });
+});
+
+router.delete('/policy-documents/:id', verifyToken, checkPermission('policies.manage'), (req, res) => {
+  db.prepare('DELETE FROM policy_documents WHERE id=?').run(req.params.id);
+  res.json({ message: 'Policy document deleted' });
+});
+
+
 router.get('/export/:entity', verifyToken, checkRole('admin', 'team_leader'), (req, res) => {
   const map = {
     users: 'SELECT id,name,email,role,secondary_roles,department,branch,site,employment_status,is_active,created_at FROM users',

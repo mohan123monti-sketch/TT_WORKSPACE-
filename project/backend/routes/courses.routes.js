@@ -1,6 +1,28 @@
 const router = require('express').Router();
 const db = require('../db');
 const { verifyToken } = require('../auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const coursesUploadDir = path.join(__dirname, '../../storage/uploads/courses');
+if (!fs.existsSync(coursesUploadDir)) fs.mkdirSync(coursesUploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, coursesUploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase() || '.bin';
+    const safeBase = path.basename(file.originalname || 'course-video').replace(/[^a-zA-Z0-9._-]/g, '_').replace(/\.[^.]+$/, '');
+    cb(null, `${Date.now()}_${safeBase}${ext}`);
+  }
+});
+
+const upload = multer({ storage, limits: { fileSize: 500 * 1024 * 1024 } });
+
+function normalizeVideoPath(file) {
+  if (!file) return '';
+  return `/uploads/courses/${file.filename}`;
+}
 
 // List all courses (optionally filter by team/user/project)
 router.get('/', verifyToken, (req, res) => {
@@ -17,12 +39,20 @@ router.get('/', verifyToken, (req, res) => {
 
 // Add a new course
 router.post('/', verifyToken, (req, res) => {
-  const { title, description, link, access_team, access_user, access_project } = req.body;
-  if (!title || !link) return res.status(400).json({ error: 'Title and link required' });
-  const created_by = req.user?.id || 1;
-  const stmt = db.prepare('INSERT INTO courses (title, description, link, created_by, access_team, access_user, access_project) VALUES (?, ?, ?, ?, ?, ?, ?)');
-  const info = stmt.run(title, description || '', link, created_by, access_team || '', access_user || '', access_project || '');
-  res.json({ id: info.lastInsertRowid });
+  const handleCreate = (req, res) => {
+    const { title, description, link, video_url, access_team, access_user, access_project } = req.body;
+    const video_file = normalizeVideoPath(req.file);
+    if (!title) return res.status(400).json({ message: 'Course title is required' });
+    const created_by = req.user?.id || 1;
+    const stmt = db.prepare('INSERT INTO courses (title, description, link, video_url, video_file, created_by, access_team, access_user, access_project) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    const info = stmt.run(title, description || '', link || '', video_url || '', video_file, created_by, access_team || '', access_user || '', access_project || '');
+    res.json({ id: info.lastInsertRowid });
+  };
+
+  upload.single('video_file')(req, res, (err) => {
+    if (err) return res.status(400).json({ message: err.message });
+    handleCreate(req, res);
+  });
 });
 
 // Delete a course

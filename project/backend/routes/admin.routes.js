@@ -151,29 +151,50 @@ router.delete('/company-roles/:id', verifyToken, checkRole('admin'), (req, res) 
 
 // POST /api/admin/rollback/:id
 router.post('/rollback/:id', verifyToken, checkRole('admin'), (req, res) => {
-  const log = db.prepare('SELECT * FROM audit_log WHERE id=?').get(req.params.id);
-  if (!log) return res.status(404).json({ message: 'Audit entry not found' });
+  const targetLog = db.prepare('SELECT * FROM audit_log WHERE id=?').get(req.params.id);
+  if (!targetLog) return res.status(404).json({ message: 'Audit entry not found' });
+
+  // Get all logs for this specific record that occurred AFTER the target log.
+  // We will undo them in reverse chronological order (newest first).
+  const logsToUndo = db.prepare(`
+    SELECT * FROM audit_log 
+    WHERE table_name=? AND record_id=? AND id > ? 
+    ORDER BY id DESC
+  `).all(targetLog.table_name, targetLog.record_id, targetLog.id);
+
+  // If the target log was a DELETE, the record is currently gone. 
+  // To "restore" at that point, we must UN-DELETE it.
+  if (targetLog.action === 'DELETE') {
+    logsToUndo.push(targetLog);
+  }
 
   try {
-    if (log.action === 'UPDATE' && log.old_data) {
-      const oldData = JSON.parse(log.old_data);
-      const columns = Object.keys(oldData).filter(c => !['id', 'created_at', 'updated_at'].includes(c));
-      const placeholders = columns.map(c => `${c}=?`).join(',');
-      const values = columns.map(c => oldData[c]);
-      db.prepare(`UPDATE ${log.table_name} SET ${placeholders} WHERE id=?`).run(...values, log.record_id);
-    } else if (log.action === 'INSERT') {
-      db.prepare(`DELETE FROM ${log.table_name} WHERE id=?`).run(log.record_id);
-    } else if (log.action === 'DELETE' && log.old_data) {
-      const oldData = JSON.parse(log.old_data);
-      const cols = Object.keys(oldData);
-      const placeholders = cols.map(() => '?').join(',');
-      db.prepare(`INSERT INTO ${log.table_name} (${cols.join(',')}) VALUES (${placeholders})`).run(...cols.map(c => oldData[c]));
-    } else {
-      return res.status(400).json({ message: 'Warp protocol cannot restore this record type (missing metadata)' });
-    }
+    const runRollback = db.transaction(() => {
+      for (const log of logsToUndo) {
+        if (log.action === 'UPDATE' && log.old_data) {
+          const oldData = JSON.parse(log.old_data);
+          const columns = Object.keys(oldData).filter(c => !['id', 'created_at', 'updated_at'].includes(c));
+          const placeholders = columns.map(c => `${c}=?`).join(',');
+          const values = columns.map(c => oldData[c]);
+          db.prepare(`UPDATE ${log.table_name} SET ${placeholders} WHERE id=?`).run(...values, log.record_id);
+        } else if (log.action === 'INSERT') {
+          // Undoing an insert means deleting the record
+          db.prepare(`DELETE FROM ${log.table_name} WHERE id=?`).run(log.record_id);
+        } else if (log.action === 'DELETE' && log.old_data) {
+          // Undoing a delete means re-inserting the previous data
+          const oldData = JSON.parse(log.old_data);
+          const cols = Object.keys(oldData);
+          const placeholders = cols.map(() => '?').join(',');
+          db.prepare(`INSERT INTO ${log.table_name} (${cols.join(',')}) VALUES (${placeholders})`).run(...cols.map(c => oldData[c]));
+        }
+      }
+    });
+
+    runRollback();
 
     db.prepare('INSERT INTO audit_log (user_id, action, table_name, record_id, details) VALUES (?,?,?,?,?)')
-      .run(req.user.id, 'WARP_RESTORE', log.table_name, log.record_id, `Restored record from log #${log.id}`);
+      .run(req.user.id, 'WARP_RESTORE', targetLog.table_name, targetLog.record_id,
+        `Temporal Warp: Record restored to state at Log #${targetLog.id} (Undone ${logsToUndo.length} successors)`);
 
     res.json({ message: 'Temporal Warp successful' });
   } catch (err) {

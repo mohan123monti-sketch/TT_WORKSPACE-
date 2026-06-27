@@ -5,33 +5,41 @@
   --accent-primary: #102A96;
   --accent-secondary: #FF6B00;
   --accent-gradient: linear-gradient(135deg, #102A96 0%, #3B82F6 100%);
-  
+
   /* Aerospace Colors */
   --space-blue: #0B1E6D;
   --tech-blue: #102A96;
   --electric-blue: #3B82F6;
   --orbit-orange: #FF6B00;
   --space-black: #0F172A;
-  
+
   --blue-primary: #102A96;
   --blue-secondary: #3B82F6;
   --orange-light: #FFB066;
 
-  /* Dashboard Feel */
-  --bg-primary: #F8FAFC;
-  --bg-secondary: #0F172A;
-  --bg-card: #FFFFFF;
-  --bg-glass: rgba(255, 255, 255, 0.95);
-  --bg-hover: rgba(16, 42, 150, 0.04);
+  /* Backgrounds */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.8);
+  --bg-hover: rgba(16, 42, 150, 0.05);
 
-  --text-primary: #111827;
-  --text-secondary: #374151;
-  --text-muted: #9ca3af;
+  /* Accents */
+  --accent-primary: #102a96;
+  --accent-secondary: #ff6b00;
+  --accent-green: #22c55e;
+  --accent-orange: #f59e0b;
+  --accent-blue: #3b82f6;
+  --accent-pink: #ec4899;
 
-  /* Borders - Refined & Crisp */
-  --border: rgba(16, 42, 150, 0.12);
-  --border-vivid: rgba(16, 42, 150, 0.65);
-  --border-hover: rgba(16, 42, 150, 0.9);
+  /* Text */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+
+  /* Borders */
+  --border: rgba(16, 42, 150, 0.1);
+  --border-hover: rgba(16, 42, 150, 0.25);
 
   /* Button Colors */
   --btn-blue-hover: #0b1e6d;
@@ -46,8 +54,8 @@
   --status-rejected: #dc2626;
 
   /* Effects - High Elevation */
-  --shadow: 0 25px 60px -12px rgba(16, 42, 150, 0.08);
-  --shadow-glow: 0 0 40px rgba(16, 42, 150, 0.12);
+  --shadow: 0 10px 30px -5px rgba(2, 6, 23, 0.05), 0 4px 6px -4px rgba(2, 6, 23, 0.05);
+  --shadow-glow: 0 0 20px rgba(16, 42, 150, 0.05);
   --radius: 16px;
   --radius-sm: 12px;
   --radius-lg: 24px;
@@ -332,7 +340,7 @@ select {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  z-index: 1;
   pointer-events: none;
 }
 

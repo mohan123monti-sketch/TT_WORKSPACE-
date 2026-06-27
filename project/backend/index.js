@@ -37,13 +37,13 @@ async function startServer() {
 
     const generalLimiter = rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 400,
+        max: 5000, // Increase to 5000
         standardHeaders: true,
         legacyHeaders: false
     });
     const authLimiter = rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 10,
+        max: 100, // Increase to 100 for dev testing
         skipSuccessfulRequests: true
     });
     app.use('/api', generalLimiter);
@@ -165,11 +165,11 @@ async function startServer() {
     });
 
     // --- STATIC FILES ---
-    const uploadsDir = path.join(__dirname, '../uploads');
+    const uploadsDir = path.join(__dirname, '../storage/uploads');
     if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
-    // Serve uploads with 1-day caching
-    app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }));
+    // Serve uploads with no caching so profile pics update immediately
+    app.use('/uploads', express.static(uploadsDir, { maxAge: 0, etag: false }));
 
     // Serve documentation and static UI with 1-hour caching for faster re-loads
     app.use(express.static(path.join(__dirname, '../frontend/public'), {

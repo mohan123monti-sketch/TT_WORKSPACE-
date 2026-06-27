@@ -7,6 +7,7 @@ let zoom = 1;
 // Global Settings State
 let brushColor = '#ffffff';
 let brushSize = 3;
+let gridVisible = true;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('⚡ Tech-Turf Workspace Initializing...');
@@ -74,7 +75,10 @@ function initCanvas() {
                 e.target.set('erasable', true);
                 saveWorkspaceDebounced();
             }
+            syncLayersPanel();
         });
+        canvas.on('object:removed', syncLayersPanel);
+        canvas.on('object:modified', syncLayersPanel);
 
         console.log('✅ Canvas initialized');
     } catch (err) {
@@ -99,8 +103,11 @@ function setupEventListeners() {
     safeListen('tool-rect', 'click', () => setTool('rect'));
     safeListen('tool-circle', 'click', () => setTool('circle'));
     safeListen('tool-text', 'click', () => setTool('text'));
+    safeListen('tool-sticky', 'click', () => setTool('sticky'));
     safeListen('tool-eraser', 'click', () => setTool('eraser'));
     safeListen('tool-image', 'click', () => document.getElementById('image-upload').click());
+    safeListen('grid-toggle', 'click', toggleGrid);
+    safeListen('ctx-lock', 'click', toggleLock);
 
     safeListen('tool-clear', 'click', () => {
         if (confirm('Clear entire canvas?')) {
@@ -175,127 +182,60 @@ function setupEventListeners() {
     safeListen('.fa-microphone', 'click', () => showToast('Nexus Voice command active...', 'info'));
     safeListen('.fa-paperclip', 'click', () => showToast('Attachment system coming soon', 'info'));
 
-    // Shortcuts Panel logic
-    const shortcutsPanel = document.getElementById('shortcuts-panel');
-    const shortcutsTab = document.getElementById('shortcuts-tab');
-    let isDraggingTab = false;
-    let tabStartX = 0;
+    // Unified Sidebar Logic
+    const sidebar = document.getElementById('sidebar-main');
+    const toggleHandle = document.getElementById('sidebar-toggle-handle');
+    const tabs = document.querySelectorAll('.sidebar-tab');
+    const tabContents = document.querySelectorAll('.sidebar-tab-content');
 
-    if (shortcutsTab) {
-        shortcutsTab.addEventListener('mousedown', (e) => {
-            isDraggingTab = false;
-            tabStartX = e.clientX;
-
-            const handleMouseMove = (moveEvent) => {
-                const diff = moveEvent.clientX - tabStartX;
-                if (Math.abs(diff) > 5) {
-                    isDraggingTab = true;
-                    if (diff > 0) shortcutsPanel.classList.add('open');
-                    else shortcutsPanel.classList.remove('open');
-                }
-            };
-
-            const handleMouseUp = () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            };
-
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-        });
-
-        shortcutsTab.addEventListener('click', () => {
-            if (!isDraggingTab) {
-                shortcutsPanel.classList.toggle('open');
-            }
+    if (toggleHandle && sidebar) {
+        toggleHandle.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
         });
     }
 
-    // Nav Panel logic
-    const navPanel = document.getElementById('nav-panel');
-    const navTab = document.getElementById('nav-tab');
-    let isDraggingNavTab = false;
-    let navTabStartX = 0;
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
 
-    if (navTab) {
-        navTab.addEventListener('mousedown', (e) => {
-            isDraggingNavTab = false;
-            navTabStartX = e.clientX;
-
-            const handleNavMouseMove = (moveEvent) => {
-                const diff = moveEvent.clientX - navTabStartX;
-                if (Math.abs(diff) > 5) {
-                    isDraggingNavTab = true;
-                    if (diff > 0) navPanel.classList.add('open');
-                    else navPanel.classList.remove('open');
-                }
-            };
-
-            const handleNavMouseUp = () => {
-                document.removeEventListener('mousemove', handleNavMouseMove);
-                document.removeEventListener('mouseup', handleNavMouseUp);
-            };
-
-            document.addEventListener('mousemove', handleNavMouseMove);
-            document.addEventListener('mouseup', handleNavMouseUp);
-        });
-
-        navTab.addEventListener('click', () => {
-            if (!isDraggingNavTab) {
-                navPanel.classList.toggle('open');
+            // If sidebar is collapsed, open it
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebar.classList.remove('sidebar-collapsed');
             }
-        });
-    }
 
-    // External Quick Links Panel logic
-    const extPanel = document.getElementById('external-panel');
-    const extTab = document.getElementById('external-tab');
-    let isDraggingExtTab = false;
-    let extTabStartX = 0;
+            // Update tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
 
-    if (extTab) {
-        extTab.addEventListener('mousedown', (e) => {
-            isDraggingExtTab = false;
-            extTabStartX = e.clientX;
-
-            const handleExtMouseMove = (moveEvent) => {
-                const diff = moveEvent.clientX - extTabStartX;
-                if (Math.abs(diff) > 5) {
-                    isDraggingExtTab = true;
-                    if (diff > 0) extPanel.classList.add('open');
-                    else extPanel.classList.remove('open');
+            // Update content view
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${target}`) {
+                    content.classList.add('active');
                 }
-            };
-
-            const handleExtMouseUp = () => {
-                document.removeEventListener('mousemove', handleExtMouseMove);
-                document.removeEventListener('mouseup', handleExtMouseUp);
-            };
-
-            document.addEventListener('mousemove', handleExtMouseMove);
-            document.addEventListener('mouseup', handleExtMouseUp);
+            });
         });
+    });
 
-        extTab.addEventListener('click', () => {
-            if (!isDraggingExtTab) {
-                extPanel.classList.toggle('open');
-            }
-        });
-
-        // Setup "Add Link" button globally here since DOM is ready
-        document.getElementById('add-custom-link-btn').addEventListener('click', () => {
-            const name = prompt('Shortcut Name (e.g., ChatGPT):');
+    // Custom Link Listeners
+    const addLinkBtn = document.getElementById('add-custom-link-btn');
+    if (addLinkBtn) {
+        addLinkBtn.addEventListener('click', () => {
+            const name = prompt('Shortcut Name:');
             if (!name) return;
-            const urlRaw = prompt('URL (e.g., https://chat.openai.com):');
+            const urlRaw = prompt('URL:');
             if (!urlRaw) return;
-
             const url = urlRaw.startsWith('http') ? urlRaw : 'https://' + urlRaw;
             addCustomShortcut(name, url);
         });
-
-        // Initialize localStorage Shortcuts
-        renderCustomShortcuts();
     }
+    // Template Listeners
+    document.querySelectorAll('.template-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const type = item.dataset.template;
+            applyTemplate(type);
+        });
+    });
 
     // Global Keyboard Shortcuts for Drawing
     document.addEventListener('keydown', (e) => {
@@ -711,21 +651,47 @@ function createShape(opt) {
             shape = new fabric.Circle({ ...commonProps, radius: 50 });
             break;
         case 'text':
-            shape = new fabric.Textbox('', {
+            shape = new fabric.Textbox('Type something...', {
                 left: pointer.x,
                 top: pointer.y - 15,
-                width: 350,
-                padding: 16,
+                width: 300,
+                padding: 10,
                 fill: brushColor,
                 fontFamily: 'Rajdhani',
-                fontSize: 18,
-                backgroundColor: 'rgba(20, 20, 20, 0.85)',
-                stroke: 'transparent',
-                splitByGrapheme: false,
-                editingBorderColor: 'rgba(255, 255, 255, 0.4)',
+                fontSize: 22,
+                backgroundColor: 'rgba(5, 5, 10, 0.7)',
+                cornerColor: '#102a96',
+                cornerSize: 10,
                 transparentCorners: false,
-                cornerColor: 'rgba(255, 255, 255, 0.8)',
-                cornerSize: 8
+                borderColor: '#102a96',
+                editingBorderColor: '#102a96',
+                erasable: true
+            });
+            break;
+        case 'sticky':
+            shape = new fabric.Textbox('New Note', {
+                left: pointer.x,
+                top: pointer.y - 15,
+                width: 180,
+                height: 180,
+                padding: 20,
+                fill: '#000000',
+                fontFamily: 'Rajdhani',
+                fontSize: 18,
+                backgroundColor: '#ffff88',
+                textAlign: 'center',
+                cornerColor: '#102a96',
+                cornerSize: 8,
+                transparentCorners: false,
+                borderColor: '#102a96',
+                editingBorderColor: '#102a96',
+                erasable: true,
+                shadow: new fabric.Shadow({
+                    color: 'rgba(0,0,0,0.3)',
+                    blur: 15,
+                    offsetX: 5,
+                    offsetY: 5
+                })
             });
             break;
     }
@@ -931,4 +897,191 @@ function removeCustomShortcut(index) {
     links.splice(index, 1);
     saveCustomShortcuts(links);
     renderCustomShortcuts();
+}
+
+// ------ New Feature Logic ------
+
+function toggleGrid() {
+    gridVisible = !gridVisible;
+    const container = document.querySelector('.workspace-container');
+    if (gridVisible) {
+        container.style.backgroundImage = `
+            radial-gradient(circle at 50% 50%, rgba(16, 42, 150, 0.05) 0%, transparent 50%),
+            radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px)`;
+    } else {
+        container.style.backgroundImage = 'none';
+    }
+    showToast(`Grid ${gridVisible ? 'Enabled' : 'Disabled'}`, 'info');
+}
+
+function toggleLock() {
+    const activeObj = canvas.getActiveObject();
+    if (!activeObj) return;
+
+    const isLocked = !activeObj.lockMovementX;
+    activeObj.set({
+        lockMovementX: isLocked,
+        lockMovementY: isLocked,
+        lockScalingX: isLocked,
+        lockScalingY: isLocked,
+        lockRotation: isLocked,
+        hasControls: !isLocked
+    });
+
+    const icon = document.querySelector('#ctx-lock i');
+    if (icon) {
+        icon.className = isLocked ? 'fas fa-unlock' : 'fas fa-lock';
+    }
+
+    canvas.renderAll();
+    syncLayersPanel();
+    showToast(`Object ${isLocked ? 'Locked' : 'Unlocked'}`, 'info');
+}
+
+function syncLayersPanel() {
+    const list = document.getElementById('layers-list');
+    if (!list) return;
+
+    const objects = canvas.getObjects().filter(o => o.type !== 'path'); // Skip free drawing paths for simplicity
+
+    if (objects.length === 0) {
+        list.innerHTML = '<div class="no-layers">No objects on canvas</div>';
+        return;
+    }
+
+    list.innerHTML = '';
+    // Reverse to show top-most at top of list
+    [...objects].reverse().forEach((obj, idx) => {
+        const item = document.createElement('div');
+        item.className = 'layer-item';
+        if (canvas.getActiveObject() === obj) item.classList.add('active');
+
+        const typeIcon = getLayerIcon(obj.type);
+        const name = obj.type.charAt(0).toUpperCase() + obj.type.slice(1);
+
+        item.innerHTML = `
+            <div class="layer-icon"><i class="fas ${typeIcon}"></i></div>
+            <div class="layer-name">${name} ${objects.length - idx}</div>
+            <div class="layer-actions">
+                <i class="fas ${obj.lockMovementX ? 'fa-lock' : 'fa-unlock'} layer-action-btn toggle-lock" title="Lock/Unlock"></i>
+                <i class="fas ${obj.visible ? 'fa-eye' : 'fa-eye-slash'} layer-action-btn toggle-visibility" title="Show/Hide"></i>
+                <i class="fas fa-trash layer-action-btn delete-layer" title="Delete"></i>
+            </div>
+        `;
+
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('layer-action-btn')) return;
+            canvas.setActiveObject(obj);
+            canvas.renderAll();
+            syncLayersPanel();
+        });
+
+        item.querySelector('.toggle-lock').addEventListener('click', () => {
+            const l = !obj.lockMovementX;
+            obj.set({
+                lockMovementX: l, lockMovementY: l,
+                lockScalingX: l, lockScalingY: l,
+                lockRotation: l, hasControls: !l
+            });
+            canvas.renderAll();
+            syncLayersPanel();
+        });
+
+        item.querySelector('.toggle-visibility').addEventListener('click', () => {
+            obj.set('visible', !obj.visible);
+            canvas.renderAll();
+            syncLayersPanel();
+        });
+
+        item.querySelector('.delete-layer').addEventListener('click', () => {
+            canvas.remove(obj);
+            canvas.renderAll();
+            syncLayersPanel();
+        });
+
+        list.appendChild(item);
+    });
+}
+
+function getLayerIcon(type) {
+    switch (type) {
+        case 'image': return 'fa-image';
+        case 'textbox': return 'fa-font';
+        case 'rect': return 'fa-square';
+        case 'circle': return 'fa-circle';
+        case 'sticky': return 'fa-note-sticky';
+        default: return 'fa-shapes';
+    }
+}
+
+function applyTemplate(type) {
+    if (!confirm('This will clear the current canvas. Continue?')) return;
+    canvas.clear();
+
+    switch (type) {
+        case 'brainstorm':
+            const centerText = new fabric.Textbox('CORE IDEA', {
+                left: canvas.width / 2, top: canvas.height / 2,
+                originX: 'center', originY: 'center',
+                backgroundColor: '#102a96', fill: '#fff', padding: 20, fontSize: 30, borderRadius: 10
+            });
+            canvas.add(centerText);
+
+            const radius = 250;
+            const themes = ['User Needs', 'Market Trends', 'Feasibility', 'Innovation'];
+            themes.forEach((t, i) => {
+                const angle = (i / themes.length) * Math.PI * 2;
+                const x = (canvas.width / 2) + Math.cos(angle) * radius;
+                const y = (canvas.height / 2) + Math.sin(angle) * radius;
+
+                const note = new fabric.Textbox(t, {
+                    left: x, top: y, originX: 'center', originY: 'center',
+                    backgroundColor: '#ffff88', fill: '#000', padding: 15, fontSize: 18, shadow: 'rgba(0,0,0,0.2) 5px 5px 10px'
+                });
+                canvas.add(note);
+            });
+            break;
+
+        case 'kanban':
+            const cols = ['TO DO', 'IN PROGRESS', 'DONE'];
+            const w = canvas.width / 4;
+            cols.forEach((col, i) => {
+                const rect = new fabric.Rect({
+                    left: (i + 1) * w - w / 2, top: 100,
+                    width: w - 40, height: canvas.height - 200,
+                    fill: 'rgba(255,255,255,0.05)', stroke: '#102a96', strokeWidth: 2, rx: 10, ry: 10
+                });
+                const head = new fabric.Textbox(col, {
+                    left: (i + 1) * w - w / 2, top: 60,
+                    originX: 'center', fill: '#102a96', fontWeight: 'bold', fontSize: 24
+                });
+                canvas.add(rect, head);
+            });
+            break;
+
+        case 'flowchart':
+            const start = new fabric.Circle({
+                left: canvas.width / 2, top: 100, radius: 40,
+                fill: '#2ecc71', originX: 'center'
+            });
+            const startText = new fabric.Text('START', {
+                left: canvas.width / 2, top: 110, originX: 'center', fill: '#fff', fontSize: 14
+            });
+
+            const step1 = new fabric.Rect({
+                left: canvas.width / 2, top: 250, width: 150, height: 60,
+                fill: '#102a96', originX: 'center', rx: 5, ry: 5
+            });
+            const step1Text = new fabric.Textbox('PROCESS 1', {
+                left: canvas.width / 2, top: 265, originX: 'center', fill: '#fff', fontSize: 16, textAlign: 'center', width: 140
+            });
+
+            canvas.add(start, startText, step1, step1Text);
+            break;
+    }
+
+    canvas.renderAll();
+    saveWorkspace();
+    syncLayersPanel();
+    showToast(`Template '${type}' applied`, 'success');
 }

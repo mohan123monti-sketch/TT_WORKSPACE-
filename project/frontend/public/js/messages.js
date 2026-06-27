@@ -180,7 +180,7 @@ function renderPeopleList(filter = '') {
           <div class="select-name">${escapeHtml(user.name)}</div>
           <div class="select-subtitle">${escapeHtml(user.email)} • ${escapeHtml(String(user.role).replace(/_/g, ' '))}</div>
         </div>
-        <div class="badge ${active ? 'badge-approved' : 'badge-normal'}" style="font-size:0.58rem;">${active ? 'Selected' : 'Add'}</div>
+        <button type="button" class="select-action text" onclick="event.stopPropagation(); startDirectMessage(${user.id})">Text</button>
       </div>
     `;
   }).join('');
@@ -280,6 +280,24 @@ window.selectTeamChat = function(teamId) {
   renderSelectedSummary();
   const search = document.getElementById('user-search')?.value.trim().toLowerCase() || '';
   renderPeopleList(search);
+};
+
+window.startDirectMessage = async function(userId) {
+  const user = messageUsers.find(item => Number(item.id) === Number(userId));
+  if (!user) return;
+
+  try {
+    const response = await api.post('/messages/conversations', {
+      participant_ids: [Number(user.id)],
+      is_group: false
+    });
+    await loadConversations();
+    if (response.conversation?.id) {
+      await openConversation(response.conversation.id);
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
 };
 
 async function startConversationFromSelection() {

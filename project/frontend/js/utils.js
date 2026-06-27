@@ -189,25 +189,6 @@ function initSharedToolForms() {
     });
   }
 
-  const coursesForm = document.getElementById('courses-add-form');
-  if (coursesForm && !coursesForm.dataset.bound) {
-    coursesForm.dataset.bound = 'true';
-    coursesForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        await api.post('/courses', {
-          title: document.getElementById('course-title')?.value,
-          link: document.getElementById('course-link')?.value
-        });
-        showToast('Course added', 'success');
-        coursesForm.reset();
-        const link = document.getElementById('courses-link');
-        if (link) link.click();
-      } catch (err) {
-        showToast(err.message || 'Failed to add course', 'error');
-      }
-    });
-  }
 }
 
 window.escapeHtml = escapeHtml;
@@ -261,15 +242,34 @@ async function loadSharedCourses() {
       list.innerHTML = '<p class="text-muted">No courses found.</p>';
       return;
     }
-    list.innerHTML = data.map(c => `
-      <div class="glass-card" style="margin-bottom:10px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-weight:700;">${c.title}</div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">${c.description || ''}</div>
+    list.innerHTML = data.map(c => {
+      const previewUrl = safeUrl(c.video_url || '');
+      const courseUrl = safeUrl(c.link || '');
+      const videoFrame = previewUrl ? `
+        <div style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid var(--border); background:#000;">
+          <iframe
+            src="${previewUrl}"
+            title="${escapeHtml(c.title)} preview"
+            style="width:100%; aspect-ratio:16/9; border:0;"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
         </div>
-        <a href="${c.link}" target="_blank" class="btn-secondary" style="padding:5px 15px;">Open</a>
+      ` : '';
+
+      return `
+      <div class="glass-card" style="margin-bottom:10px; padding:15px;">
+        <div style="display:flex; justify-content:space-between; gap:14px; align-items:flex-start;">
+          <div style="min-width:0;">
+            <div style="font-weight:700;">${escapeHtml(c.title)}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${escapeHtml(c.description || '')}</div>
+          </div>
+          <a href="${courseUrl}" target="_blank" rel="noopener" class="btn-secondary" style="padding:5px 15px; white-space:nowrap;">Open Link</a>
+        </div>
+        ${videoFrame}
       </div>
-    `).join('');
+    `;
+    }).join('');
   } catch (err) {
     list.innerHTML = '<p class="text-danger">Failed to load courses.</p>';
   }
@@ -278,8 +278,7 @@ async function loadSharedCourses() {
 function initSharedToolLinks() {
   const linkConfigs = [
     { id: 'tickets-link', loader: loadSharedTickets },
-    { id: 'payments-link', loader: loadSharedPayments },
-    { id: 'courses-link', loader: loadSharedCourses }
+    { id: 'payments-link', loader: loadSharedPayments }
   ];
 
   linkConfigs.forEach(({ id, loader }) => {

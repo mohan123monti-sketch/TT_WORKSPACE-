@@ -11,7 +11,9 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
     .policy-layout {
       display: grid;
@@ -29,13 +31,13 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 560px;
+      max-height: 400px;
       overflow: auto;
       padding-right: 4px;
     }
 
     .policy-row {
-      border:  2px solid var(--border);
+      border: 2px solid var(--border);
       background: var(--bg-glass);
       border-radius: 10px;
       padding: 12px;
@@ -66,10 +68,6 @@
       align-items: center;
     }
 
-    .policy-actions input {
-      flex: 1;
-    }
-
     .toggle-grid {
       display: grid;
       gap: 10px;
@@ -80,17 +78,178 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      border:  2px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: 10px;
       padding: 12px;
       background: var(--bg-glass);
     }
 
-    .toggle-item small {
-      display: block;
+    /* Policy Docs Section */
+    .doc-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .doc-item {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .doc-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .doc-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: var(--accent-secondary);
+      margin-bottom: 4px;
+    }
+
+    .doc-preview {
+      font-size: 0.75rem;
       color: var(--text-muted);
-      margin-top: 2px;
-      font-size: 0.68rem;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* Reference List Builder */
+    .ref-builder {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .ref-item {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .ref-item input {
+      font-size: 0.7rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 2px solid var(--accent-primary);
+      width: 90%;
+      max-width: 800px;
+      max-height: 85vh;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 30px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+
+    .modal-ref-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--accent-primary);
+      color: #fff;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.75rem;
+      margin: 4px;
+    }
+
+    /* UI Layout Classes (Removal of Inline Styles) */
+    .policy-col {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .sync-loader {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .card-title-mb16 {
+      margin-bottom: 16px;
+    }
+
+    .card-title-mb14 {
+      margin-bottom: 14px;
+    }
+
+    .full-width-mt20 {
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .full-width-mt16 {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .textarea-resizable {
+      resize: vertical;
+    }
+
+    .btn-xs {
+      font-size: 0.65rem;
+      padding: 4px 8px;
+    }
+
+    .modal-title-style {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .modal-content-text {
+      white-space: pre-wrap;
+      margin-bottom: 24px;
+    }
+
+    .modal-ref-header {
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
     }
 
     @media (max-width: 1024px) {
@@ -109,7 +268,6 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-logo">TECH TURF</div>
-        <div class="sidebar-logo-short">TT</div>
       </div>
       <nav class="sidebar-menu" id="main-sidebar-nav"></nav>
       <div class="sidebar-footer">
@@ -118,66 +276,94 @@
           <span class="menu-text">Logout</span>
         </div>
       </div>
-      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Expand/Collapse Sidebar">
-        <i class="fas fa-chevron-left"></i>
-      </button>
     </aside>
 
     <main class="main-content">
       <header class="navbar">
         <div class="nav-left">
-          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle sidebar"><i class="fas fa-bars"></i></button>
-          <div class="page-title" style="font-size:1.1rem;">POLICY CENTER</div>
+          <button id="mobile-toggle" class="mobile-hamburger" title="Toggle sidebar"><i
+              class="fas fa-bars"></i></button>
+          <div class="page-title">POLICY CENTER</div>
         </div>
         <div class="nav-actions" id="nav-actions-container"></div>
       </header>
 
       <div class="page-header">
         <div>
-          <div class="breadcrumb">Admin / Enterprise</div>
-          <div class="page-title">POLICY CENTER</div>
+          <div class="breadcrumb">Admin / Enterprise / Protocols</div>
+          <div class="page-title">ENTERPRISE POLICY CENTER</div>
         </div>
       </div>
 
       <div class="policy-layout">
-        <div class="glass-card policy-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px;">
-            <div>
-              <div style="font-family:var(--font-display); font-size:1rem;">POLICY REGISTRY</div>
-              <div style="font-size:0.75rem; color:var(--text-muted);">Edit existing policy values and save instantly.</div>
+        <!-- Left: Policy Documents (The text entries) -->
+        <div class="policy-col">
+          <div class="glass-card policy-card anim-fade-up">
+            <div class="card-header-row">
+              <div class="card-title">POLICY DOCUMENTS</div>
+              <i class="fas fa-file-contract icon-primary"></i>
             </div>
-            <button class="btn-secondary" id="refresh-policies-btn"><i class="fas fa-rotate"></i><span>Refresh</span></button>
+            <div class="doc-list" id="doc-list">
+              <!-- Docs rendered here -->
+              <div class="sync-loader">Syncing documentation...</div>
+            </div>
           </div>
-          <div class="policy-list" id="policy-list"></div>
+
+          <div class="glass-card policy-card anim-fade-up">
+            <div class="card-title card-title-mb16">WALKTHROUGH CONFIGURATION</div>
+            <div class="toggle-grid" id="walkthrough-toggle-grid"></div>
+            <button class="btn-secondary full-width-mt20" id="save-walkthrough-toggles">
+              <i class="fas fa-sync"></i> Update Globally
+            </button>
+          </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:20px;">
-          <div class="glass-card policy-card">
-            <div style="font-family:var(--font-display); margin-bottom:14px;">ADD OR UPDATE POLICY</div>
-            <form id="policy-form">
+        <!-- Right: Creation and Registry -->
+        <div class="policy-col">
+          <div class="glass-card policy-card anim-fade-up">
+            <div class="card-title card-title-mb14">PUBLISH NEW POLICY</div>
+            <form id="doc-form">
               <div class="form-group">
-                <label>Policy Key</label>
-                <input id="policy-key" class="form-control" placeholder="walkthrough.enabled" required>
+                <label>Title</label>
+                <input id="doc-title" class="form-control" placeholder="e.g. Remote Work Protocol" required>
               </div>
               <div class="form-group">
-                <label>Policy Value</label>
-                <input id="policy-value" class="form-control" placeholder="true / false / value" required>
+                <label>Content</label>
+                <textarea id="doc-content" class="form-control textarea-resizable" rows="8"
+                  placeholder="Enter policy text..." required></textarea>
               </div>
-              <button class="btn-primary" type="submit" style="width:100%;"><i class="fas fa-floppy-disk"></i><span>Save Policy</span></button>
+              <label>References (Optional)</label>
+              <div class="ref-builder">
+                <div id="ref-items-container">
+                  <div class="ref-item">
+                    <input class="form-control ref-label" placeholder="Label">
+                    <input class="form-control ref-url" placeholder="URL">
+                  </div>
+                </div>
+                <button type="button" class="btn-secondary btn-xs" onclick="addRefRow()">+ Add Reference</button>
+              </div>
+              <button class="btn-primary full-width-mt16" type="submit"><i class="fas fa-paper-plane"></i> Publish
+                Document</button>
             </form>
-          </div>
-
-          <div class="glass-card policy-card">
-            <div style="font-family:var(--font-display); margin-bottom:10px;">WALKTHROUGH GLOBAL TOGGLES</div>
-            <div class="toggle-grid" id="walkthrough-toggle-grid"></div>
-            <button class="btn-secondary" id="save-walkthrough-toggles" style="width:100%; margin-top:14px;">
-              <i class="fas fa-toggle-on"></i>
-              <span>Save Walkthrough Toggles</span>
-            </button>
           </div>
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Policy View Modal -->
+  <div id="doc-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div id="modal-title" class="modal-title-style"></div>
+        <button class="btn-secondary" onclick="closeDocModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-content" class="modal-content-text"></div>
+        <div class="modal-ref-header">References & Links</div>
+        <div id="modal-refs"></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>

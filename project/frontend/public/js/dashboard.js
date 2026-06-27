@@ -71,7 +71,7 @@ async function loadMyTasks() {
                 <div class="empty-state">
                     <i class="fas fa-tasks"></i>
                     <div class="empty-title">No active tasks</div>
-                    <div class="empty-action"><button class="btn-primary" onclick="window.location.href='tasks.html'">View All Tasks</button></div>
+                    <div class="empty-action"><button class="btn-primary" onclick="loadPage('tasks.html')">View All Tasks</button></div>
                 </div>
             `;
             return;
@@ -100,7 +100,7 @@ async function loadProjectProgress() {
                 <div class="empty-state">
                     <i class="fas fa-project-diagram"></i>
                     <div class="empty-title">No active projects</div>
-                    <div class="empty-action"><button class="btn-primary" onclick="window.location.href='projects.html'">View Projects</button></div>
+                    <div class="empty-action"><button class="btn-primary" onclick="loadPage('projects.html')">View Projects</button></div>
                 </div>
             `;
             return;
@@ -135,7 +135,7 @@ async function loadNexusLatest() {
                 <div class="empty-state">
                     <i class="fas fa-file-upload"></i>
                     <div class="empty-title">No submissions yet</div>
-                    <div class="empty-action"><button class="btn-primary" onclick="window.location.href='submissions.html'">Submit Work</button></div>
+                    <div class="empty-action"><button class="btn-primary" onclick="loadPage('submissions.html')">Submit Work</button></div>
                 </div>
             `;
             return;
@@ -179,7 +179,7 @@ async function loadDriveFiles() {
                 <div class="empty-state">
                     <i class="fas fa-folder-open"></i>
                     <div class="empty-title">No drive files</div>
-                    <div class="empty-action"><button class="btn-primary" onclick="window.location.href='drive.html'">Open Drive</button></div>
+                    <div class="empty-action"><button class="btn-primary" onclick="loadPage('drive.html')">Open Drive</button></div>
                 </div>
             `;
             return;
@@ -249,7 +249,7 @@ async function loadTopPerformers() {
                     datasets: [{
                         label: 'Points',
                         data: sorted.map(u => u.points),
-                        backgroundColor: ['#ffffff', '#43e97b', '#f9a825', '#e05cff'],
+                        backgroundColor: '#102a96',
                         borderRadius: 8
                     }]
                 },
@@ -521,7 +521,7 @@ async function loadRoleHub() {
                     <div style="font-size:0.85rem; color:var(--text-secondary); max-width:600px;">${hub.desc}</div>
                 </div>
             </div>
-            <button class="btn-primary" style="background:${hub.color}; box-shadow:0 8px 30px ${hub.color}44;" onclick="window.location.href='${hub.url}'">
+            <button class="btn-primary" style="background:${hub.color}; box-shadow:0 8px 30px ${hub.color}44;" onclick="loadPage('${hub.url}')">
                 GO TO WORKSPACE <i class="fas fa-arrow-right" style="margin-left:8px;"></i>
             </button>
         </div>

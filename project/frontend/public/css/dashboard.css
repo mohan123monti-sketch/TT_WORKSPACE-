@@ -2,16 +2,19 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: transparent;
+  position: relative;
+  z-index: 2;
 }
 
 .sidebar {
   width: 260px;
   min-width: 260px;
-  background: #0f172a;
+  background: #eef2f7;
+  /* Grey surface so white pills stand out */
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+  border-right: 1px solid #d1daf0;
+  box-shadow: 4px 0 20px rgba(16, 42, 150, 0.06);
   display: flex;
   flex-direction: column;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -26,34 +29,54 @@
 
 
 
-/* Default Light Scrollbar for main content */
+/* Role-Based Visibility (Prevent Flicker) */
+.admin-only,
+.tl-only,
+.rnd-only,
+.writer-only,
+.designer-only,
+.media-only,
+.creator-only,
+.handler-only,
+.admin-tl-only,
+.admin-tl-create,
+.task-create-only,
+.project-create-only,
+.announce-manage-only {
+  display: none;
+  /* Removed !important to allow JS toggling */
+}
+
+/* These will be toggled by auth.initNavbar() */
+
+/* Global Light Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(16, 42, 150, 0.1);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(16, 42, 150, 0.2);
 }
 
-/* Dark Scrollbar explicitly for Sidebar */
+/* Global Light Scrollbar explicitly for Sidebar */
 .sidebar ::-webkit-scrollbar-track,
 .sidebar::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--bg-card);
 }
 
 .sidebar ::-webkit-scrollbar-thumb,
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(16, 42, 150, 0.05);
 }
 
 .sidebar ::-webkit-scrollbar-thumb:hover,
@@ -66,26 +89,28 @@
   min-width: 68px;
 }
 
+/* Sidebar Header Unified */
+
+
 .sidebar-header {
-  padding: 24px;
+  padding: 24px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  overflow: hidden;
-  background: #0f172a;
-  flex-shrink: 0;
-  position: relative;
-  z-index: 1;
+  justify-content: space-between;
+  background: #eef2f7;
+  /* Match sidebar surface */
+  border-bottom: 1px solid #d1daf0;
+  margin-bottom: 0;
 }
 
 .sidebar-logo {
-  font-family: var(--font-display);
+  font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 1.5rem;
-  color: #ffffff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
-  transition: 0.3s;
+  letter-spacing: -0.02em;
+  font-size: 1.6rem;
+  color: #102a96;
+  /* Tech primary blue logo */
+  text-transform: uppercase;
 }
 
 .sidebar-header:hover .sidebar-logo {
@@ -111,64 +136,122 @@
 
 .sidebar-menu {
   flex: 1;
-  padding: 20px 12px;
+  padding: 12px 10px 20px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #0f172a;
+  background: transparent;
+  /* Sidebar itself is #eef2f7 grey */
+  /* Clearly grey so white cells stand out */
 }
 
-/* All menu items inside sidebar — cover ALL states */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-section-title {
+  margin: 4px 10px 0;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+.sidebar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 0 2px;
+}
+
+/* All menu items inside sidebar — CELL style */
 .sidebar .menu-item,
 .sidebar a.menu-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 12px;
+  padding: 10px 14px;
   border-radius: 10px;
-  color: #94a3b8 !important;
-  transition: background 0.2s, color 0.2s;
+  color: var(--text-secondary) !important;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
   cursor: pointer;
   white-space: nowrap;
-  background: transparent;
-  border-left: 3px solid transparent;
   text-decoration: none;
+  /* Visible white cell on grey surface */
+  background: #ffffff !important;
+  border: 1px solid #d1daf0;
+  box-shadow: 0 1px 4px rgba(16, 42, 150, 0.07);
+  margin: 0;
 }
 
 .sidebar .menu-item i,
 .sidebar a.menu-item i {
-  color: #64748b !important;
+  color: var(--text-muted) !important;
   width: 20px;
   text-align: center;
   font-size: 1rem;
   flex-shrink: 0;
-  transition: color 0.2s;
+  transition: color 0.15s;
+}
+
+.sidebar .menu-item .menu-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 .sidebar .menu-item:hover,
 .sidebar a.menu-item:hover {
-  background: rgba(255, 255, 255, 0.07) !important;
-  color: #e2e8f0 !important;
+  background: rgba(16, 42, 150, 0.06) !important;
+  color: #102a96 !important;
+  border-color: rgba(16, 42, 150, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(16, 42, 150, 0.08) !important;
 }
 
 .sidebar .menu-item:hover i,
 .sidebar a.menu-item:hover i {
-  color: #e2e8f0 !important;
+  color: #102a96 !important;
 }
 
+/* --- ACTIVE PILL: Solid Premium Blue Cell --- */
 .sidebar .menu-item.active,
 .sidebar a.menu-item.active {
-  background: rgba(255, 107, 0, 0.12) !important;
+  transition: all 0.2s ease;
+  border-radius: 10px !important;
+  background: #102a96 !important;
   color: #ffffff !important;
-  border-left: 3px solid #ff6b00 !important;
+  border-color: #102a96 !important;
+  box-shadow: 0 4px 16px rgba(16, 42, 150, 0.25);
+}
+
+.sidebar .menu-item.nav-pill-orange:not(.active),
+.sidebar a.menu-item.nav-pill-orange:not(.active) {
+  background: rgba(255, 107, 0, 0.08) !important;
+  border-color: rgba(255, 107, 0, 0.18) !important;
 }
 
 .sidebar .menu-item.active i,
-.sidebar a.menu-item.active i {
+.sidebar a.menu-item.active i,
+.sidebar .menu-item.active span,
+.sidebar a.menu-item.active span {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Orange accent pill for Admin Warp */
+.sidebar .menu-item.nav-pill-orange:not(.active) i,
+.sidebar a.menu-item.nav-pill-orange:not(.active) i {
   color: #ff6b00 !important;
 }
+
+/* CSS fixed */
 
 /* Collapsed sidebar */
 .sidebar.collapsed .menu-text {
@@ -182,15 +265,15 @@
 
 .sidebar-footer {
   padding: 16px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #0f172a;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
   flex-shrink: 0;
 }
 
 .sidebar-divider {
   border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-  margin: 8px 0;
+  border-top: 1px solid rgba(16, 42, 150, 0.08) !important;
+  margin: 12px 0;
 }
 
 .main-content {
@@ -208,17 +291,17 @@
 
 .navbar {
   height: 70px;
-  background: #ffffff;
-  border: none;
-  border-bottom: 2px solid var(--border);
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  margin: 0 0 10px 0;
-  border-radius: 0;
+  margin: 0;
   z-index: 90;
 }
 
@@ -569,4 +652,4 @@
     padding-left: 12px !important;
     padding-right: 12px !important;
   }
-}
+}

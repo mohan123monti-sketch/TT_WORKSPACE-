@@ -8,6 +8,7 @@ const walkthroughPolicyConfig = [
 ];
 
 let policyCache = [];
+let docCache = [];
 
 function normalizeBooleanLike(value) {
   const raw = String(value ?? '').trim().toLowerCase();
@@ -23,6 +24,81 @@ async function upsertPolicy(policyKey, value) {
   await api.put(`/enterprise/policies/${encodeURIComponent(policyKey)}`, { value: String(value ?? '') });
 }
 
+// ── Policy Documents (Structured Text) ───────────────────────────────────
+
+function renderDocList() {
+  const list = document.getElementById('doc-list');
+  if (!list) return;
+
+  if (docCache.length === 0) {
+    list.innerHTML = `
+      <div style="padding:40px; text-align:center; opacity:0.5;">
+        <i class="fas fa-ghost" style="font-size:2rem; margin-bottom:12px;"></i>
+        <p>No policy documents published yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = docCache.map(doc => `
+    <div class="doc-item anim-fade-up" onclick="viewDoc(${doc.id})">
+      <div class="doc-title">${doc.title}</div>
+      <div class="doc-preview">${doc.content}</div>
+      <div style="font-size:0.65rem; color:var(--text-muted); margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <span>Published by ${doc.author_name || 'Admin'}</span>
+        <span>${timeAgo(doc.created_at)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.viewDoc = async function (id) {
+  try {
+    const doc = await api.get(`/enterprise/policy-documents/${id}`);
+    const modal = document.getElementById('doc-modal');
+    const title = document.getElementById('modal-title');
+    const content = document.getElementById('modal-content');
+    const refs = document.getElementById('modal-refs');
+
+    title.innerText = doc.title;
+    content.innerText = doc.content;
+
+    let references = [];
+    try { references = JSON.parse(doc.references_json || '[]'); } catch (e) { }
+
+    if (references.length > 0) {
+      refs.innerHTML = references.map(r => `
+        <a href="${r.url}" target="_blank" class="modal-ref-link">
+          <i class="fas fa-external-link-alt"></i> ${r.label}
+        </a>
+      `).join('');
+    } else {
+      refs.innerHTML = '<div style="font-size:0.75rem; opacity:0.5;">No references provided.</div>';
+    }
+
+    modal.style.display = 'flex';
+  } catch (err) {
+    showToast('Failed to load document details', 'error');
+  }
+}
+
+window.closeDocModal = function () {
+  document.getElementById('doc-modal').style.display = 'none';
+}
+
+window.addRefRow = function () {
+  const container = document.getElementById('ref-items-container');
+  const div = document.createElement('div');
+  div.className = 'ref-item';
+  div.innerHTML = `
+    <input class="form-control ref-label" placeholder="Label">
+    <input class="form-control ref-url" placeholder="URL">
+  `;
+  container.appendChild(div);
+}
+
+// ── Registry & Toggles ───────────────────────────────────────────────────
+
 function renderWalkthroughToggles() {
   const wrap = document.getElementById('walkthrough-toggle-grid');
   if (!wrap) return;
@@ -37,90 +113,53 @@ function renderWalkthroughToggles() {
   `).join('');
 }
 
-function renderPolicyList() {
-  const list = document.getElementById('policy-list');
-  if (!list) return;
-
-  if (!policyCache.length) {
-    list.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><div class="empty-title">No policies found</div><div>Create your first policy using the form.</div></div>';
-    return;
-  }
-
-  list.innerHTML = policyCache.map(row => `
-    <div class="policy-row">
-      <div class="policy-row-top">
-        <div>
-          <div class="policy-key">${row.key}</div>
-          <div class="policy-meta">Updated by: ${row.updated_by || 'n/a'} | ${timeAgo(row.updated_at)}</div>
-        </div>
-      </div>
-      <div class="policy-actions">
-        <input class="form-control" id="policy-inline-${row.id}" value="${String(row.value ?? '').replace(/"/g, '&quot;')}">
-        <button class="btn-secondary" style="padding:10px 14px;" onclick="saveInlinePolicy('${String(row.key).replace(/'/g, "\\'")}', ${row.id})">
-          <i class="fas fa-floppy-disk"></i>
-        </button>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function loadPolicies() {
-  const list = document.getElementById('policy-list');
-  if (list) list.innerHTML = '<div style="padding:20px; color:var(--text-muted);">Loading policies...</div>';
-
+async function loadData() {
   try {
-    const rows = await api.get('/enterprise/policies');
-    policyCache = Array.isArray(rows) ? rows : [];
-    renderPolicyList();
+    const [policies, docs] = await Promise.all([
+      api.get('/enterprise/policies'),
+      api.get('/enterprise/policy-documents')
+    ]);
+    policyCache = Array.isArray(policies) ? policies : [];
+    docCache = Array.isArray(docs) ? docs : [];
     renderWalkthroughToggles();
+    renderDocList();
   } catch (err) {
-    if (list) list.innerHTML = '<div class="empty-state"><i class="fas fa-triangle-exclamation"></i><div class="empty-title">Failed to load policies</div></div>';
-    showToast(err.message || 'Failed to load policies', 'error');
+    showToast('Failed to sync policy data', 'error');
   }
 }
 
-window.saveInlinePolicy = async function saveInlinePolicy(policyKey, rowId) {
-  const input = document.getElementById(`policy-inline-${rowId}`);
-  if (!input) return;
-  try {
-    await upsertPolicy(policyKey, input.value);
-    showToast('Policy updated', 'success');
-    await loadPolicies();
-  } catch (err) {
-    showToast(err.message || 'Failed to update policy', 'error');
-  }
-};
-
-async function bindPolicyForm() {
-  const form = document.getElementById('policy-form');
+async function bindEvents() {
+  const docForm = document.getElementById('doc-form');
   const saveTogglesBtn = document.getElementById('save-walkthrough-toggles');
-  const refreshBtn = document.getElementById('refresh-policies-btn');
 
-  if (refreshBtn && !refreshBtn.dataset.bound) {
-    refreshBtn.dataset.bound = 'true';
-    refreshBtn.onclick = () => loadPolicies();
-  }
+  if (docForm && !docForm.dataset.bound) {
+    docForm.dataset.bound = 'true';
+    docForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('doc-title').value;
+      const content = document.getElementById('doc-content').value;
 
-  if (form && !form.dataset.bound) {
-    form.dataset.bound = 'true';
-    form.onsubmit = async (event) => {
-      event.preventDefault();
-      const key = document.getElementById('policy-key')?.value?.trim();
-      const value = document.getElementById('policy-value')?.value ?? '';
-      if (!key) {
-        showToast('Policy key is required', 'error');
-        return;
-      }
+      const refRows = Array.from(document.querySelectorAll('.ref-item'));
+      const references = refRows.map(row => ({
+        label: row.querySelector('.ref-label').value.trim(),
+        url: row.querySelector('.ref-url').value.trim()
+      })).filter(r => r.label && r.url);
 
       try {
-        await upsertPolicy(key, value);
-        showToast('Policy saved', 'success');
-        form.reset();
-        await loadPolicies();
+        await api.post('/enterprise/policy-documents', { title, content, references });
+        showToast('Policy published', 'success');
+        docForm.reset();
+        document.getElementById('ref-items-container').innerHTML = `
+          <div class="ref-item">
+            <input class="form-control ref-label" placeholder="Label">
+            <input class="form-control ref-url" placeholder="URL">
+          </div>
+        `;
+        await loadData();
       } catch (err) {
-        showToast(err.message || 'Failed to save policy', 'error');
+        showToast('Failed to publish document', 'error');
       }
-    };
+    }
   }
 
   if (saveTogglesBtn && !saveTogglesBtn.dataset.bound) {
@@ -129,18 +168,18 @@ async function bindPolicyForm() {
       const checkboxes = Array.from(document.querySelectorAll('#walkthrough-toggle-grid input[type="checkbox"]'));
       try {
         await Promise.all(checkboxes.map(cb => upsertPolicy(cb.dataset.key, cb.checked ? 'true' : 'false')));
-        showToast('Walkthrough toggles updated', 'success');
-        await loadPolicies();
+        showToast('Global switches updated', 'success');
+        await loadData();
       } catch (err) {
-        showToast(err.message || 'Failed to save walkthrough toggles', 'error');
+        showToast('Failed to save switches', 'error');
       }
     };
   }
 }
 
 async function initPolicyCenter() {
-  await bindPolicyForm();
-  await loadPolicies();
+  await bindEvents();
+  await loadData();
 }
 
 window.initPolicyCenter = initPolicyCenter;

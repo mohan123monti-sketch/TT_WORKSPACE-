@@ -70,7 +70,7 @@ const auth = {
 
     const toggleVisibility = (selector, ...roles) => {
       document.querySelectorAll(selector).forEach(el => {
-        el.style.display = this.hasRole(...roles) ? '' : 'none';
+        el.style.display = this.hasRole(...roles) ? 'flex' : 'none';
       });
     };
 

@@ -65,6 +65,151 @@
       font-weight: 700;
       color: var(--accent-primary);
     }
+
+    .users-admin-grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      gap: 24px;
+      padding: 0 24px 24px;
+      align-items: start;
+    }
+
+    .users-role-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .role-accordion {
+      margin-bottom: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: border-color 0.25s;
+    }
+
+    .role-accordion.active {
+      border-color: var(--accent-primary);
+    }
+
+    .role-acc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 4px solid var(--accent-primary);
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .role-acc-header:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .role-acc-name {
+      font-weight: 900;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .role-acc-count {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .role-acc-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .role-acc-icon {
+      opacity: 0.3;
+      font-size: 0.9rem;
+    }
+
+    .role-acc-chevron {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+
+    .role-acc-chevron.rotated {
+      transform: rotate(180deg);
+    }
+
+    .role-acc-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.2s;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .role-acc-body.open {
+      max-height: 500px;
+    }
+
+    .role-acc-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .role-acc-user:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .role-acc-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0.7rem;
+      font-family: var(--font-display);
+      flex-shrink: 0;
+    }
+
+    .role-acc-uname {
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .role-acc-email {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .role-acc-empty {
+      padding: 14px 16px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 1100px) {
+      .users-admin-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -186,20 +331,30 @@
         <button class="btn-primary" onclick="openModal('add-user-modal')"><i class="fas fa-user-plus"></i><span>Add User</span></button>
       </div>
 
-      <div class="users-table-wrap">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Role</th>
-              <th>Points</th>
-              <th>Badge</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="users-list-body"></tbody>
-        </table>
+      <div class="users-admin-grid">
+        <div class="glass-card dash-card anim-fade-up users-role-panel">
+          <div class="card-header-row">
+            <div class="card-title">ROLE ARCHITECT</div>
+            <i class="fas fa-crown icon-primary"></i>
+          </div>
+          <div id="role-list"></div>
+        </div>
+
+        <div class="users-table-wrap" style="padding:0;">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Points</th>
+                <th>Badge</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-list-body"></tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>

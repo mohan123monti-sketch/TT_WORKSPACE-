@@ -4,10 +4,12 @@ const db = require('../db');
 const { verifyToken } = require('../auth');
 const { validateId, validateString } = require('../validators');
 
-// Get all whiteboards
+// Get all whiteboards for current user
 router.get('/', verifyToken, (req, res) => {
     try {
-        const rows = db.prepare('SELECT id, title, created_at, updated_at, last_preview_base64 FROM whiteboards ORDER BY updated_at DESC').all();
+        const rows = db.prepare(
+            'SELECT id, title, created_at, updated_at, last_preview_base64 FROM whiteboards WHERE created_by = ? ORDER BY updated_at DESC'
+        ).all(req.user.id);
         res.json(rows);
     } catch (e) {
         console.error('Whiteboard list error:', e);
@@ -22,6 +24,9 @@ router.get('/:id', verifyToken, (req, res) => {
         if (!idVal.valid) return res.status(400).json({ error: idVal.error });
         const row = db.prepare('SELECT * FROM whiteboards WHERE id = ?').get(idVal.value);
         if (!row) return res.status(404).json({ error: 'Whiteboard not found' });
+        if (row.created_by !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Access denied' });
+        }
         res.json(row);
     } catch (e) {
         console.error('Whiteboard fetch error:', e);
@@ -41,7 +46,10 @@ router.post('/save', verifyToken, (req, res) => {
         if (id) {
             const idVal = validateId(id, 'Whiteboard ID');
             if (!idVal.valid) return res.status(400).json({ error: idVal.error });
-            // Update
+            const existing = db.prepare('SELECT created_by FROM whiteboards WHERE id = ?').get(idVal.value);
+            if (existing && existing.created_by !== created_by && req.user.role !== 'admin') {
+                return res.status(403).json({ error: 'Access denied' });
+            }
             db.prepare('UPDATE whiteboards SET project_id = ?, title = ?, content_json = ?, last_preview_base64 = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
                 .run(project_id || null, titleVal.value, content_json, last_preview_base64, idVal.value);
             res.json({ success: true, id: idVal.value });

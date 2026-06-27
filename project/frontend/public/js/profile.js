@@ -1,13 +1,31 @@
 async function initProfile() {
+  setupAvatarFallbacks();
   bindProfileEditForm();
   loadProfileData();
 }
 
+function setupAvatarFallbacks() {
+  const setInitials = (id, name) => {
+    const el = document.getElementById(id);
+    if (el) {
+      const initials = String(name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+      el.textContent = initials;
+    }
+  };
+
+  const name = auth.getUser()?.name || 'User';
+  setInitials('nav-initials', name);
+  setInitials('profile-initials', name);
+  setInitials('preview-initials', name);
+}
+
 function getAvatarUrl(user, size = 120) {
-  if (user && user.avatar && String(user.avatar).trim() !== '') {
+  if (user && user.avatar && String(user.avatar).trim() !== '' && user.avatar !== 'null') {
+    // If it's a relative path, ensure it has a leading slash or handle appropriately
     return user.avatar;
   }
-  return getInitialsAvatar(user.name || 'U', size);
+  const name = (user && user.name) ? user.name : 'User';
+  return getInitialsAvatar(name, size);
 }
 
 function bindProfileEditForm() {
@@ -20,32 +38,19 @@ function bindProfileEditForm() {
     avatarInput.addEventListener('change', () => {
       const file = avatarInput.files && avatarInput.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        avatarPreview.src = reader.result;
-        avatarPreview.alt = '';
+
+      const previewUrl = URL.createObjectURL(file);
+      avatarPreview.src = previewUrl;
+      avatarPreview.alt = 'Profile Preview';
+
+      avatarPreview.onload = () => {
+        if (avatarPreview.dataset.prevUrl) {
+          URL.revokeObjectURL(avatarPreview.dataset.prevUrl);
+        }
+        avatarPreview.dataset.prevUrl = previewUrl;
+        avatarPreview.classList.add('loaded'); // Make it visible via CSS
       };
-      reader.readAsDataURL(file);
     });
-    // Add onerror fallback for broken images
-    avatarPreview.onerror = function() {
-      this.src = '';
-      this.alt = 'Preview unavailable';
-      this.style.background = '#222';
-      this.style.color = '#102a96';
-      this.style.display = 'flex';
-      this.style.alignItems = 'center';
-      this.style.justifyContent = 'center';
-      this.style.fontSize = '0.8rem';
-    };
-    avatarPreview.onload = function() {
-      this.style.background = '';
-      this.style.color = '';
-      this.style.display = '';
-      this.style.alignItems = '';
-      this.style.justifyContent = '';
-      this.style.fontSize = '';
-    };
   }
 
   form.onsubmit = async (e) => {
@@ -87,19 +92,29 @@ async function loadProfileData() {
     const user = await api.get('/auth/me');
     const perf = await api.get(`/users/${user.id}/performance`);
     const allUsers = await api.get('/users');
-    
+
     // Sidebar info
-    document.getElementById('profile-avatar').src = getAvatarUrl(user, 120);
+    const profileAvatarEl = document.getElementById('profile-avatar');
+    if (profileAvatarEl) {
+      profileAvatarEl.onload = () => profileAvatarEl.classList.add('loaded');
+      profileAvatarEl.src = getAvatarUrl(user, 120);
+    }
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-email').textContent = user.email;
     document.getElementById('profile-points').textContent = user.points;
     document.getElementById('profile-role-badge').innerHTML = `<div class="badge" style="background:rgba(16,42,150,0.1); color:var(--accent-primary); border:2px solid var(--accent-primary)44;">${formatRole(user.role)}</div>`;
 
     const navAvatar = document.getElementById('nav-avatar');
-    if (navAvatar) navAvatar.src = getAvatarUrl(user, 40);
+    if (navAvatar) {
+      navAvatar.onload = () => navAvatar.classList.add('loaded');
+      navAvatar.src = getAvatarUrl(user, 40);
+    }
 
     const avatarPreview = document.getElementById('profile-avatar-preview');
-    if (avatarPreview) avatarPreview.src = getAvatarUrl(user, 64);
+    if (avatarPreview) {
+      avatarPreview.onload = () => avatarPreview.classList.add('loaded');
+      avatarPreview.src = getAvatarUrl(user, 64);
+    }
 
     const nameInput = document.getElementById('edit-profile-name');
     const mobileInput = document.getElementById('edit-profile-mobile');
@@ -109,7 +124,7 @@ async function loadProfileData() {
     if (mobileInput) mobileInput.value = user.mobile || '';
     if (githubInput) githubInput.value = user.github_link || '';
     if (bioInput) bioInput.value = user.bio || '';
-    
+
     if (user.badge) {
       document.getElementById('profile-badge-display').innerHTML = `
         <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Active Badge</div>
@@ -121,7 +136,7 @@ async function loadProfileData() {
     document.getElementById('stat-total').textContent = perf.stats.total || 0;
     document.getElementById('stat-approved').textContent = perf.stats.approved || 0;
     document.getElementById('stat-avg').textContent = Math.round(perf.stats.avg_score || 0);
-    
+
     const sorted = allUsers.sort((a, b) => b.points - a.points);
     const rank = sorted.findIndex(u => u.id === user.id) + 1;
     document.getElementById('stat-rank').textContent = `#${rank}`;

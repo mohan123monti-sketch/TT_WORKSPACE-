@@ -33,7 +33,7 @@ function makeDraggableModal(modal) {
   function onMouseDown(e) {
     // Ignore clicks on close buttons or form elements
     if (e.target.closest('.close-modal') || e.target.tagName === 'BUTTON' ||
-        e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
 
     e.preventDefault();
     isDragging = true;
@@ -172,6 +172,7 @@ function closeModal(id) {
     document.body.style.overflow = '';
   }
 }
+
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -201,18 +202,31 @@ function showToast(message, type = 'info') {
   setTimeout(removeToast, 3500);
 }
 
-function getInitialsAvatar(name, size = 40) {
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-  const colors = ['#ffffff', '#ff6584', '#43e97b', '#f9a825', '#38b2f5', '#e05cff', '#ff9f43', '#00d2ff'];
-  const color = colors[name.charCodeAt(0) % colors.length];
+function getInitialsAvatar(name, size = 120) {
+  const initials = String(name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+  const colors = ['102a96', 'ff6584', '43e97b', 'f9a825', '38b2f5', 'e05cff', 'ff9f43', '00d2ff'];
+  const color = colors[String(name || 'U').charCodeAt(0) % colors.length];
 
-  const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="${color}" />
-      <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-family="Orbitron" font-size="${size * 0.4}" font-weight="700">${initials}</text>
-    </svg>
-  `;
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+
+    ctx.fillStyle = '#' + color;
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${size * 0.4}px "Orbitron", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(initials, size / 2, size / 2);
+
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    // Ultimate fallback: Cloud avatar service
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${color}&color=fff&size=${size}&font-size=0.4&bold=true`;
+  }
 }
 
 function formatDate(dateStr) {
@@ -259,14 +273,32 @@ function getRoleColor(role) {
   return map[role] || '#8888aa';
 }
 
-// (openModal and closeModal defined above — these duplicate definitions are removed)
-
 function debounce(fn, delay = 300) {
   let timeout;
   return (...args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn(...args), delay);
   };
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function safeUrl(url) {
+  if (!url) return '#';
+  try {
+    const u = new URL(url, window.location.href);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return url;
+  } catch { }
+  if (url.startsWith('/')) return url;
+  return '#';
 }
 
 function initSharedToolForms() {
@@ -309,26 +341,6 @@ function initSharedToolForms() {
         if (link) link.click();
       } catch (err) {
         showToast(err.message || 'Failed to record payment', 'error');
-      }
-    });
-  }
-
-  const coursesForm = document.getElementById('courses-add-form');
-  if (coursesForm && !coursesForm.dataset.bound) {
-    coursesForm.dataset.bound = 'true';
-    coursesForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        await api.post('/courses', {
-          title: document.getElementById('course-title')?.value,
-          link: document.getElementById('course-link')?.value
-        });
-        showToast('Course added', 'success');
-        coursesForm.reset();
-        const link = document.getElementById('courses-link');
-        if (link) link.click();
-      } catch (err) {
-        showToast(err.message || 'Failed to add course', 'error');
       }
     });
   }
@@ -382,15 +394,34 @@ async function loadSharedCourses() {
       list.innerHTML = '<p class="text-muted">No courses found.</p>';
       return;
     }
-    list.innerHTML = data.map(c => `
-      <div class="glass-card" style="margin-bottom:10px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-weight:700;">${c.title}</div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">${c.description || ''}</div>
+    list.innerHTML = data.map(c => {
+      const previewUrl = safeUrl(c.video_url || '');
+      const courseUrl = safeUrl(c.link || '');
+      const videoFrame = previewUrl && previewUrl !== '#' ? `
+        <div style="margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid var(--border); background:#000;">
+          <iframe
+            src="${previewUrl}"
+            title="${escapeHtml(c.title)} preview"
+            style="width:100%; aspect-ratio:16/9; border:0;"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+          </iframe>
         </div>
-        <a href="${c.link}" target="_blank" class="btn-secondary" style="padding:5px 15px;">Open</a>
+      ` : '';
+
+      return `
+      <div class="glass-card" style="margin-bottom:10px; padding:15px;">
+        <div style="display:flex; justify-content:space-between; gap:14px; align-items:flex-start;">
+          <div style="min-width:0;">
+            <div style="font-weight:700;">${escapeHtml(c.title)}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${escapeHtml(c.description || '')}</div>
+          </div>
+          ${courseUrl && courseUrl !== '#' ? `<a href="${courseUrl}" target="_blank" rel="noopener" class="btn-secondary" style="padding:5px 15px; white-space:nowrap;">Open Link</a>` : ''}
+        </div>
+        ${videoFrame}
       </div>
-    `).join('');
+    `;
+    }).join('');
   } catch (err) {
     list.innerHTML = '<p class="text-danger">Failed to load courses.</p>';
   }
@@ -399,8 +430,7 @@ async function loadSharedCourses() {
 function initSharedToolLinks() {
   const linkConfigs = [
     { id: 'tickets-link', loader: loadSharedTickets },
-    { id: 'payments-link', loader: loadSharedPayments },
-    { id: 'courses-link', loader: loadSharedCourses }
+    { id: 'payments-link', loader: loadSharedPayments }
   ];
 
   linkConfigs.forEach(({ id, loader }) => {
@@ -422,6 +452,8 @@ window.getRoleColor = getRoleColor;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.debounce = debounce;
+window.escapeHtml = escapeHtml;
+window.safeUrl = safeUrl;
 
 document.addEventListener('DOMContentLoaded', () => {
   initSharedToolForms();

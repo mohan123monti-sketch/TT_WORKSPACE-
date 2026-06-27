@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Turf | Learning Hub</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .hub-grid{display:grid;grid-template-columns:minmax(320px,380px) 1fr;gap:24px;padding:0 24px 24px;align-items:start;}
+    .hub-card,.hub-list-card{background:var(--bg-glass);border:1px solid var(--border);border-radius:18px;backdrop-filter:blur(14px);}
+    .hub-card{padding:20px;}
+    .hub-list-card{padding:18px;}
+    .hub-title{font-family:var(--font-display);font-size:1.15rem;font-weight:800;letter-spacing:.5px;margin:0 0 8px;}
+    .hub-sub{color:var(--text-muted);font-size:.82rem;line-height:1.4;margin-bottom:18px;}
+    .hub-form{display:flex;flex-direction:column;gap:10px;}
+    .hub-form .form-control,.hub-form .form-input{width:100%;}
+    .hub-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+    .course-card{padding:16px;border-radius:16px;border:1px solid var(--border);background:rgba(255,255,255,.04);}
+    .course-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+    .course-name{font-family:var(--font-display);font-weight:800;font-size:1rem;line-height:1.2;}
+    .course-desc{margin-top:6px;color:var(--text-muted);font-size:.82rem;line-height:1.45;}
+    .course-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    .course-video{margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#000;}
+    .course-video video,.course-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000;}
+    .empty-state-soft{padding:22px;border:1px dashed var(--border);border-radius:16px;color:var(--text-muted);text-align:center;}
+    @media(max-width:960px){.hub-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <canvas id="three-bg"></canvas>
+  <div class="toast-container" id="toast-container"></div>
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">TECH TURF</div>
+        <div class="sidebar-logo-short">TT</div>
+      </div>
+      <nav class="sidebar-menu"></nav>
+      <div class="sidebar-footer">
+        <div class="menu-item" id="logout-btn"><i class="fas fa-sign-out-alt"></i><span class="menu-text">Logout</span></div>
+      </div>
+      <button class="sidebar-collapse-btn" id="sidebar-collapse-btn"><i class="fas fa-chevron-left"></i></button>
+    </aside>
+    <main class="main-content">
+      <header class="navbar">
+        <div class="nav-left">
+          <button id="mobile-toggle" class="mobile-hamburger"><i class="fas fa-bars"></i></button>
+          <div class="nav-search"><i class="fas fa-search"></i><input type="text" id="hub-search" placeholder="Search courses..."></div>
+        </div>
+        <div class="nav-actions">
+          <div class="user-profile-nav" onclick="window.location.href='profile.html'">
+            <div style="text-align:right;">
+              <div id="nav-user-name" style="font-weight:700;font-size:0.9rem;">User Name</div>
+              <div id="nav-user-role" style="font-size:0.7rem;color:var(--text-muted);">Role</div>
+            </div>
+            <img id="nav-avatar" class="user-avatar" src="" alt="Avatar">
+          </div>
+        </div>
+      </header>
+      <div class="page-header">
+        <div>
+          <div class="breadcrumb">Knowledge / Learning Hub</div>
+          <div class="page-title">LEARNING HUB</div>
+        </div>
+      </div>
+      <div class="hub-grid">
+        <section class="hub-card anim-fade-up">
+          <div class="hub-title">Add a course</div>
+          <div class="hub-sub">Upload a video file, add a short description, and include a reference link if needed.</div>
+          <form id="learning-hub-form" class="hub-form">
+            <input id="course-title" class="form-control" type="text" placeholder="Course title" required>
+            <textarea id="course-description" class="form-control" rows="4" placeholder="Description"></textarea>
+            <input id="course-link" class="form-control" type="url" placeholder="Reference link (optional)">
+            <input id="course-video-file" class="form-control" type="file" accept="video/*">
+            <button class="btn-primary" type="submit">Publish Course</button>
+          </form>
+        </section>
+        <section class="hub-list-card anim-fade-up">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;">
+            <div>
+              <div class="hub-title" style="margin-bottom:4px;">Course Library</div>
+              <div class="hub-sub" style="margin:0;">Browse the latest training materials and watch previews inline.</div>
+            </div>
+          </div>
+          <div id="courses-list" class="hub-list"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/three-bg.js" defer></script>
+  <script src="js/sidebar.js" defer></script>
+  <script>
+    async function loadCourses() {
+      const list = document.getElementById('courses-list');
+      if (!list) return;
+      const query = document.getElementById('hub-search')?.value?.trim().toLowerCase() || '';
+      const items = await api.get('/courses');
+      const filtered = (items || []).filter(course => {
+        const haystack = `${course.title || ''} ${course.description || ''}`.toLowerCase();
+        return !query || haystack.includes(query);
+      });
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-state-soft">No courses found.</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(course => {
+        const fileSrc = course.video_file || '';
+        const previewSrc = course.video_url || '';
+        const media = fileSrc ? `<video controls preload="metadata" src="${fileSrc}"></video>` : previewSrc ? `<iframe src="${previewSrc}" allowfullscreen></iframe>` : '';
+        return `
+          <article class="course-card">
+            <div class="course-head">
+              <div style="min-width:0;">
+                <div class="course-name">${escapeHtml(course.title || '')}</div>
+                <div class="course-desc">${escapeHtml(course.description || 'No description provided.')}</div>
+              </div>
+            </div>
+            <div class="course-actions">
+              ${course.link ? `<a class="btn-secondary" href="${safeUrl(course.link)}" target="_blank" rel="noopener">Open Link</a>` : ''}
+            </div>
+            ${media ? `<div class="course-video">${media}</div>` : '<div class="empty-state-soft" style="margin-top:14px;">No video attached.</div>'}
+          </article>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      auth.requireAuth();
+      auth.initNavbar();
+      initThreeBg();
+      initSidebar();
+      await loadCourses();
+
+      const form = document.getElementById('learning-hub-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('title', document.getElementById('course-title').value);
+        formData.append('description', document.getElementById('course-description').value);
+        formData.append('link', document.getElementById('course-link').value);
+        const file = document.getElementById('course-video-file').files[0];
+        if (file) formData.append('video_file', file);
+        try {
+          await api.upload('/courses', formData);
+          showToast('Course published', 'success');
+          form.reset();
+          loadCourses();
+        } catch (err) {
+          showToast(err.message || 'Failed to publish course', 'error');
+        }
+      });
+
+      document.getElementById('hub-search').addEventListener('input', debounce(loadCourses, 200));
+    });
+  </script>
+</body>
+</html>

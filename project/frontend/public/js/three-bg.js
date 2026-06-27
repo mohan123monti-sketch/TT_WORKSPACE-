@@ -15,7 +15,7 @@ function initThreeBg() {
 
   // Starfield
   const starGeometry = new THREE.BufferGeometry();
-  const starMaterial = new THREE.PointsMaterial({ color: 0x102a96, size: 0.5, transparent: true, opacity: 0.2 });
+  const starMaterial = new THREE.PointsMaterial({ color: 0x102a96, size: 0.5, transparent: true, opacity: 0.1 });
   const starVertices = [];
   for (let i = 0; i < 2500; i++) {
     const x = (Math.random() - 0.5) * 2000;
@@ -42,9 +42,9 @@ function initThreeBg() {
       color: brandColor,
       wireframe: true,
       transparent: true,
-      opacity: Math.random() * 0.05 + 0.02,
+      opacity: Math.random() * 0.03 + 0.01,
       emissive: brandColor,
-      emissiveIntensity: 0.1
+      emissiveIntensity: 0.05
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(

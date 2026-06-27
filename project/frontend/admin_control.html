@@ -180,120 +180,9 @@
       gap: 8px;
     }
 
-    /* Link Notes Widget */
-    .link-notes-input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .link-notes-input-row input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text-primary);
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .link-notes-input-row input:focus {
-      border-color: var(--accent-primary);
-    }
-
-    .link-notes-add-btn {
-      background: var(--accent-primary);
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      color: #fff;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: opacity 0.2s;
-      white-space: nowrap;
-    }
-
-    .link-notes-add-btn:hover {
-      opacity: 0.8;
-    }
-
-    .link-notes-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 220px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .link-note-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 9px 12px;
-      transition: background 0.2s;
-    }
-
-    .link-note-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    .link-note-icon {
-      color: var(--accent-pink);
-      font-size: 0.75rem;
-      flex-shrink: 0;
-    }
-
-    .link-note-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      flex-shrink: 0;
-      min-width: 60px;
-    }
-
-    .link-note-url {
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      color: var(--accent-primary);
-      text-decoration: none;
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .link-note-url:hover {
-      text-decoration: underline;
-    }
-
-    .link-note-del {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: color 0.2s;
-      flex-shrink: 0;
-    }
-
-    .link-note-del:hover {
-      color: var(--accent-orange);
-    }
-
-    .link-notes-empty {
-      text-align: center;
+    .relic-empty {
       padding: 24px;
+      text-align: center;
       color: var(--text-muted);
       font-size: 0.75rem;
       font-family: var(--font-mono);
@@ -417,24 +306,12 @@
         <div class="right-col">
           <div class="glass-card dash-card anim-fade-up">
             <div class="card-header-row--sm">
-              <div class="card-title">LINK NOTES</div>
-              <i class="fas fa-link icon-pink"></i>
+              <div class="card-title">WARP RELICS</div>
+              <i class="fas fa-microchip icon-primary"></i>
             </div>
-            <div class="link-notes-input-row">
-              <input type="text" id="link-note-label" placeholder="Label" class="label-input-sm" />
-              <input type="url" id="link-note-url" placeholder="https://..." />
-              <button class="link-notes-add-btn" onclick="addLinkNote()" title="Add link" aria-label="Add link"><i
-                  class="fas fa-plus"></i></button>
+            <div class="relic-empty">
+              <p>No active relics detected in current temporal sector.</p>
             </div>
-            <div class="link-notes-list" id="link-notes-list"></div>
-          </div>
-
-          <div class="glass-card dash-card anim-fade-up">
-            <div class="card-header-row">
-              <div class="card-title">ROLE ARCHITECT</div>
-              <i class="fas fa-crown icon-primary"></i>
-            </div>
-            <div id="role-list"></div>
           </div>
         </div>
       </div>
