@@ -126,7 +126,7 @@ function initSidebar() {
             <i class="fas fa-ticket-alt"></i>
             <span class="menu-text">Tickets</span>
         </div>
-        <div class="menu-item admin-only" onclick="window.location.href='dashboard.html'" id="payments-link-global">
+        <div class="menu-item admin-only" onclick="window.location.href='dashboard.html?view=payments'" id="payments-link-global">
             <i class="fas fa-money-check-alt"></i>
             <span class="menu-text">Payments</span>
         </div>
@@ -210,7 +210,7 @@ function initSidebar() {
   }, true);
 
   // Handle browser back/forward
-  window.onpopstate = () => loadPage(window.location.pathname);
+  window.onpopstate = () => loadPage(window.location.pathname + window.location.search);
 
   loadNotifications();
   setInterval(loadNotifications, 30000);
