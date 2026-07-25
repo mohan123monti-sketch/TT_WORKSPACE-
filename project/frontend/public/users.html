@@ -211,13 +211,13 @@
         <div class="modal-title">ADD NEW USER</div>
         <i class="fas fa-times close-modal" onclick="closeModal('add-user-modal')"></i>
       </div>
-      <form id="add-user-form">
-        <div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="user-name" required></div>
-        <div class="form-group"><label>Email Address</label><input type="email" class="form-control" id="user-email" required></div>
-        <div class="form-group"><label>Initial Password</label><input type="password" class="form-control" id="user-password" required></div>
+      <form id="add-user-form" method="POST" action="#">
+        <div class="form-group"><label for="user-name">Full Name</label><input type="text" class="form-control" id="user-name" name="name" autocomplete="name" required></div>
+        <div class="form-group"><label for="user-email">Email Address</label><input type="email" class="form-control" id="user-email" name="email" autocomplete="username" required></div>
+        <div class="form-group"><label for="user-password">Initial Password</label><input type="password" class="form-control" id="user-password" name="password" autocomplete="new-password" required></div>
         <div class="form-group">
-          <label>Primary Role</label>
-          <select class="form-control" id="user-role" required>
+          <label for="user-role">Primary Role</label>
+          <select class="form-control" id="user-role" name="role" required>
             <option value="writer">Content Writer</option>
             <option value="designer">Designer</option>
             <option value="team_leader">Team Leader</option>
@@ -233,8 +233,8 @@
           </select>
         </div>
         <div class="form-group" style="margin-top: 12px;">
-          <label>Secondary Roles <span style="font-size:0.7rem; color:var(--text-muted);">(Hold Ctrl/Cmd to select multiple)</span></label>
-          <select class="form-control" id="user-secondary-roles" multiple style="height: 100px;">
+          <label for="user-secondary-roles">Secondary Roles <span style="font-size:0.7rem; color:var(--text-muted);">(Hold Ctrl/Cmd to select multiple)</span></label>
+          <select class="form-control" id="user-secondary-roles" name="secondary_roles" multiple style="height: 100px;">
             <option value="writer">Content Writer</option>
             <option value="designer">Designer</option>
             <option value="team_leader">Team Leader</option>

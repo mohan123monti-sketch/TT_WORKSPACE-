@@ -5,7 +5,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "node backend/index.js",
-    "dev": "node backend/index.js"
+    "dev": "node backend/index.js",
+    "build": "tsc -p frontend/tsconfig.json && vite build --config frontend/vite.config.ts frontend",
+    "typecheck": "tsc -p frontend/tsconfig.json"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

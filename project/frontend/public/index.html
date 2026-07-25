@@ -164,28 +164,28 @@
       <div class="login-logo">TECH TURF</div>
       <div class="login-subtitle">Internal Platform</div>
 
-      <form class="login-form" id="login-form">
+      <form class="login-form" id="login-form" method="POST" action="#">
         <div class="input-group">
-          <label>Email Address</label>
+          <label for="email">Email Address</label>
           <div class="input-wrap">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="email" placeholder="name@techturf.com" required>
+            <input type="email" id="email" name="email" placeholder="name@techturf.com" required autocomplete="username">
           </div>
         </div>
 
         <div class="input-group">
-          <label>Password</label>
+          <label for="password">Password</label>
           <div class="input-wrap">
             <i class="fas fa-lock"></i>
-            <input type="password" id="password" placeholder="••••••••" required>
+            <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
           </div>
         </div>
 
         <div class="input-group">
-          <label>Role</label>
+          <label for="role">Role</label>
           <div class="input-wrap">
             <i class="fas fa-user-tag"></i>
-            <select id="role" required>
+            <select id="role" name="role" required autocomplete="off">
               <option value="admin">Administrator</option>
               <option value="team_leader">Team Leader</option>
               <option value="rnd">R&D</option>

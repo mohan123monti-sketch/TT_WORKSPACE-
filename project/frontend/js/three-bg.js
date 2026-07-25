@@ -1,17 +1,18 @@
 function initThreeBg() {
   if (!window.THREE) {
-    console.error('Three.js not loaded');
+    console.warn('Three.js not loaded or blocked by browser extension.');
     return;
   }
 
-  const canvas = document.getElementById('three-bg');
-  if (!canvas) return;
+  try {
+    const canvas = document.getElementById('three-bg');
+    if (!canvas) return;
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
   // Starfield
   const starGeometry = new THREE.BufferGeometry();
@@ -111,6 +112,9 @@ function initThreeBg() {
   });
 
   animate(0);
+  } catch (err) {
+    console.warn('Three.js background initialization failed gracefully:', err);
+  }
 }
 
 window.initThreeBg = initThreeBg;
