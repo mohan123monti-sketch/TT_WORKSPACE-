@@ -38,7 +38,9 @@ async function startServer() {
             if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
                 return cb(null, true);
             }
-            return cb(new Error('CORS origin denied'));
+            const err = new Error('CORS origin denied');
+            err.status = 403;
+            return cb(err);
         },
         credentials: true
     }));
@@ -271,6 +273,14 @@ async function startServer() {
         console.log('[Startup Diagnostics]', diagnostics);
     };
     runStartupDiagnostics();
+
+    // Global Error Handler to ensure API errors are returned as JSON, not HTML
+    app.use((err, req, res, next) => {
+        console.error('Unhandled Error:', err.message);
+        res.status(err.status || 500).json({
+            message: err.message || 'Internal Server Error'
+        });
+    });
 
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n🚀 Tech Turf OS is operational at PORT ${PORT}`);
