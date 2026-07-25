@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 require('dotenv').config();
 
 // Initialize the database connection (this also creates tables if missing)
