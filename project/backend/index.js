@@ -21,17 +21,9 @@ async function startServer() {
 
     app.use(compression());
 
-    // Strip Cloudflare insights / beacon scripts from served HTML to avoid ERR_BLOCKED_BY_CLIENT errors
-    app.use((req, res, next) => {
-        const originalSend = res.send;
-        res.send = function (body) {
-            if (typeof body === 'string' && body.includes('static.cloudflareinsights.com')) {
-                body = body.replace(/<script[^>]*static\.cloudflareinsights\.com[^>]*><\/script>/gi, '');
-            }
-            return originalSend.call(this, body);
-        };
-        next();
-    });
+    // The ineffective regex-based res.send interceptor for Cloudflare Insights has been removed.
+    // Cloudflare Web Analytics (beacon.min.js) is injected at the network edge, NOT by Node.js.
+    // To prevent injection, we must use the HTTP 'Cache-Control: no-transform' header.
 
     // --- MIDDLEWARES ---
     const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:5000')
@@ -196,7 +188,8 @@ async function startServer() {
         etag: false,
         maxAge: 0,
         setHeaders: (res) => {
-            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            // Include 'no-transform' to completely prevent Cloudflare Web Analytics edge auto-injection
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, no-transform');
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
         }
@@ -214,17 +207,25 @@ async function startServer() {
 
         // Fallback to client portal index.html for Single Page Application behavior
         app.get('*', (req, res) => {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, no-transform');
             res.sendFile(path.join(clientPortalDir, 'index.html'));
         });
     } else {
         // Serve documentation and static UI with 1-hour caching for faster re-loads
         app.use(express.static(employeePortalDir, {
             etag: true,
-            lastModified: true
+            lastModified: true,
+            setHeaders: (res, path) => {
+                // Ensure no-transform is set for HTML so Cloudflare won't inject beacon.min.js
+                if (path.endsWith('.html')) {
+                    res.setHeader('Cache-Control', 'no-transform');
+                }
+            }
         }));
 
         // Fallback to employee portal index.html for Single Page Application behavior
         app.get('*', (req, res) => {
+            res.setHeader('Cache-Control', 'no-transform');
             res.sendFile(path.join(employeePortalDir, 'index.html'));
         });
     }
