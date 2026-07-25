@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS projects (
   client_id INTEGER REFERENCES clients(id),
   deadline DATE,
   created_by INTEGER REFERENCES users(id),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
