@@ -291,23 +291,28 @@ router.get('/conversations/:id/search', verifyToken, (req, res) => {
 });
 
 router.put('/conversations/:id/read', verifyToken, (req, res) => {
-  if (!assertParticipant(req.params.id, req.user.id)) {
-    return res.status(403).json({ message: 'You are not part of this conversation' });
-  }
-  const unread = db.prepare(`
-    SELECT m.id
-    FROM chat_messages m
-    WHERE m.conversation_id=?
-      AND m.sender_id != ?
-      AND NOT EXISTS (
-        SELECT 1 FROM chat_message_reads r
-        WHERE r.message_id = m.id AND r.user_id = ?
-      )
-  `).all(req.params.id, req.user.id, req.user.id);
+  try {
+    if (!assertParticipant(req.params.id, req.user.id)) {
+      return res.status(403).json({ message: 'You are not part of this conversation' });
+    }
+    const unread = db.prepare(`
+      SELECT m.id
+      FROM chat_messages m
+      WHERE m.conversation_id=?
+        AND (m.sender_id != ? OR m.sender_id IS NULL)
+        AND NOT EXISTS (
+          SELECT 1 FROM chat_message_reads r
+          WHERE r.message_id = m.id AND r.user_id = ?
+        )
+    `).all(req.params.id, req.user.id, req.user.id);
 
-  const markRead = db.prepare('INSERT OR IGNORE INTO chat_message_reads(message_id,user_id) VALUES(?,?)');
-  unread.forEach(row => markRead.run(row.id, req.user.id));
-  res.json({ message: 'Conversation marked as read', count: unread.length });
+    const markRead = db.prepare('INSERT OR IGNORE INTO chat_message_reads(message_id,user_id) VALUES(?,?)');
+    unread.forEach(row => markRead.run(row.id, req.user.id));
+    res.json({ message: 'Conversation marked as read', count: unread.length });
+  } catch (err) {
+    console.error('READ ERROR:', err);
+    res.status(500).json({ message: err.message, stack: err.stack });
+  }
 });
 
 router.post('/conversations/:id/typing', verifyToken, (req, res) => {
