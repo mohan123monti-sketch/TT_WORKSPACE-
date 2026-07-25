@@ -6,24 +6,29 @@ const { sendMail } = require('../services/mailer');
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
-  const user = db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1').get(email.toLowerCase().trim());
-  if (!user) return res.status(401).json({ message: 'No users found in database' });
-  if (['suspended', 'exited'].includes((user.employment_status || '').toLowerCase())) {
-    return res.status(403).json({ message: `Account is ${user.employment_status}` });
-  }
-  const valid = await comparePassword(password, user.password);
-  if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
-
-  // Log login event
   try {
-    db.prepare('INSERT INTO login_log(user_id, ip, user_agent) VALUES (?, ?, ?)')
-      .run(user.id, req.headers['x-forwarded-for'] || req.connection.remoteAddress || '', req.headers['user-agent'] || '');
-  } catch (e) { /* ignore logging errors */ }
-  const token = generateToken(user);
-  const { password: _, ...safeUser } = user;
-  res.json({ token, user: safeUser });
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+    const user = db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1').get(email.toLowerCase().trim());
+    if (!user) return res.status(401).json({ message: 'No users found in database' });
+    if (['suspended', 'exited'].includes((user.employment_status || '').toLowerCase())) {
+      return res.status(403).json({ message: `Account is ${user.employment_status}` });
+    }
+    const valid = await comparePassword(password, user.password);
+    if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+
+    // Log login event
+    try {
+      db.prepare('INSERT INTO login_log(user_id, ip, user_agent) VALUES (?, ?, ?)')
+        .run(user.id, req.headers['x-forwarded-for'] || req.connection.remoteAddress || '', req.headers['user-agent'] || '');
+    } catch (e) { /* ignore logging errors */ }
+    const token = generateToken(user);
+    const { password: _, ...safeUser } = user;
+    res.json({ token, user: safeUser });
+  } catch (err) {
+    console.error('Error in login route:', err);
+    res.status(500).json({ message: 'Internal server error: ' + err.message });
+  }
 });
 
 // GET /api/auth/me

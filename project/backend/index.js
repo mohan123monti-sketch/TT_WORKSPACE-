@@ -16,6 +16,7 @@ const db = require('./db');
 
 async function startServer() {
     const app = express();
+    app.set('trust proxy', 1);
     const PORT = process.env.PORT || 5000;
 
     const compression = require('compression');
@@ -29,7 +30,10 @@ async function startServer() {
 
     app.use(cors({
         origin: (origin, cb) => {
-            if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+            if (!origin) return cb(null, true);
+            if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+                return cb(null, true);
+            }
             return cb(new Error('CORS origin denied'));
         },
         credentials: true
@@ -39,12 +43,14 @@ async function startServer() {
         windowMs: 15 * 60 * 1000,
         max: 400,
         standardHeaders: true,
-        legacyHeaders: false
+        legacyHeaders: false,
+        validate: { trustProxy: false }
     });
     const authLimiter = rateLimit({
         windowMs: 15 * 60 * 1000,
         max: 10,
-        skipSuccessfulRequests: true
+        skipSuccessfulRequests: true,
+        validate: { trustProxy: false }
     });
     app.use('/api', generalLimiter);
     app.use('/api/auth/login', authLimiter);
