@@ -19,8 +19,19 @@ async function startServer() {
     app.set('trust proxy', 1);
     const PORT = process.env.PORT || 5000;
 
-    const compression = require('compression');
     app.use(compression());
+
+    // Strip Cloudflare insights / beacon scripts from served HTML to avoid ERR_BLOCKED_BY_CLIENT errors
+    app.use((req, res, next) => {
+        const originalSend = res.send;
+        res.send = function (body) {
+            if (typeof body === 'string' && body.includes('static.cloudflareinsights.com')) {
+                body = body.replace(/<script[^>]*static\.cloudflareinsights\.com[^>]*><\/script>/gi, '');
+            }
+            return originalSend.call(this, body);
+        };
+        next();
+    });
 
     // --- MIDDLEWARES ---
     const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:5000')
