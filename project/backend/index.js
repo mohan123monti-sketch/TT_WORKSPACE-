@@ -38,6 +38,10 @@ async function startServer() {
             if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
                 return cb(null, true);
             }
+            // Fallback for production domain in case .env ALLOWED_ORIGINS is overridden or cached by PM2/Docker
+            if (origin.includes('techturfofficial.com')) {
+                return cb(null, true);
+            }
             const err = new Error('CORS origin denied');
             err.status = 403;
             return cb(err);
