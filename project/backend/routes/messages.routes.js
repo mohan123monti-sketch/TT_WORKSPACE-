@@ -48,7 +48,7 @@ function assertParticipant(conversationId, userId) {
 
 function notifyParticipants(conversationId, senderId, message) {
   const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=? AND user_id != ?').all(conversationId, senderId).map(p => p.user_id);
-  notifyUsers(participants, message, 'info', 'Tech Turf New Chat Message').catch(() => {});
+  notifyUsers(participants, message, 'info', 'Tech Turf New Chat Message').catch(() => { });
 }
 
 // SSE stream — supports token via query param since EventSource can't send headers
@@ -291,31 +291,23 @@ router.get('/conversations/:id/search', verifyToken, (req, res) => {
 });
 
 router.put('/conversations/:id/read', verifyToken, (req, res) => {
-  try {
-    const conversationId = Number(req.params.id);
-    const userId = Number(req.user.id);
-
-    if (!assertParticipant(conversationId, userId)) {
-      return res.status(403).json({ message: 'You are not part of this conversation' });
-    }
-    const unread = db.prepare(`
-      SELECT m.id
-      FROM chat_messages m
-      WHERE m.conversation_id=?
-        AND m.sender_id != ?
-        AND NOT EXISTS (
-          SELECT 1 FROM chat_message_reads r
-          WHERE r.message_id = m.id AND r.user_id = ?
-        )
-    `).all(conversationId, userId, userId);
-
-    const markRead = db.prepare('INSERT OR IGNORE INTO chat_message_reads(message_id,user_id) VALUES(?,?)');
-    unread.forEach(row => markRead.run(row.id, userId));
-    res.json({ message: 'Conversation marked as read', count: unread.length });
-  } catch (err) {
-    console.error('Error marking conversation as read:', err);
-    res.status(500).json({ message: 'Internal server error: ' + err.message });
+  if (!assertParticipant(req.params.id, req.user.id)) {
+    return res.status(403).json({ message: 'You are not part of this conversation' });
   }
+  const unread = db.prepare(`
+    SELECT m.id
+    FROM chat_messages m
+    WHERE m.conversation_id=?
+      AND m.sender_id != ?
+      AND NOT EXISTS (
+        SELECT 1 FROM chat_message_reads r
+        WHERE r.message_id = m.id AND r.user_id = ?
+      )
+  `).all(req.params.id, req.user.id, req.user.id);
+
+  const markRead = db.prepare('INSERT OR IGNORE INTO chat_message_reads(message_id,user_id) VALUES(?,?)');
+  unread.forEach(row => markRead.run(row.id, req.user.id));
+  res.json({ message: 'Conversation marked as read', count: unread.length });
 });
 
 router.post('/conversations/:id/typing', verifyToken, (req, res) => {
@@ -338,61 +330,61 @@ router.post('/conversations/:id/messages', verifyToken, (req, res) => {
   attachmentUpload.any()(req, res, (uploadErr) => {
     if (uploadErr) return res.status(400).json({ message: uploadErr.message || 'Attachment upload failed' });
 
-  if (!assertParticipant(req.params.id, req.user.id)) {
-    return res.status(403).json({ message: 'You are not part of this conversation' });
-  }
+    if (!assertParticipant(req.params.id, req.user.id)) {
+      return res.status(403).json({ message: 'You are not part of this conversation' });
+    }
 
-  const message = String(req.body.message || '').trim();
-  const files = Array.isArray(req.files) ? req.files : [];
-  if (!message && files.length === 0) return res.status(400).json({ message: 'Message or attachment required' });
+    const message = String(req.body.message || '').trim();
+    const files = Array.isArray(req.files) ? req.files : [];
+    if (!message && files.length === 0) return res.status(400).json({ message: 'Message or attachment required' });
 
-  try {
-    const result = db.prepare(`
+    try {
+      const result = db.prepare(`
       INSERT INTO chat_messages (conversation_id, sender_id, message)
       VALUES (?, ?, ?)
     `).run(req.params.id, req.user.id, message || '[Attachment]');
 
-    if (files.length > 0) {
-      const attachStmt = db.prepare(`
+      if (files.length > 0) {
+        const attachStmt = db.prepare(`
         INSERT INTO chat_attachments (message_id,file_path,file_name,mime_type,file_size)
         VALUES (?,?,?,?,?)
       `);
-      files.forEach(file => {
-        attachStmt.run(
-          result.lastInsertRowid,
-          `/uploads/chat/${file.filename}`,
-          file.originalname,
-          file.mimetype || null,
-          file.size || null
-        );
-      });
-    }
+        files.forEach(file => {
+          attachStmt.run(
+            result.lastInsertRowid,
+            `/uploads/chat/${file.filename}`,
+            file.originalname,
+            file.mimetype || null,
+            file.size || null
+          );
+        });
+      }
 
-    db.prepare('UPDATE conversations SET updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.params.id);
-    notifyParticipants(req.params.id, req.user.id, `New message from ${req.user.name || 'a teammate'}: ${message.slice(0, 120)}`);
+      db.prepare('UPDATE conversations SET updated_at=CURRENT_TIMESTAMP WHERE id=?').run(req.params.id);
+      notifyParticipants(req.params.id, req.user.id, `New message from ${req.user.name || 'a teammate'}: ${message.slice(0, 120)}`);
 
-    const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=?').all(req.params.id).map(p => p.user_id);
+      const participants = db.prepare('SELECT user_id FROM conversation_participants WHERE conversation_id=?').all(req.params.id).map(p => p.user_id);
 
-    const sent = db.prepare(`
+      const sent = db.prepare(`
       SELECT m.*, u.name as sender_name, u.avatar as sender_avatar, u.role as sender_role
       FROM chat_messages m
       LEFT JOIN users u ON u.id = m.sender_id
       WHERE m.id=?
     `).get(result.lastInsertRowid);
 
-    sent.attachments = db.prepare('SELECT * FROM chat_attachments WHERE message_id=? ORDER BY id ASC').all(sent.id);
+      sent.attachments = db.prepare('SELECT * FROM chat_attachments WHERE message_id=? ORDER BY id ASC').all(sent.id);
 
-    publish('chat.message', {
-      conversationId: Number(req.params.id),
-      message: sent,
-      participantIds: participants,
-      at: new Date().toISOString()
-    });
+      publish('chat.message', {
+        conversationId: Number(req.params.id),
+        message: sent,
+        participantIds: participants,
+        at: new Date().toISOString()
+      });
 
-    res.json({ message: 'Message sent', data: sent });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to send message: ' + err.message });
-  }
+      res.json({ message: 'Message sent', data: sent });
+    } catch (err) {
+      res.status(500).json({ message: 'Failed to send message: ' + err.message });
+    }
   });
 });
 
