@@ -1,0 +1,33 @@
+{
+  "name": "tt_workspace-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fix_html.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohan123monti-sketch/TT_WORKSPACE-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mohan123monti-sketch/TT_WORKSPACE-/issues"
+  },
+  "homepage": "https://github.com/mohan123monti-sketch/TT_WORKSPACE-#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.1",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.6.0",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.3"
+  }
+}
