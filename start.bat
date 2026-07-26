@@ -22,8 +22,8 @@ start "Tech Turf Employee Portal (Port 3000)" cmd /k "set PORT=3000&& cd apps/ba
 echo Starting Client Connect Portal on Port 5000...
 start "Tech Turf Client Portal (Port 5000 & 5001)" cmd /k "set PORT=5000&& set INVONIX_PORT=5001&& cd apps/backend && node index.js"
 
-echo Starting TT_INOVNIX Frontend on Port 5173...
-start "Tech Turf TT_INOVNIX Frontend (Port 5173)" cmd /k "cd apps/frontend-invonix && npm run dev"
+echo Starting TT Frontend on Port 5173...
+start "Tech Turf Frontend (Port 5173)" cmd /k "cd apps/frontend-main && npm run dev"
 
 echo.
 echo All servers have been initiated.

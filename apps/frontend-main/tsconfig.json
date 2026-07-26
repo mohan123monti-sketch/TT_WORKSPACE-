@@ -15,7 +15,8 @@
     "moduleResolution": "bundler",
     "types": [
       "react",
-      "react-dom"
+      "react-dom",
+      "node"
     ],
     "isolatedModules": true,
     "moduleDetection": "force",
