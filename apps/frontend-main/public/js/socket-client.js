@@ -1,6 +1,9 @@
 // Global Socket.io Client initialization
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.socketInitialized) return;
+    window.socketInitialized = true;
+
     if (typeof io !== 'undefined') {
         const token = localStorage.getItem('tt_token') || localStorage.getItem('token') || localStorage.getItem('authToken');
         

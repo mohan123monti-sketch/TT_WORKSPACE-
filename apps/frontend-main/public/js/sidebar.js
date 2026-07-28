@@ -193,10 +193,10 @@ function initSidebar() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, 'text/html');
       
-      const newMain = doc.querySelector('.main-content') || doc.querySelector('.dashboard-container');
-      const currentMain = document.querySelector('.main-content') || document.querySelector('.dashboard-container');
+      const newMain = doc.querySelector('.dashboard-container');
+      const currentMain = document.querySelector('.dashboard-container');
       
-      if (!newMain || !currentMain) throw new Error('Main content container missing');
+      if (!newMain || !currentMain) throw new Error('Dashboard container missing');
 
       setTimeout(async () => {
         document.title = doc.title;
@@ -204,12 +204,36 @@ function initSidebar() {
         history.pushState(null, '', url);
         updateSidebarActive();
 
+        // Sync other body elements (modals, sliding panels, etc.)
+        // Remove old elements that are not core containers
+        Array.from(document.body.children).forEach(child => {
+           if (['SCRIPT', 'CANVAS', 'STYLE'].includes(child.tagName)) return;
+           if (child.classList.contains('toast-container') || 
+               child.classList.contains('dashboard-container') || 
+               child.classList.contains('page-transition-overlay')) return;
+           child.remove();
+        });
+
+        // Append new elements from the fetched document
+        Array.from(doc.body.children).forEach(child => {
+           if (['SCRIPT', 'CANVAS', 'STYLE'].includes(child.tagName)) return;
+           if (child.classList.contains('toast-container') || 
+               child.classList.contains('dashboard-container') || 
+               child.classList.contains('page-transition-overlay')) return;
+           document.body.appendChild(child.cloneNode(true));
+        });
+
         // Dynamically execute new scripts
         const scripts = Array.from(doc.body.querySelectorAll('script'));
         for (const script of scripts) {
           if (script.src) {
              const src = script.getAttribute('src');
-             if (!document.querySelector(`script[src="${src}"]`)) {
+             const alreadyLoaded = Array.from(document.querySelectorAll('script')).some(s => {
+                const existingSrc = s.getAttribute('src');
+                const cleanSrc = src.startsWith('/') ? src.slice(1) : src;
+                return existingSrc === src || (s.src && s.src.endsWith(cleanSrc));
+             });
+             if (!alreadyLoaded) {
                 await new Promise(r => {
                   const s = document.createElement('script');
                   s.src = src;
@@ -226,8 +250,6 @@ function initSidebar() {
         // Trigger initialization
         if (window.initPage) {
            window.initPage();
-        } else {
-           window.document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
         }
 
         overlay.classList.remove('active');
