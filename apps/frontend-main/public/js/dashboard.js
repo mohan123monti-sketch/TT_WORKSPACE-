@@ -37,6 +37,7 @@ async function initDashboard() {
         loadDriveFiles();
         loadAnnouncements();
         loadNotifications(); // Initial call
+        loadAttendance(); // Load clock-in status
 
 
         // Load specialized modules based on role
@@ -60,6 +61,71 @@ async function initDashboard() {
 }
 
 // --- MODULES ---
+
+let attendanceTimerInterval;
+
+async function loadAttendance() {
+    try {
+        const data = await api.get('/attendance/today');
+        const statusDiv = document.getElementById('attendance-status');
+        const inBtn = document.getElementById('clock-in-btn');
+        const outBtn = document.getElementById('clock-out-btn');
+        
+        if (!statusDiv) return;
+
+        clearInterval(attendanceTimerInterval);
+
+        if (data.status === 'not_started' || (data.clock_in && data.clock_out)) {
+            statusDiv.textContent = data.clock_out ? `Clocked out at ${new Date(data.clock_out).toLocaleTimeString()} (${data.duration_mins} mins)` : 'Not clocked in today.';
+            inBtn.style.display = 'block';
+            outBtn.style.display = 'none';
+        } else if (data.clock_in && !data.clock_out) {
+            inBtn.style.display = 'none';
+            outBtn.style.display = 'block';
+            const clockInTime = new Date(data.clock_in).getTime();
+            
+            const updateTimer = () => {
+                const now = new Date().getTime();
+                const diff = now - clockInTime;
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+                statusDiv.innerHTML = `<span style="color: var(--accent-green); font-weight: bold;">Clocked In</span> • ${hours}h ${mins}m ${secs}s`;
+            };
+            updateTimer();
+            attendanceTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Setup listeners if not already
+        if (!inBtn.hasAttribute('data-listener')) {
+            inBtn.setAttribute('data-listener', 'true');
+            inBtn.addEventListener('click', async () => {
+                try {
+                    await api.post('/attendance/clock-in', {});
+                    ui.showToast('Clocked in successfully', 'success');
+                    loadAttendance();
+                } catch (e) {
+                    ui.showToast(e.message || 'Error clocking in', 'error');
+                }
+            });
+        }
+        if (!outBtn.hasAttribute('data-listener')) {
+            outBtn.setAttribute('data-listener', 'true');
+            outBtn.addEventListener('click', async () => {
+                try {
+                    await api.post('/attendance/clock-out', {});
+                    ui.showToast('Clocked out successfully', 'success');
+                    loadAttendance();
+                } catch (e) {
+                    ui.showToast(e.message || 'Error clocking out', 'error');
+                }
+            });
+        }
+
+    } catch (e) {
+        console.error('Failed to load attendance', e);
+    }
+}
 
 async function loadMyTasks() {
     const container = document.getElementById('dash-tasks-list');

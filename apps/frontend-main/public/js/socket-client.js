@@ -40,5 +40,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+        // Setup live reloading of Tasks and Dashboard
+        window.socket.on('taskUpdated', () => {
+            console.log('[Socket] Tasks Updated - Refreshing Views');
+            
+            if (window.location.pathname.includes('tasks.html')) {
+                if (typeof window.loadTasks === 'function') window.loadTasks();
+                if (typeof window.fetchTasks === 'function') window.fetchTasks(); 
+            }
+            if (window.location.pathname.includes('dashboard.html')) {
+                if (typeof window.loadDashboardStats === 'function') window.loadDashboardStats();
+                if (typeof window.initDashboard === 'function') window.initDashboard();
+            }
+        });
+
+        // Setup live reloading of Submissions and Dashboard Leaderboards
+        window.socket.on('submissionUpdated', () => {
+            console.log('[Socket] Submissions Updated');
+            
+            if (window.location.pathname.includes('submissions.html')) {
+                if (typeof window.loadSubmissions === 'function') window.loadSubmissions();
+            }
+            if (window.location.pathname.includes('dashboard.html')) {
+                if (typeof window.loadDashboardStats === 'function') window.loadDashboardStats();
+                if (typeof window.initDashboard === 'function') window.initDashboard();
+            }
+        });
+
+        // Setup live reloading of Drive
+        window.socket.on('driveUpdated', () => {
+            console.log('[Socket] Drive Updated');
+            
+            if (window.location.pathname.includes('drive.html')) {
+                if (typeof window.loadDriveItems === 'function') window.loadDriveItems();
+            }
+        });
+
+        window.socket.on('notificationReceived', () => {
+            console.log('[Socket] New Notification Received');
+            if (typeof window.loadNotifications === 'function') {
+                window.loadNotifications();
+            }
+        });
     }
 });

@@ -97,6 +97,9 @@ async function startServer() {
     app.use('/api/client-connect', require('./routes/client_connect.routes'));
     app.use('/api/client-portal', require('./routes/client_portal.routes'));
     app.use('/api/enterprise', require('./routes/enterprise.routes'));
+    app.use('/api/attendance', require('./routes/attendance.routes'));
+    app.use('/api/hr', require('./routes/hr.routes'));
+    app.use('/api/store', require('./routes/store.routes'));
 
     // --- TT_INOVNIX COMPONENT MOUNT (Separate Port) ---
     if (String(PORT).trim() === '5000') {

@@ -25,7 +25,7 @@ async function notifyUsers(userIds, message, type = 'info', emailSubject = 'Tech
       });
     }
   }
-
+  if (global.io) global.io.emit('notificationReceived');
   return { notified: ids.length };
 }
 

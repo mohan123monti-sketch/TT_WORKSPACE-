@@ -120,6 +120,7 @@ router.post('/', verifyToken, checkRole('admin', 'team_leader', 'frontend_backen
     const notifyIds = memberIds.length > 0 ? [...new Set(memberIds)] : (primaryAssignee ? [primaryAssignee] : []);
     notifyUsers(notifyIds, `📌 New task assigned to you: "${title}"`, 'info', 'Tech Turf Task Assignment').catch(() => {});
 
+    if (global.io) global.io.emit('taskUpdated');
     res.json({ message: 'Task created', id: taskId });
   } catch (err) {
     console.error('Task Creation Error:', err);
@@ -171,6 +172,8 @@ router.put('/:id', verifyToken, checkRole('admin', 'team_leader', 'backend', 'fr
     // AUDIT LOG (Warp Snapshot)
     db.prepare('INSERT INTO audit_log (user_id, action, table_name, record_id, old_data, new_data) VALUES (?,?,?,?,?,?)')
       .run(req.user.id, 'UPDATE', 'tasks', req.params.id, JSON.stringify(oldTask), JSON.stringify(req.body));
+      
+    if (global.io) global.io.emit('taskUpdated');
     res.json({ message: 'Task updated' });
   } catch (err) {
     console.error('Update Task Error:', err);
@@ -192,6 +195,8 @@ router.post('/:id/rework', verifyToken, checkRole('admin', 'team_leader'), (req,
     const admin = db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get();
     if (admin) notifyUsers(admin.id, `⚠️ FINAL revision for task "${task.title}" — review urgently`, 'danger', 'Tech Turf Escalation Alert').catch(() => {});
   }
+  
+  if (global.io) global.io.emit('taskUpdated');
   res.json({ message: 'Sent for rework' });
 });
 
@@ -211,6 +216,8 @@ router.post('/bulk-action', verifyToken, checkRole('admin', 'team_leader'), (req
   if (updates.length === 0) return res.status(400).json({ message: 'No bulk updates provided' });
 
   db.prepare(`UPDATE tasks SET ${updates.join(', ')} WHERE id IN (${placeholders})`).run(...params, ...ids);
+  
+  if (global.io) global.io.emit('taskUpdated');
   res.json({ message: 'Bulk task update completed' });
 });
 
@@ -219,6 +226,8 @@ router.put('/:id/start', verifyToken, (req, res) => {
   const task = db.prepare('SELECT * FROM tasks WHERE id=? AND assigned_to=?').get(req.params.id, req.user.id);
   if (!task) return res.status(404).json({ message: 'Not found or not assigned to you' });
   db.prepare("UPDATE tasks SET status='in_progress' WHERE id=?").run(task.id);
+  
+  if (global.io) global.io.emit('taskUpdated');
   res.json({ message: 'Task started' });
 });
 
@@ -234,6 +243,7 @@ router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
     db.prepare('INSERT INTO audit_log (user_id, action, table_name, record_id, old_data) VALUES (?,?,?,?,?)')
       .run(req.user.id, 'DELETE', 'tasks', req.params.id, JSON.stringify(oldTask));
 
+    if (global.io) global.io.emit('taskUpdated');
     res.json({ message: 'Task deleted successfully (Historic snapshot saved to Warp)' });
   } catch (err) {
     res.status(500).json({ message: 'Failed to delete task' });

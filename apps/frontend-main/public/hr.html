@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Turf | HR Portal</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+    <script src="js/socket-client.js" defer></script>
+</head>
+<body>
+    <canvas id="three-bg"></canvas>
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar will be injected by auth.js or kept simple here -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">TECH TURF</div>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-th-large"></i>
+                    <span class="menu-text">Back to Dashboard</span>
+                </div>
+                <div class="menu-item active">
+                    <i class="fas fa-user-tie"></i>
+                    <span class="menu-text">HR Portal</span>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="navbar">
+                <div class="nav-left"></div>
+                <div class="nav-actions">
+                    <div class="user-profile-nav" data-nav="profile.html">
+                        <div class="user-nav-text">
+                            <div id="nav-user-name" class="user-nav-name">User Name</div>
+                            <div id="nav-user-role" class="user-nav-role">Role</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">Overview / HR Portal</div>
+                    <div class="page-title">HUMAN RESOURCES</div>
+                </div>
+                <div>
+                    <button class="btn-primary" onclick="openApplyLeaveModal()"><i class="fas fa-plus"></i> Apply for Leave</button>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Leaves -->
+                <div class="glass-card dash-card anim-fade-up">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                        <h3 style="margin:0; font-family:var(--font-display);">LEAVE REQUESTS</h3>
+                        <i class="fas fa-calendar-alt" style="color:var(--accent-orange);"></i>
+                    </div>
+                    <div id="leaves-list">Loading...</div>
+                </div>
+
+                <!-- Payroll -->
+                <div class="glass-card dash-card anim-fade-up">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 20px;">
+                        <h3 style="margin:0; font-family:var(--font-display);">PAYROLL SLIPS</h3>
+                        <i class="fas fa-money-check-alt" style="color:var(--accent-green);"></i>
+                    </div>
+                    <div id="payroll-list">Loading...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Apply Leave Modal -->
+    <div class="modal-overlay" id="applyLeaveModal">
+        <div class="modal-content-narrow">
+            <div class="modal-header-bar">
+                <span>Apply for Leave</span>
+                <i class="fas fa-times close-icon" onclick="document.getElementById('applyLeaveModal').style.display='none'"></i>
+            </div>
+            <div class="modal-body-scroll">
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select id="leaveType" class="form-control">
+                        <option value="sick">Sick Leave</option>
+                        <option value="casual">Casual Leave</option>
+                        <option value="paid">Paid Time Off</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label>Start Date</label>
+                        <input type="date" id="leaveStart" class="form-control">
+                    </div>
+                    <div style="flex:1;">
+                        <label>End Date</label>
+                        <input type="date" id="leaveEnd" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="leaveReason" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer-form">
+                <button class="btn-primary" onclick="submitLeave()">Submit Application</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/hr.js"></script>
+</body>
+</html>
