@@ -787,7 +787,8 @@
       <form id="new-client-form">
         <style>
           /* Modal overlay and centering fix */
-          #new-client-modal[style*="display: flex"] {
+          #new-client-modal[style*="display: flex"],
+          #edit-client-modal[style*="display: flex"] {
             align-items: flex-start;
             justify-content: center;
             padding-top: 4vh;
@@ -798,6 +799,18 @@
             margin-top: 0 !important;
             margin-bottom: 2vh;
             max-height: 95vh !important;
+            overflow-y: auto !important;
+          }
+
+          /* client-auto-11: wide modal panel for new-client-modal */
+          .client-auto-11 {
+            max-width: 760px !important;
+          }
+
+          /* edit-modal-dimensions: extra-wide for the accordion-heavy edit modal */
+          .edit-modal-dimensions {
+            max-width: 800px !important;
+            max-height: 92vh !important;
             overflow-y: auto !important;
           }
 
