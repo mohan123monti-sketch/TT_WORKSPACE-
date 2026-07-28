@@ -296,8 +296,29 @@ async function startServer() {
         });
     });
 
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`\n🚀 Tech Turf OS is operational at PORT ${PORT}`);
+    const http = require('http');
+    const { Server } = require('socket.io');
+
+    const server = http.createServer(app);
+    const io = new Server(server, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST", "PATCH", "PUT", "DELETE"]
+        }
+    });
+
+    // Make io globally accessible to routes
+    global.io = io;
+
+    io.on('connection', (socket) => {
+        console.log(`[Socket.io] Client connected: ${socket.id}`);
+        socket.on('disconnect', () => {
+            console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+        });
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`\n🚀 Tech Turf OS is operational at PORT ${PORT} (with WebSockets)`);
         console.log(`   - Frontend: http://localhost:${PORT}`);
         console.log(`   - API Root: http://localhost:${PORT}/api\n`);
     });

@@ -334,6 +334,11 @@ router.post('/help/articles', verifyToken, checkRole('admin', 'team_leader'), (r
   if (!title || !content) return res.status(400).json({ message: 'title and content required' });
   const result = db.prepare('INSERT INTO help_articles(title,content,role_scope,language,created_by) VALUES(?,?,?,?,?)')
     .run(title, content, role_scope || '', language || 'en', req.user.id);
+    
+  if (global.io) {
+    global.io.emit('articleCreated', { id: result.lastInsertRowid, title, language, role_scope });
+  }
+  
   res.json({ message: 'Help article created', id: result.lastInsertRowid });
 });
 
@@ -395,6 +400,11 @@ router.put('/policies/:key', verifyToken, checkPermission('policies.manage'), (r
       updated_by=excluded.updated_by,
       updated_at=CURRENT_TIMESTAMP
   `).run(req.params.key, value === undefined ? '' : String(value), req.user.id);
+  
+  if (global.io) {
+    global.io.emit('policyUpdated', { key: req.params.key, value: value === undefined ? '' : String(value) });
+  }
+  
   res.json({ message: 'Policy updated' });
 });
 

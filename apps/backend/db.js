@@ -876,6 +876,81 @@ CREATE TABLE IF NOT EXISTS user_onboarding (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+// TICKETS
+CREATE TABLE IF NOT EXISTS tickets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  title TEXT NOT NULL,
+  description TEXT,
+  priority TEXT DEFAULT 'normal',
+  status TEXT DEFAULT 'open',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TIMESHEETS
+CREATE TABLE IF NOT EXISTS timesheets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  clock_in DATETIME NOT NULL,
+  clock_out DATETIME,
+  duration_mins INTEGER DEFAULT 0,
+  date DATE NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- LEAVE REQUESTS
+CREATE TABLE IF NOT EXISTS leave_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  type TEXT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  reason TEXT,
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- PAYROLL
+CREATE TABLE IF NOT EXISTS payroll (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  month INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  base_salary REAL DEFAULT 0,
+  bonus REAL DEFAULT 0,
+  total REAL DEFAULT 0,
+  status TEXT DEFAULT 'pending' CHECK(status IN ('pending','paid')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NOTIFICATIONS
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  message TEXT NOT NULL,
+  type TEXT DEFAULT 'info',
+  is_read INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- STORE ITEMS
+CREATE TABLE IF NOT EXISTS store_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  cost INTEGER NOT NULL,
+  stock INTEGER DEFAULT -1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- STORE PURCHASES
+CREATE TABLE IF NOT EXISTS store_purchases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  item_id INTEGER REFERENCES store_items(id),
+  purchased_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS user_feedback (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER REFERENCES users(id),
@@ -975,17 +1050,17 @@ if (!clientColumns.includes('stage')) {
 // ──────────────────────────────────────────────────────────────────────
 
 // --- Payments: add client_id, status, description, source ---
-const paymentColumns = db.prepare('PRAGMA table_info(payments)').all().map(c => c.name);
-if (!paymentColumns.includes('client_id')) {
+const paymentCols = db.prepare('PRAGMA table_info(payments)').all().map(c => c.name);
+if (!paymentCols.includes('client_id')) {
   db.exec('ALTER TABLE payments ADD COLUMN client_id INTEGER REFERENCES clients(id)');
 }
-if (!paymentColumns.includes('status')) {
+if (!paymentCols.includes('status')) {
   db.exec("ALTER TABLE payments ADD COLUMN status TEXT DEFAULT 'pending'");
 }
-if (!paymentColumns.includes('description')) {
+if (!paymentCols.includes('description')) {
   db.exec('ALTER TABLE payments ADD COLUMN description TEXT');
 }
-if (!paymentColumns.includes('source')) {
+if (!paymentCols.includes('source')) {
   db.exec("ALTER TABLE payments ADD COLUMN source TEXT DEFAULT 'employee_portal'");
 }
 db.exec('CREATE INDEX IF NOT EXISTS idx_payments_client_id ON payments(client_id)');

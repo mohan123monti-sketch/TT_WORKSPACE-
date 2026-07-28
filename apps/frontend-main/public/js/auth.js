@@ -87,6 +87,26 @@ const auth = {
     toggleVisibility('.project-create-only', 'admin', 'team_leader');
     toggleVisibility('.announce-manage-only', 'admin', 'media_manager', 'production');
     toggleVisibility('.admin-tl-create', 'admin', 'team_leader');
+
+    // Inject Live Notification Bell
+    document.querySelectorAll('.nav-actions, #nav-actions-container').forEach(container => {
+      if (!container.querySelector('.live-notifications')) {
+        const bellBtn = document.createElement('div');
+        bellBtn.className = 'live-notifications';
+        bellBtn.style.cssText = 'position:relative; cursor:pointer; margin-right:15px; display:flex; align-items:center;';
+        bellBtn.innerHTML = `
+          <i class="fas fa-bell" style="font-size:1.2rem; color:var(--text-muted);"></i>
+          <span class="bell-badge" style="display:none; position:absolute; top:-5px; right:-8px; background:var(--accent-orange); color:#fff; font-size:0.65rem; font-weight:bold; padding:2px 5px; border-radius:10px;">0</span>
+        `;
+        
+        bellBtn.onclick = () => {
+          // Placeholder for opening notifications panel
+          showToast('Notifications coming soon', 'info');
+        };
+        
+        container.prepend(bellBtn);
+      }
+    });
   }
 };
 window.auth = auth;
