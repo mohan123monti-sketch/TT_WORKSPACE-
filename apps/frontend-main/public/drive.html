@@ -75,21 +75,33 @@
         }
         .drive-item:hover .drive-item-actions { opacity: 1; transform: scale(1.05); }
         .action-btn {
-            background: rgba(0,0,0,0.8);
-            width: 32px;
-            height: 32px;
+            background: rgba(15, 23, 42, 0.85);
+            width: 34px;
+            height: 34px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
-            color: var(--text-primary);
+            font-size: 0.88rem;
+            color: #ffffff;
             cursor: pointer;
-            border:  2px solid rgba(255,255,255,0.1);
-            transition: 0.2s;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
         }
-        .action-btn:hover { background: var(--accent-primary); border-color: var(--text-primary); scale: 1.1; }
-        .action-btn.delete:hover { background: var(--accent-secondary); }
+        .action-btn:hover {
+            background: var(--accent-primary);
+            border-color: rgba(255,255,255,0.5);
+            color: #ffffff;
+            transform: scale(1.12);
+            box-shadow: 0 4px 16px rgba(16, 42, 150, 0.4);
+        }
+        .action-btn.delete:hover {
+            background: #dc2626;
+            border-color: rgba(255,255,255,0.4);
+            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+        }
 
         .drive-breadcrumb {
             display: flex;

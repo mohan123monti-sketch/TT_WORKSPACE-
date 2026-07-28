@@ -12,12 +12,12 @@
   function normalizePayment(row, index) {
     return {
       id: row.id || row.payment_id || `PAY-${String(index + 1).padStart(4, '0')}`,
-      user: row.client_name || row.client_company || row.user_name || row.client_name || row.user || row.client || row.user_id || 'Client',
+      user: row.client_company || row.client_name || row.user_name || row.client || row.user_id || 'Client',
       amount: Number(row.amount || row.total || 0),
       currency: row.currency || 'INR',
       method: row.method || row.payment_method || 'UPI',
       status: String(row.status || row.computed_status || 'pending').toLowerCase(),
-      date: row.date || row.payment_date || row.created_at || new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      date: row.date || row.payment_date || row.created_at || new Date().toISOString(),
       source: row.source || 'employee_portal',
       client_id: row.client_id || null
     };
@@ -105,16 +105,19 @@
       .payment-table th,.payment-table td { padding:14px 12px; border-bottom:1px solid #e5e7eb; text-align:left; vertical-align:middle; }
       .payment-table th { color:#64748b; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; }
       .payment-table td { font-weight:750; color:#0f172a; }
-      .payment-pill { display:inline-flex; align-items:center; justify-content:center; min-width:76px; border-radius:999px; padding:7px 10px; font-size:.72rem; font-weight:900; text-transform:uppercase; }
+      .payment-pill { display:inline-flex; align-items:center; justify-content:center; min-width:76px; border-radius:999px; padding:7px 10px; font-size:.72rem; font-weight:900; text-transform:uppercase; cursor:pointer; user-select:none; transition: opacity 0.2s; }
+      .payment-pill:hover { opacity:0.8; }
       .payment-pill.paid { color:#15803d; background:#dcfce7; } .payment-pill.pending { color:#b45309; background:#fef3c7; } .payment-pill.overdue { color:#b91c1c; background:#fee2e2; }
       .payment-form { display:grid; gap:12px; }
       .payment-form input,.payment-form select { width:100%; min-height:42px; border:2px solid rgba(16,42,150,.12); border-radius:8px; padding:0 12px; box-sizing:border-box; outline:0; font-size:.95rem; }
       .payment-form input:focus,.payment-form select:focus { border-color:#102a96; }
       .payment-btn { border:0; border-radius:8px; min-height:42px; padding:0 16px; display:inline-flex; align-items:center; justify-content:center; gap:9px; font-weight:900; cursor:pointer; color:#fff; background:#102a96; box-shadow:0 14px 28px rgba(16,42,150,.2); }
       .payment-bars { display:grid; gap:14px; margin-top:16px; }
-      .payment-bar-row { display:grid; grid-template-columns:82px 1fr 56px; gap:12px; align-items:center; color:#475569; font-weight:800; }
+      .payment-bar-row { display:grid; grid-template-columns:90px 1fr 56px; gap:12px; align-items:center; color:#475569; font-weight:800; font-size:0.85rem; }
       .payment-track { height:12px; border-radius:999px; background:#eef2ff; overflow:hidden; }
-      .payment-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,#102a96,#3b82f6); display:block; }
+      .payment-fill { height:100%; border-radius:inherit; display:block; transition: width 0.5s ease; }
+      .action-btn { background:transparent; border:none; color:#dc2626; cursor:pointer; padding:6px; border-radius:4px; font-size:1.1rem; }
+      .action-btn:hover { background:#fee2e2; }
       @media(max-width:1100px){ .payment-metrics{grid-template-columns:repeat(2,minmax(0,1fr));} .payment-grid,.payment-lower{grid-template-columns:1fr;} }
       @media(max-width:640px){ .payment-dashboard-page{padding:24px 16px;} .payment-title-row{align-items:flex-start; flex-direction:column;} .payment-metrics{grid-template-columns:1fr;} .payment-table{min-width:680px;} .payment-table-scroll{overflow-x:auto;} }
     `;
@@ -133,32 +136,34 @@
             <button type="button" data-days="7">7 Days</button>
             <button type="button" data-days="30" class="active">30 Days</button>
             <button type="button" data-days="90">Quarter</button>
+            <button type="button" data-days="365">Year</button>
           </div>
         </div>
         <div class="payment-metrics">
-          <div class="payment-metric revenue"><div class="payment-label">Revenue</div><div class="payment-value" id="metric-revenue">₹0</div><div class="payment-sub">0.0% since last period</div></div>
-          <div class="payment-metric paid"><div class="payment-label">Paid Invoices</div><div class="payment-value" id="metric-paid">0</div><div class="payment-sub">Closed records</div></div>
-          <div class="payment-metric pending"><div class="payment-label">Pending</div><div class="payment-value" id="metric-pending">0</div><div class="payment-sub">Awaiting confirmation</div></div>
-          <div class="payment-metric overdue"><div class="payment-label">Overdue</div><div class="payment-value" id="metric-overdue">0</div><div class="payment-sub">Needs follow-up</div></div>
+          <div class="payment-metric revenue"><div class="payment-label">Revenue (Paid)</div><div class="payment-value" id="metric-revenue">₹0</div><div class="payment-sub">In selected period</div></div>
+          <div class="payment-metric paid"><div class="payment-label">Paid Records</div><div class="payment-value" id="metric-paid">0</div><div class="payment-sub">Cleared invoices</div></div>
+          <div class="payment-metric pending"><div class="payment-label">Pending</div><div class="payment-value" id="metric-pending">0</div><div class="payment-sub">Awaiting clearing</div></div>
+          <div class="payment-metric overdue"><div class="payment-label">Overdue</div><div class="payment-value" id="metric-overdue">0</div><div class="payment-sub">Immediate action req.</div></div>
           <div class="payment-metric"><div class="payment-label">Average Deal</div><div class="payment-value" id="metric-average">₹0</div><div class="payment-sub">Per payment</div></div>
         </div>
         <div class="payment-grid">
           <section class="payment-panel">
-            <div class="payment-panel-head"><h2 class="payment-panel-title">Revenue by Month</h2><span class="payment-note">Payments trend</span></div>
-            <div class="payment-chart">
-              <svg viewBox="0 0 760 300" aria-label="Revenue line chart">
-                <defs><linearGradient id="paymentArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".28"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
-                <g stroke="#e5e7eb" stroke-width="1"><line x1="46" y1="28" x2="740" y2="28"/><line x1="46" y1="82" x2="740" y2="82"/><line x1="46" y1="136" x2="740" y2="136"/><line x1="46" y1="190" x2="740" y2="190"/><line x1="46" y1="244" x2="740" y2="244"/></g>
-                <path d="M46 244 C160 190 210 212 286 150 C366 84 448 116 520 74 C610 24 660 70 740 42 L740 270 L46 270 Z" fill="url(#paymentArea)"/>
-                <path d="M46 244 C160 190 210 212 286 150 C366 84 448 116 520 74 C610 24 660 70 740 42" fill="none" stroke="#102a96" stroke-width="5" stroke-linecap="round"/>
-                <g fill="#ff6b00"><circle cx="46" cy="244" r="5"/><circle cx="286" cy="150" r="5"/><circle cx="520" cy="74" r="5"/><circle cx="740" cy="42" r="5"/></g>
-                <g fill="#64748b" font-size="13" font-weight="700"><text x="42" y="292">Week 1</text><text x="260" y="292">Week 2</text><text x="500" y="292">Week 3</text><text x="704" y="292">Week 4</text></g>
-              </svg>
+            <div class="payment-panel-head"><h2 class="payment-panel-title">Revenue Trend</h2><span class="payment-note">Time-based volume</span></div>
+            <div class="payment-chart" id="revenue-chart-container">
+              <!-- Dynamically generated SVG will go here -->
             </div>
           </section>
           <section class="payment-panel">
             <div class="payment-panel-head"><h2 class="payment-panel-title">Collection Mix</h2><span class="payment-note">Status split</span></div>
-            <div class="payment-donut-wrap"><div class="payment-donut"><div class="payment-donut-inner"><div><div id="donut-total" style="font-size:1.6rem;">0</div><div style="font-size:.72rem;color:#64748b;">Payments</div></div></div></div>
+            <div class="payment-donut-wrap">
+              <div class="payment-donut" id="status-donut" style="background:conic-gradient(#16a34a 0 33%, #f59e0b 33% 66%, #ef4444 66% 100%);">
+                <div class="payment-donut-inner">
+                  <div>
+                    <div id="donut-total" style="font-size:1.6rem;">0</div>
+                    <div style="font-size:.72rem;color:#64748b;">Total</div>
+                  </div>
+                </div>
+              </div>
               <div class="payment-legend">
                 <div class="payment-legend-row"><span><i class="payment-dot" style="background:#16a34a;"></i>Paid</span><strong id="legend-paid">0</strong></div>
                 <div class="payment-legend-row"><span><i class="payment-dot" style="background:#f59e0b;"></i>Pending</span><strong id="legend-pending">0</strong></div>
@@ -170,23 +175,25 @@
         <div class="payment-lower">
           <section class="payment-panel">
             <div class="payment-panel-head"><h2 class="payment-panel-title">Payment Ledger</h2><span class="payment-note" id="ledger-count">0 records</span></div>
-            <div class="payment-table-scroll"><table class="payment-table"><thead><tr><th>ID</th><th>Client / User</th><th>Amount</th><th>Method</th><th>Status</th><th>Source</th><th>Date</th></tr></thead><tbody id="payment-rows"></tbody></table></div>
+            <div class="payment-table-scroll">
+              <table class="payment-table">
+                <thead><tr><th>ID</th><th>Client</th><th>Amount</th><th>Method</th><th>Status</th><th>Source</th><th>Date</th><th></th></tr></thead>
+                <tbody id="payment-rows"></tbody>
+              </table>
+            </div>
           </section>
           <aside class="payment-panel">
             <div class="payment-panel-head"><h2 class="payment-panel-title">Add Payment</h2><span class="payment-note">Fast entry</span></div>
             <form class="payment-form" id="payment-form">
-              <input id="pay-user" type="text" placeholder="Client or User ID">
-              <select id="pay-client" title="Client"><option value="">No Client (Internal)</option></select>
-              <input id="pay-amount" type="number" min="0" step="0.01" placeholder="Amount">
+              <select id="pay-client" title="Client" required><option value="">Select Client...</option></select>
+              <input id="pay-amount" type="number" min="0" step="0.01" placeholder="Amount" required>
               <select id="pay-currency" title="Currency"><option value="INR">INR</option><option value="USD">USD</option></select>
               <select id="pay-method" title="Method"><option value="UPI">UPI</option><option value="Bank Transfer">Bank Transfer</option><option value="Card">Card</option><option value="Cash">Cash</option></select>
               <select id="pay-status" title="Status"><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
               <button class="payment-btn" type="submit"><i class="fas fa-check"></i> Record Payment</button>
             </form>
-            <div class="payment-bars">
-              <div class="payment-bar-row"><span>UPI</span><span class="payment-track"><span class="payment-fill" style="width:74%;"></span></span><strong>74%</strong></div>
-              <div class="payment-bar-row"><span>Bank</span><span class="payment-track"><span class="payment-fill" style="width:58%;background:linear-gradient(90deg,#16a34a,#86efac);"></span></span><strong>58%</strong></div>
-              <div class="payment-bar-row"><span>Card</span><span class="payment-track"><span class="payment-fill" style="width:36%;background:linear-gradient(90deg,#ff6b00,#fdba74);"></span></span><strong>36%</strong></div>
+            <div class="payment-bars" id="method-bars">
+              <!-- Dynamically generated bars go here -->
             </div>
           </aside>
         </div>
@@ -222,14 +229,60 @@
   }
 
 
+  window.togglePaymentStatus = async function(id, currentStatus) {
+    const statuses = ['pending', 'paid', 'overdue'];
+    const nextStatus = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
+    
+    try {
+      const token = localStorage.getItem('tt_token') || localStorage.getItem('token') || localStorage.getItem('authToken');
+      const res = await fetch(`/api/payments/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (res.ok) {
+        const p = paymentState.find(p => p.id === id || String(p.id) === String(id));
+        if (p) {
+          p.status = nextStatus;
+          renderPayments();
+        }
+      }
+    } catch (e) {
+      console.error('Failed to update status', e);
+    }
+  };
+
+  window.deletePayment = async function(id) {
+    if(!confirm('Are you sure you want to delete this payment?')) return;
+    try {
+      const token = localStorage.getItem('tt_token') || localStorage.getItem('token') || localStorage.getItem('authToken');
+      const res = await fetch(`/api/payments/${id}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (res.ok) {
+        paymentState = paymentState.filter(p => p.id !== id && String(p.id) !== String(id));
+        renderPayments();
+      }
+    } catch (e) {
+      console.error('Failed to delete payment', e);
+    }
+  };
+
   function renderPayments() {
     const search = document.getElementById('payment-search')?.value?.trim().toLowerCase() || '';
     const rows = paymentState.filter(p => isWithinActivePeriod(p) && [p.id, p.user, p.method, p.status].some(v => String(v).toLowerCase().includes(search)));
+    
+    // Sort by date descending
+    rows.sort((a,b) => parsePaymentDate(b.date) - parsePaymentDate(a.date));
+
     const paid = rows.filter(p => p.status === 'paid');
     const pending = rows.filter(p => p.status === 'pending');
     const overdue = rows.filter(p => p.status === 'overdue');
     const revenue = paid.reduce((sum, p) => sum + p.amount, 0);
-    const average = rows.length ? revenue / rows.length : 0;
+    const average = rows.length ? rows.reduce((s, p) => s + p.amount, 0) / rows.length : 0;
+    
+    // Metrics
     document.getElementById('metric-revenue').textContent = money(revenue);
     document.getElementById('metric-paid').textContent = paid.length;
     document.getElementById('metric-pending').textContent = pending.length;
@@ -240,14 +293,147 @@
     document.getElementById('legend-pending').textContent = pending.length;
     document.getElementById('legend-overdue').textContent = overdue.length;
     document.getElementById('ledger-count').textContent = `${rows.length} records`;
+    
+    // Donut Chart Math
+    const totalCount = rows.length || 1; 
+    const pPaid = (paid.length / totalCount) * 100;
+    const pPend = (pending.length / totalCount) * 100;
+    const pOver = (overdue.length / totalCount) * 100;
+    
+    // Conic gradient mapping: paid (green), pending (yellow), overdue (red)
+    const donutEl = document.getElementById('status-donut');
+    if(donutEl) {
+       donutEl.style.background = `conic-gradient(#16a34a 0 ${pPaid}%, #f59e0b ${pPaid}% ${pPaid + pPend}%, #ef4444 ${pPaid + pPend}% 100%)`;
+    }
+
+    // Method Bars Math
+    const methodCounts = { 'UPI': 0, 'Bank Transfer': 0, 'Card': 0, 'Cash': 0 };
+    rows.forEach(r => {
+      const m = r.method;
+      if (methodCounts[m] !== undefined) methodCounts[m]++;
+      else methodCounts[m] = 1;
+    });
+    
+    let barsHtml = '';
+    const gradients = ['#102a96,#3b82f6', '#16a34a,#86efac', '#ff6b00,#fdba74', '#9333ea,#d8b4fe'];
+    let colorIdx = 0;
+    for (const [method, count] of Object.entries(methodCounts)) {
+      if (count === 0 && rows.length > 0) continue;
+      const pct = rows.length ? Math.round((count / rows.length) * 100) : 0;
+      barsHtml += `
+        <div class="payment-bar-row">
+          <span>${method}</span>
+          <span class="payment-track"><span class="payment-fill" style="width:${pct}%; background:linear-gradient(90deg,${gradients[colorIdx%gradients.length]});"></span></span>
+          <strong>${pct}%</strong>
+        </div>`;
+      colorIdx++;
+    }
+    const methodBarsEl = document.getElementById('method-bars');
+    if(methodBarsEl) methodBarsEl.innerHTML = barsHtml;
+
+    // Line Chart Generator
+    renderLineChart(rows);
+
+    // Ledger
     document.getElementById('payment-rows').innerHTML = rows.map(p => {
       const sourceBadge = p.source === 'client_portal' 
         ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:800;color:#7c3aed;background:#ede9fe;border-radius:999px;padding:4px 8px;">🔗 Client Portal</span>'
         : '<span style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:800;color:#64748b;background:#f1f5f9;border-radius:999px;padding:4px 8px;">Staff</span>';
+      
+      const dateStr = parsePaymentDate(p.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      
       return `
-      <tr><td>${p.id}</td><td>${p.user}</td><td>${money(p.amount, p.currency)}</td><td>${p.method}</td><td><span class="payment-pill ${p.status}">${p.status}</span></td><td>${sourceBadge}</td><td>${String(p.date).slice(0, 12)}</td></tr>
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.user}</td>
+        <td>${money(p.amount, p.currency)}</td>
+        <td>${p.method}</td>
+        <td><span class="payment-pill ${p.status}" onclick="togglePaymentStatus(${typeof p.id === 'string' ? `'${p.id}'` : p.id}, '${p.status}')" title="Click to toggle status">${p.status}</span></td>
+        <td>${sourceBadge}</td>
+        <td>${dateStr}</td>
+        <td><button class="action-btn" onclick="deletePayment(${typeof p.id === 'string' ? `'${p.id}'` : p.id})" title="Delete"><i class="fas fa-trash"></i></button></td>
+      </tr>
     `;
-    }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;">No payments found</td></tr>';
+    }).join('') || '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:24px;">No payments found for this period</td></tr>';
+  }
+
+  function renderLineChart(rows) {
+    // 4 buckets based on active period
+    const buckets = [0, 0, 0, 0];
+    const now = new Date();
+    now.setHours(23,59,59,999);
+    
+    // Only calculate revenue of paid invoices for the trend
+    const paidRows = rows.filter(r => r.status === 'paid');
+    
+    paidRows.forEach(p => {
+      const d = parsePaymentDate(p.date);
+      const diffTime = Math.abs(now - d);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      const bucketSize = activePeriodDays / 4;
+      if (diffDays <= bucketSize) buckets[3] += p.amount;
+      else if (diffDays <= bucketSize * 2) buckets[2] += p.amount;
+      else if (diffDays <= bucketSize * 3) buckets[1] += p.amount;
+      else buckets[0] += p.amount;
+    });
+
+    const maxVal = Math.max(...buckets, 1000); // base min 1000 to avoid flatline if empty
+    
+    const paddingX = 46;
+    const paddingYTop = 42;
+    const paddingYBottom = 244;
+    const usableHeight = paddingYBottom - paddingYTop;
+    const usableWidth = 740 - 46;
+    const stepX = usableWidth / 3;
+    
+    const points = buckets.map((val, idx) => {
+      const x = paddingX + (stepX * idx);
+      const heightRatio = val / maxVal;
+      const y = paddingYBottom - (usableHeight * heightRatio);
+      return { x, y, val };
+    });
+
+    const pathData = `M${points[0].x} ${points[0].y} C ${points[0].x + 50} ${points[0].y}, ${points[1].x - 50} ${points[1].y}, ${points[1].x} ${points[1].y} C ${points[1].x + 50} ${points[1].y}, ${points[2].x - 50} ${points[2].y}, ${points[2].x} ${points[2].y} C ${points[2].x + 50} ${points[2].y}, ${points[3].x - 50} ${points[3].y}, ${points[3].x} ${points[3].y}`;
+    
+    const areaData = `${pathData} L ${points[3].x} ${paddingYBottom + 26} L ${points[0].x} ${paddingYBottom + 26} Z`;
+
+    // Dynamic labels
+    let labelUnit = 'Week';
+    if(activePeriodDays === 7) labelUnit = 'Day';
+    if(activePeriodDays === 90) labelUnit = 'Month';
+    if(activePeriodDays === 365) labelUnit = 'Quarter';
+
+    const labels = [
+      `${labelUnit} 1`, `${labelUnit} 2`, `${labelUnit} 3`, `${labelUnit} 4`
+    ];
+
+    const chartContainer = document.getElementById('revenue-chart-container');
+    if(!chartContainer) return;
+    
+    chartContainer.innerHTML = `
+      <svg viewBox="0 0 760 300" aria-label="Revenue line chart">
+        <defs><linearGradient id="paymentArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".28"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#e5e7eb" stroke-width="1">
+          <line x1="46" y1="42" x2="740" y2="42"/>
+          <line x1="46" y1="${42 + usableHeight*0.25}" x2="740" y2="${42 + usableHeight*0.25}"/>
+          <line x1="46" y1="${42 + usableHeight*0.5}" x2="740" y2="${42 + usableHeight*0.5}"/>
+          <line x1="46" y1="${42 + usableHeight*0.75}" x2="740" y2="${42 + usableHeight*0.75}"/>
+          <line x1="46" y1="244" x2="740" y2="244"/>
+        </g>
+        <path d="${areaData}" fill="url(#paymentArea)"/>
+        <path d="${pathData}" fill="none" stroke="#102a96" stroke-width="5" stroke-linecap="round"/>
+        <g fill="#ff6b00">
+          ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5"><title>${money(p.val)}</title></circle>`).join('')}
+        </g>
+        <g fill="#64748b" font-size="13" font-weight="700">
+          <text x="35" y="275">${labels[0]}</text>
+          <text x="${points[1].x - 20}" y="275">${labels[1]}</text>
+          <text x="${points[2].x - 20}" y="275">${labels[2]}</text>
+          <text x="${points[3].x - 40}" y="275">${labels[3]}</text>
+        </g>
+      </svg>
+    `;
   }
 
   async function loadPayments() {
@@ -274,38 +460,32 @@
     });
     document.getElementById('payment-form')?.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const payment = {
-        id: `PAY-${Math.floor(1000 + Math.random() * 9000)}`,
-        user: document.getElementById('pay-user').value.trim() || 'Client',
+      
+      const clientEl = document.getElementById('pay-client');
+      const payload = {
+        client_id: clientEl.value || null,
         amount: Number(document.getElementById('pay-amount').value || 0),
         currency: document.getElementById('pay-currency').value,
         method: document.getElementById('pay-method').value,
         status: document.getElementById('pay-status').value,
-        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        source: 'employee_portal',
-        client_id: document.getElementById('pay-client')?.value || null
       };
+
       try {
         const token = localStorage.getItem('tt_token') || localStorage.getItem('token') || localStorage.getItem('authToken');
-        await fetch('/api/payments', {
+        const res = await fetch('/api/payments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({
-            user_id: null,
-            client_id: payment.client_id || null,
-            amount: payment.amount,
-            currency: payment.currency,
-            payment_date: new Date().toISOString(),
-            method: payment.method,
-            notes: '',
-            status: payment.status,
-            description: ''
-          })
+          body: JSON.stringify(payload)
         });
-      } catch { }
-      paymentState.unshift(payment);
-      event.target.reset();
-      renderPayments();
+        
+        if (res.ok) {
+          event.target.reset();
+          // Reload all payments to ensure correct data and ID mappings
+          await loadPayments();
+        }
+      } catch (e) { 
+        console.error('Failed to create payment', e);
+      }
     });
   }
 

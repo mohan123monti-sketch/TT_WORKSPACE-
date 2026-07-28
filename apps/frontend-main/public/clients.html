@@ -1553,21 +1553,26 @@
       <div id="dbadmin-content" class="client-auto-21"></div>
     </div>
   </div>
-  <div id="tickets-modal" class="client-auto-22">
-    <div class="client-auto-23 glass-card">
-      <div class="client-auto-24">
-        <span><i class="fas fa-ticket-alt"></i> Tickets</span>
-        <i title="Close" class="client-auto-25 fas fa-times" id="tickets-close"></i>
+      <!-- Tickets Modal -->
+    <div id="tickets-modal" class="premium-modal">
+      <div class="premium-modal-wrapper">
+        <div class="premium-modal-header">
+          <span><i class="fas fa-ticket-alt"></i> Tickets</span>
+          <i class="fas fa-times" id="tickets-close"></i>
+        </div>
+        <div id="tickets-list" class="premium-modal-body"></div>
+        <form id="tickets-add-form" class="premium-modal-form">
+          <input type="text" name="title" placeholder="Title" required>
+          <input type="text" name="description" placeholder="Description" required>
+          <select name="priority">
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgent</option>
+            <option value="low">Low</option>
+          </select>
+          <button type="submit" class="premium-modal-btn">ADD</button>
+        </form>
       </div>
-      <div id="tickets-list" class="client-auto-26"></div>
-      <form id="tickets-add-form" class="client-auto-27">
-        <input id="ticket-title" type="text" placeholder="Title" class="client-auto-28 form-input" required />
-        <input id="ticket-desc" type="text" placeholder="Description" class="client-auto-29 form-input" />
-        <input id="ticket-priority" type="text" placeholder="Priority" class="client-auto-30 form-input" />
-        <button type="submit" class="client-auto-31 btn-primary">Add</button>
-      </form>
     </div>
-  </div>
   <div id="payments-modal" class="client-auto-32">
     <div class="client-auto-33 glass-card">
       <div class="client-auto-34">

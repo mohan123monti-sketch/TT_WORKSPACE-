@@ -113,6 +113,116 @@
   z-index: 9000;
 }
 
+/* --- Premium Modal Redesign --- */
+.premium-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9000;
+  background: rgba(15, 23, 42, 0.65);
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.premium-modal-wrapper {
+  background: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.25), 0 0 0 1px rgba(16,42,150,0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-modal-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.premium-modal-header i {
+  color: #94a3b8;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.premium-modal-header i:hover {
+  color: #ffffff;
+}
+
+.premium-modal-body {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 500;
+}
+
+.premium-modal-form {
+  padding: 16px 24px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.premium-modal-form input,
+.premium-modal-form select {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.premium-modal-form input:focus,
+.premium-modal-form select:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+}
+
+.premium-modal-btn {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0 20px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.premium-modal-btn:hover {
+  background: #1d4ed8;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
 .modal-header {
   display: flex;

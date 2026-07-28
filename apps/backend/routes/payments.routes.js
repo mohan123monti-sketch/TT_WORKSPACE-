@@ -69,4 +69,13 @@ router.delete('/:id', verifyToken, (req, res) => {
   res.json({ success: true });
 });
 
+// Update payment status
+router.patch('/:id/status', verifyToken, (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  if (!status) return res.status(400).json({ error: 'Status required' });
+  db.prepare('UPDATE payments SET status = ? WHERE id = ?').run(status, id);
+  res.json({ success: true, id, status });
+});
+
 module.exports = router;

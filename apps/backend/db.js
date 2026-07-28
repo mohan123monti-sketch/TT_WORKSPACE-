@@ -569,6 +569,20 @@ if (!submissionColumns.includes('admin_status')) {
   db.exec("ALTER TABLE submissions ADD COLUMN admin_status TEXT DEFAULT 'pending'");
 }
 
+const paymentColumns = db.prepare('PRAGMA table_info(payments)').all().map(c => c.name);
+if (!paymentColumns.includes('client_id')) {
+  db.exec('ALTER TABLE payments ADD COLUMN client_id INTEGER REFERENCES clients(id)');
+}
+if (!paymentColumns.includes('status')) {
+  db.exec("ALTER TABLE payments ADD COLUMN status TEXT DEFAULT 'pending'");
+}
+if (!paymentColumns.includes('source')) {
+  db.exec("ALTER TABLE payments ADD COLUMN source TEXT DEFAULT 'employee_portal'");
+}
+if (!paymentColumns.includes('description')) {
+  db.exec('ALTER TABLE payments ADD COLUMN description TEXT');
+}
+
 // Keep primary role CHECK constraint synced when role list expands.
 const usersTableSql = (db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get() || {}).sql || '';
 const missingPrimaryRoles = BUILTIN_ROLE_NAMES.filter(role => !usersTableSql.includes(`'${role}'`));
