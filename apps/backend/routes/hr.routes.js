@@ -50,7 +50,7 @@ router.put('/leaves/:id', verifyToken, checkRole('admin', 'team_leader'), (req, 
     db.prepare('UPDATE leave_requests SET status = ?, admin_comment = ? WHERE id = ?').run(status, admin_comment, req.params.id);
     
     if (global.io) global.io.emit('hrUpdated');
-    res.json({ message: \`Leave \${status}\` });
+    res.json({ message: `Leave ${status}` });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update leave' });
   }
@@ -62,11 +62,11 @@ router.put('/leaves/:id', verifyToken, checkRole('admin', 'team_leader'), (req, 
 // Get payroll slips (Admin sees all, users see their own)
 router.get('/payroll', verifyToken, (req, res) => {
   try {
-    let query = \`
+    let query = `
       SELECT p.*, u.name as user_name 
       FROM payroll p
       JOIN users u ON u.id = p.user_id
-    \`;
+    `;
     const params = [];
     
     if (req.user.role !== 'admin') {
@@ -88,10 +88,10 @@ router.post('/payroll', verifyToken, checkRole('admin'), (req, res) => {
     const { user_id, month, year, base_salary, bonuses, deductions } = req.body;
     const net = Number(base_salary) + Number(bonuses || 0) - Number(deductions || 0);
     
-    db.prepare(\`
+    db.prepare(`
       INSERT INTO payroll (user_id, month, year, base_salary, bonuses, deductions, net_salary, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
-    \`).run(user_id, month, year, base_salary, bonuses || 0, deductions || 0, net);
+    `).run(user_id, month, year, base_salary, bonuses || 0, deductions || 0, net);
     
     if (global.io) global.io.emit('hrUpdated');
     res.json({ message: 'Payroll slip generated successfully' });
