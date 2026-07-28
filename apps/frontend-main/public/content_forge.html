@@ -199,13 +199,13 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/content-forge.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       auth.initNavbar();
       initThreeBg();
       initSidebar();
       if(window.initContentForge) initContentForge();
-    });
+    };
   </script>
 </body>
 </html>

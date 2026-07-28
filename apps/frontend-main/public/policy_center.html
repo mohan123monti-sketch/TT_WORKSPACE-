@@ -191,14 +191,14 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/policy-center.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       auth.requireRole('admin');
       auth.initNavbar();
       initThreeBg();
       initSidebar();
       if (window.initPolicyCenter) await initPolicyCenter();
-    });
+    };
   </script>
 </body>
 

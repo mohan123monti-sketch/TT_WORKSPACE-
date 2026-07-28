@@ -145,14 +145,18 @@ function initSidebar() {
     if (window.auth) auth.initNavbar();
   }
 
-  // Active state
-  const path = window.location.pathname;
-  document.querySelectorAll('.menu-item').forEach(item => {
-    const href = item.getAttribute('onclick')?.match(/'(.*?)'/)?.[1];
-    if (href && (path.endsWith(href) || (path === '/' && href === 'dashboard.html'))) {
-      item.classList.add('active');
-    }
-  });
+  function updateSidebarActive() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.classList.remove('active');
+      const href = item.getAttribute('data-nav') || item.getAttribute('onclick')?.match(/'(.*?)'/)?.[1];
+      if (href && (path.endsWith(href) || (path === '/' && href === 'dashboard.html'))) {
+        item.classList.add('active');
+      }
+    });
+  }
+
+  updateSidebarActive();
 
   // Logout
   const logoutBtn = document.getElementById('logout-btn');
@@ -176,24 +180,72 @@ function initSidebar() {
   overlay.className = 'page-transition-overlay';
   document.body.appendChild(overlay);
 
-  function loadPage(url) {
+  async function loadPage(url) {
+    if (url === window.location.pathname + window.location.search) return;
+    
     overlay.classList.add('active');
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network error');
+      
+      const htmlString = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      
+      const newMain = doc.querySelector('.main-content') || doc.querySelector('.dashboard-container');
+      const currentMain = document.querySelector('.main-content') || document.querySelector('.dashboard-container');
+      
+      if (!newMain || !currentMain) throw new Error('Main content container missing');
+
+      setTimeout(async () => {
+        document.title = doc.title;
+        currentMain.innerHTML = newMain.innerHTML;
+        history.pushState(null, '', url);
+        updateSidebarActive();
+
+        // Dynamically execute new scripts
+        const scripts = Array.from(doc.body.querySelectorAll('script'));
+        for (const script of scripts) {
+          if (script.src) {
+             const src = script.getAttribute('src');
+             if (!document.querySelector(`script[src="${src}"]`)) {
+                await new Promise(r => {
+                  const s = document.createElement('script');
+                  s.src = src;
+                  s.onload = r;
+                  s.onerror = r;
+                  document.body.appendChild(s);
+                });
+             }
+          } else {
+             try { eval(script.textContent); } catch(e) { console.error('SPA Inline Script Error:', e); }
+          }
+        }
+        
+        // Trigger initialization
+        if (window.initPage) {
+           window.initPage();
+        } else {
+           window.document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
+        }
+
+        overlay.classList.remove('active');
+      }, 300);
+      
+    } catch(e) {
+      console.error('SPA Navigation failed, falling back:', e);
       window.location.href = url;
-    }, 400);
+    }
   }
 
-  // Intercept all internal navigation (Forcing Zero-Refresh)
+  // Intercept all internal navigation
   document.addEventListener('click', (e) => {
-    // Skip interception if click is inside a modal, action button, or close button
-    if (e.target.closest('.modal') || e.target.closest('.action-btn') || e.target.closest('.close-modal') || e.target.closest('.modal-content')) {
-      return;
-    }
+    if (e.target.closest('.modal') || e.target.closest('.action-btn') || e.target.closest('.close-modal') || e.target.closest('.modal-content')) return;
 
     const link = e.target.closest('a') || e.target.closest('[data-nav]') || e.target.closest('.menu-item');
     if (link) {
       let href = link.getAttribute('data-nav') || link.getAttribute('href');
-
       if (!href && link.classList.contains('menu-item')) {
         const onclick = link.getAttribute('onclick');
         if (onclick && onclick.includes('window.location.href')) {
@@ -210,10 +262,13 @@ function initSidebar() {
   }, true);
 
   // Handle browser back/forward
-  window.onpopstate = () => loadPage(window.location.pathname + window.location.search);
+  window.onpopstate = () => {
+     loadPage(window.location.pathname + window.location.search);
+  };
 
   loadNotifications();
-  setInterval(loadNotifications, 30000);
+  if (window.notifInterval) clearInterval(window.notifInterval);
+  window.notifInterval = setInterval(loadNotifications, 30000);
 }
 
 async function loadNotifications() {
@@ -254,3 +309,9 @@ async function markNotifRead(id) {
 
 window.initSidebar = initSidebar;
 window.markNotifRead = markNotifRead;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.initPage) {
+    window.initPage();
+  }
+});

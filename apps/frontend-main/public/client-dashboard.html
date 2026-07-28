@@ -356,7 +356,7 @@
     <script src="js/api.js" defer></script>
     <script src="js/three-bg.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        window.initPage = async () => {
             initThreeBg();
 
             const urlParams = new URLSearchParams(window.location.search);

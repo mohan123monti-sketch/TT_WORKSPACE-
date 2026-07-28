@@ -188,13 +188,13 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/nexus-lab.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       auth.initNavbar();
       initThreeBg();
       initSidebar();
       if(window.initNexusLab) initNexusLab();
-    });
+    };
   </script>
 </body>
 </html>

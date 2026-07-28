@@ -571,14 +571,14 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/admin-control.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       auth.requireRole('admin');
       auth.initNavbar();
       initThreeBg();
       initSidebar();
       if (window.initAdminControl) initAdminControl();
-    });
+    };
   </script>
 </body>
 

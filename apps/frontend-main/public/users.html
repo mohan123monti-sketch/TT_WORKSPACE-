@@ -337,7 +337,7 @@
   <script src="js/users.js" defer></script>
   <script src="js/dbadmin.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
         auth.requireAuth();
         auth.requireRole('admin');
         const user = auth.getUser();
@@ -347,7 +347,7 @@
         initSidebar();
         if (window.initUsers) initUsers();
         initModuleUI();
-    });
+    };
 
     function initModuleUI() {
         const setupModal = (linkId, modalId, closeId) => {
