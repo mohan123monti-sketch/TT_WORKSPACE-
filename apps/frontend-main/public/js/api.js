@@ -15,7 +15,10 @@ const api = {
 
     try {
       const res = await fetch(this.BASE + endpoint, options);
-      if (res.status === 401) { auth.logout(); return; }
+      if (res.status === 401 && !endpoint.includes('/login')) { 
+        auth.logout(); 
+        return; 
+      }
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
       return data;
