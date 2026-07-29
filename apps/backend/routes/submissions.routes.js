@@ -120,10 +120,6 @@ router.post('/', verifyToken, (req, res) => {
         notifyByRole('admin', `📤 New manual work for "${project_name || 'Project'}" — review required`, 'info', 'Tech Turf Manual Submission Alert').catch(() => {});
       }
 
-      if (global.io) {
-        global.io.emit('submissionUpdated');
-        global.io.emit('taskUpdated');
-      }
       res.json({ message: 'Submitted successfully', id: result.lastInsertRowid, version });
     } catch (err) {
       console.error('Submission Error:', err);
@@ -236,10 +232,6 @@ router.put('/:id/leader-review', verifyToken, checkRole('team_leader'), async (r
     }
     notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title}" needs rework. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
-  if (global.io) {
-    global.io.emit('submissionUpdated');
-    global.io.emit('taskUpdated');
-  }
   res.json({ message: `Submission ${statusVal.value}` });
 });
 
@@ -283,10 +275,6 @@ router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res
     notifyUsers(sub.submitted_by, `🔄 Your submission for "${task?.title || sub.project_name || 'Project'}" needs more work from admin review. ${note || ''}`, 'warning', 'Tech Turf Submission Needs Rework').catch(() => {});
   }
 
-  if (global.io) {
-    global.io.emit('submissionUpdated');
-    global.io.emit('taskUpdated');
-  }
   res.json({ message: `Admin review ${statusVal.value}` });
 });
 
@@ -294,10 +282,6 @@ router.put('/:id/admin-review', verifyToken, checkRole('admin'), async (req, res
 router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
   try {
     db.prepare('DELETE FROM submissions WHERE id=?').run(req.params.id);
-    if (global.io) {
-      global.io.emit('submissionUpdated');
-      global.io.emit('taskUpdated');
-    }
     res.json({ message: 'Submission deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Failed to delete submission' });

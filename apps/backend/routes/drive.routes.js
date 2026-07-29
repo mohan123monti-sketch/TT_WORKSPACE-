@@ -87,7 +87,6 @@ router.post('/folder', verifyToken, (req, res) => {
     const result = db.prepare('INSERT INTO drive_items (name, type, parent_id, created_by) VALUES (?, ?, ?, ?)').run(
       nameVal.value, 'folder', parentId, req.user.id
     );
-    if (global.io) global.io.emit('driveUpdated');
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (e) {
     console.error('Create folder error:', e);
@@ -117,7 +116,6 @@ router.post('/upload', verifyToken, upload.single('file'), (req, res) => {
       req.file.filename,
       req.user.id
     );
-    if (global.io) global.io.emit('driveUpdated');
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (e) {
     console.error('Upload error:', e);
@@ -136,7 +134,6 @@ router.post('/share', verifyToken, checkRole('admin'), (req, res) => {
     db.prepare('INSERT INTO drive_access (item_id, user_id, access_level) VALUES (?, ?, ?) ON CONFLICT(item_id, user_id) DO UPDATE SET access_level = excluded.access_level').run(
       itemIdVal.value, userIdVal.value, accessLevel || 'viewer'
     );
-    if (global.io) global.io.emit('driveUpdated');
     res.json({ success: true });
   } catch (e) {
     console.error('Share error:', e);
@@ -195,7 +192,6 @@ router.delete('/:id', verifyToken, checkRole('admin'), (req, res) => {
     
     // SQLite with foreign_keys=ON will handle children of a folder
     db.prepare('DELETE FROM drive_items WHERE id = ?').run(req.params.id);
-    if (global.io) global.io.emit('driveUpdated');
     res.json({ success: true });
   } catch (e) {
     console.error('Delete drive item error:', e);
