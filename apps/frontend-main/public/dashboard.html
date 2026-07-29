@@ -131,6 +131,7 @@
             gap: 10px;
             margin-bottom: 15px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .report-select-main {
@@ -473,6 +474,18 @@
                 </div>
             </div>
 
+            <!-- Attendance Tracker Widget -->
+            <div class="glass-card anim-fade-up" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-start; padding: 25px 30px; min-height: 80px;">
+                <div>
+                    <h3 style="margin: 0; font-family: var(--font-display);">Attendance Tracker</h3>
+                    <div id="attendance-status" style="font-size: 0.9rem; color: var(--text-muted); margin-top: 5px;">Fetching status...</div>
+                </div>
+                <div>
+                    <button id="clock-in-btn" class="btn-primary" style="background: var(--accent-green); display: none;"><i class="fas fa-clock"></i> Clock In</button>
+                    <button id="clock-out-btn" class="btn-primary" style="background: var(--accent-orange); display: none;"><i class="fas fa-sign-out-alt"></i> Clock Out</button>
+                </div>
+            </div>
+
             <div id="role-hub-injection"></div>
 
             <!-- New KPI Cards Section -->
@@ -654,7 +667,7 @@
     <script src="js/dashboard.js" defer></script>
     <script>
         // Module Initialization
-        document.addEventListener('DOMContentLoaded', async () => {
+        window.initPage = async () => {
             // Check auth first
             auth.requireAuth();
             const user = auth.getUser();
@@ -672,9 +685,7 @@
 
             // Interactive Tool Modules (Modals & Data Fetching)
             initModuleUI();
-        });
-
-        // Toggle visibility for tool modals
+};
         function initModuleUI() {
             const setupModal = (linkId, modalId, closeId) => {
                 const link = document.getElementById(linkId);

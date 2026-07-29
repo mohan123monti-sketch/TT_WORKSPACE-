@@ -343,7 +343,7 @@
     <script src="js/sidebar.js" defer></script>
     <script src="js/drive.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
+        window.initPage = async () => {
             auth.requireAuth();
             if (!auth.getUser()) return;
             
@@ -352,7 +352,7 @@
             initSidebar();
             
             if (window.initDrive) drive.init();
-        });
+        };
     </script>
 </body>
 </html>

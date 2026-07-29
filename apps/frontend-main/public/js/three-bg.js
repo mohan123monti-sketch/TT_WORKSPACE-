@@ -1,4 +1,7 @@
 function initThreeBg() {
+  if (window.bgInitialized) return;
+  window.bgInitialized = true;
+  
   if (!window.THREE) {
     console.error('Three.js not loaded');
     return;

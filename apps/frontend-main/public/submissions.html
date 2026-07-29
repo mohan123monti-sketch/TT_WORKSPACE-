@@ -1004,7 +1004,7 @@
   <script src="js/submissions.js" defer></script>
 
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       const user = auth.getUser();
       if (!user) return;
@@ -1013,7 +1013,7 @@
       initSidebar();
       if (window.initSubmissions) initSubmissions();
       initModuleUI();
-    });
+    };
 
     function initModuleUI() {
       const setupModal = (linkId, modalId, closeId) => {

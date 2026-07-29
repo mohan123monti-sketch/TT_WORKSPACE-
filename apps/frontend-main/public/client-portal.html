@@ -168,7 +168,7 @@
     <script src="js/api.js" defer></script>
     <script src="js/three-bg.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        window.initPage = () => {
             initThreeBg();
 
             // Auto-detect pass from URL
@@ -201,7 +201,7 @@
                     btn.innerHTML = '<span>INITIATE CONNECTION</span> <i class="fas fa-satellite-dish"></i>';
                 }
             };
-        });
+        };
     </script>
 </body>
 

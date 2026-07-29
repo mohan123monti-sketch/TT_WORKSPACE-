@@ -189,14 +189,14 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/help-center.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
       auth.requireAuth();
       auth.requireRole('admin');
       auth.initNavbar();
       initThreeBg();
       initSidebar();
       if (window.initHelpCenterOps) await initHelpCenterOps();
-    });
+    };
   </script>
 </body>
 

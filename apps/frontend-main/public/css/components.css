@@ -359,3 +359,21 @@ select.form-control option {
 .detail-panel.open {
   right: 0;
 }
+
+.form-input {
+  padding: 10px 14px;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: 6px;
+  background: var(--bg-surface, #f8fafc);
+  color: var(--text-primary, #334155);
+  font-size: 0.9rem;
+  outline: none;
+  min-height: 42px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--accent-primary, #3b82f6);
+  background: #ffffff;
+}

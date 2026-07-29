@@ -223,7 +223,7 @@
   <script src="js/auth.js" defer></script>
   <script src="js/three-bg.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    window.initPage = () => {
       const LAST_LOGIN_ROLE_KEY = 'tt_last_login_role';
       initThreeBg();
 
@@ -260,7 +260,7 @@
           btn.innerHTML = '<span>Sign In</span> <i class="fas fa-arrow-right"></i>';
         }
       };
-    });
+    };
   </script>
 </body>
 

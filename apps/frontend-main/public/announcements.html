@@ -311,7 +311,7 @@
   <script src="js/sidebar.js" defer></script>
   <script src="js/announcements.js" defer></script>
   <script>
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.initPage = async () => {
         auth.requireAuth();
         const user = auth.getUser();
         if (!user) return;
@@ -320,7 +320,7 @@
         initSidebar();
         if (window.initAnnouncements) initAnnouncements();
         initModuleUI();
-    });
+    };
 
     function initModuleUI() {
         const setupModal = (linkId, modalId, closeId) => {
